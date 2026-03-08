@@ -13287,8 +13287,8 @@
             ]
           },
           {
-            "name": "glm-4-flash-250414",
-            "display_name": "GLM-4-Flash",
+            "name": "glm-4-airx",
+            "display_name": "GLM-4-AirX",
             "description": "智谱快速模型，适合日常任务",
             "max_tokens": 8192,
             "input_price_per_1k": 0.001,
