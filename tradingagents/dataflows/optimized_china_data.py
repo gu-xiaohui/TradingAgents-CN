@@ -19,6 +19,10 @@ from tradingagents.config.runtime_settings import get_float, get_timezone_name
 from tradingagents.utils.logging_manager import get_logger
 logger = get_logger('agents')
 
+# 修复异步事件循环问题
+import nest_asyncio
+nest_asyncio.apply()
+
 # 导入 MongoDB 缓存适配器
 from .cache.mongodb_cache_adapter import get_mongodb_cache_adapter, get_stock_data_with_fallback, get_financial_data_with_fallback
 

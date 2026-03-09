@@ -50,6 +50,55 @@ const routes: RouteRecordRaw[] = [
       }
     ]
   },
+  // 新版 UI 路由（独立，使用新布局）
+  {
+    path: '/new',
+    name: 'NewLayout',
+    component: () => import('@/layouts/BasicLayoutNew.vue'),
+    meta: { requiresAuth: true },
+    children: [
+      {
+        path: '',
+        redirect: '/new/dashboard'
+      },
+      {
+        path: 'dashboard',
+        name: 'NewDashboard',
+        component: () => import('@/views/Dashboard/indexNew.vue'),
+        meta: { title: '仪表板', requiresAuth: true }
+      },
+      {
+        path: 'analysis',
+        name: 'NewAnalysis',
+        component: () => import('@/views/Analysis/SingleAnalysisNew.vue'),
+        meta: { title: '单股分析', requiresAuth: true }
+      },
+      {
+        path: 'screening',
+        name: 'NewScreening',
+        component: () => import('@/views/Screening/indexNew.vue'),
+        meta: { title: '股票筛选', requiresAuth: true }
+      },
+      {
+        path: 'tasks',
+        name: 'NewTasks',
+        component: () => import('@/views/Tasks/TaskCenterNew.vue'),
+        meta: { title: '任务中心', requiresAuth: true }
+      },
+      {
+        path: 'settings',
+        name: 'NewSettings',
+        component: () => import('@/views/Settings/indexNew.vue'),
+        meta: { title: '设置', requiresAuth: true }
+      },
+      {
+        path: 'learning',
+        name: 'NewLearning',
+        component: () => import('@/views/Learning/indexNew.vue'),
+        meta: { title: '学习中心', requiresAuth: true }
+      }
+    ]
+  },
   {
     path: '/analysis',
     name: 'Analysis',
@@ -60,6 +109,11 @@ const routes: RouteRecordRaw[] = [
         path: 'single',
         name: 'SingleAnalysis',
         component: () => import('@/views/Analysis/SingleAnalysis.vue')
+      },
+      {
+        path: 'single-new',
+        name: 'SingleAnalysisNew',
+        component: () => import('@/views/Analysis/SingleAnalysisNew.vue')
       },
       {
         path: 'batch',
@@ -86,6 +140,15 @@ const routes: RouteRecordRaw[] = [
         component: () => import('@/views/Screening/index.vue'),
         meta: {
           title: '股票筛选',
+          requiresAuth: true
+        }
+      },
+      {
+        path: 'new',
+        name: 'StockScreeningNew',
+        component: () => import('@/views/Screening/indexNew.vue'),
+        meta: {
+          title: '股票筛选 (新)',
           requiresAuth: true
         }
       }
@@ -341,6 +404,16 @@ const routes: RouteRecordRaw[] = [
     path: '/login',
     name: 'Login',
     component: () => import('@/views/Auth/Login.vue'),
+    meta: {
+      title: '登录',
+      hideInMenu: true,
+      transition: 'fade'
+    }
+  },
+  {
+    path: '/login-new',
+    name: 'LoginNew',
+    component: () => import('@/views/Auth/LoginNew.vue'),
     meta: {
       title: '登录',
       hideInMenu: true,

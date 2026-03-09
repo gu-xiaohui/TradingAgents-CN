@@ -9,6 +9,10 @@ from datetime import datetime, timedelta
 from typing import Optional, Tuple, List
 import pandas as pd
 
+# 修复异步事件循环问题
+import nest_asyncio
+nest_asyncio.apply()
+
 logger = logging.getLogger(__name__)
 
 

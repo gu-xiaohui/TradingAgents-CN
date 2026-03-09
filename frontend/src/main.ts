@@ -15,6 +15,10 @@ import { setupGlobalComponents } from './components'
 import { useAuthStore } from './stores/auth'
 import { useAppStore } from './stores/app'
 import { setupTokenRefreshTimer } from './utils/auth'
+
+// Tailwind CSS
+import './styles/tailwind.css'
+
 import './styles/index.scss'
 import './styles/dark-theme.scss'
 
