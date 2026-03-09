@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-[#020617] flex items-center justify-center p-4 relative overflow-hidden">
+  <div class="min-h-screen bg-[var(--bg-primary)] flex items-center justify-center p-4 relative overflow-hidden">
     <!-- Background effects -->
     <div class="fixed inset-0 overflow-hidden pointer-events-none">
       <div class="absolute -top-1/2 -left-1/2 w-full h-full bg-gradient-to-br from-[#22C55E]/10 to-transparent rounded-full blur-3xl" />
@@ -15,8 +15,8 @@
             <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
           </svg>
         </div>
-        <h1 class="text-2xl font-bold text-[#F8FAFC]">TradingAgents-CN</h1>
-        <p class="text-[#94A3B8] mt-2">AI 多智能体股票分析系统</p>
+        <h1 class="text-2xl font-bold text-[var(--text-primary)]">TradingAgents-CN</h1>
+        <p class="text-[var(--text-secondary)] mt-2">AI 多智能体股票分析系统</p>
       </div>
 
       <!-- Login form card -->
@@ -24,9 +24,9 @@
         <form @submit.prevent="handleLogin" class="space-y-5">
           <!-- Username -->
           <div>
-            <label class="block text-sm font-medium text-[#94A3B8] mb-2">用户名</label>
+            <label class="block text-sm font-medium text-[var(--text-secondary)] mb-2">用户名</label>
             <div class="relative">
-              <div class="absolute left-3 top-1/2 -translate-y-1/2 text-[#64748B]">
+              <div class="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]">
                 <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                 </svg>
@@ -35,7 +35,7 @@
                 v-model="username"
                 type="text"
                 placeholder="请输入用户名"
-                class="w-full pl-10 pr-4 py-3 bg-[#020617] border border-white/10 rounded-xl text-[#F8FAFC] placeholder-[#64748B] focus:outline-none focus:border-[#22C55E] focus:ring-1 focus:ring-[#22C55E] transition-all"
+                class="w-full pl-10 pr-4 py-3 bg-[var(--bg-primary)] border border-white/10 rounded-xl text-[var(--text-primary)] placeholder-[#64748B] focus:outline-none focus:border-[#22C55E] focus:ring-1 focus:ring-[#22C55E] transition-all"
                 required
               />
             </div>
@@ -43,9 +43,9 @@
 
           <!-- Password -->
           <div>
-            <label class="block text-sm font-medium text-[#94A3B8] mb-2">密码</label>
+            <label class="block text-sm font-medium text-[var(--text-secondary)] mb-2">密码</label>
             <div class="relative">
-              <div class="absolute left-3 top-1/2 -translate-y-1/2 text-[#64748B]">
+              <div class="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]">
                 <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                 </svg>
@@ -54,7 +54,7 @@
                 v-model="password"
                 type="password"
                 placeholder="请输入密码"
-                class="w-full pl-10 pr-4 py-3 bg-[#020617] border border-white/10 rounded-xl text-[#F8FAFC] placeholder-[#64748B] focus:outline-none focus:border-[#22C55E] focus:ring-1 focus:ring-[#22C55E] transition-all"
+                class="w-full pl-10 pr-4 py-3 bg-[var(--bg-primary)] border border-white/10 rounded-xl text-[var(--text-primary)] placeholder-[#64748B] focus:outline-none focus:border-[#22C55E] focus:ring-1 focus:ring-[#22C55E] transition-all"
                 required
               />
             </div>
@@ -62,11 +62,11 @@
 
           <!-- Remember & Forgot -->
           <div class="flex items-center justify-between text-sm">
-            <label class="flex items-center gap-2 text-[#94A3B8] cursor-pointer">
+            <label class="flex items-center gap-2 text-[var(--text-secondary)] cursor-pointer">
               <input
                 v-model="rememberMe"
                 type="checkbox"
-                class="w-4 h-4 rounded border-white/10 bg-[#020617] text-[#22C55E] focus:ring-[#22C55E]"
+                class="w-4 h-4 rounded border-white/10 bg-[var(--bg-primary)] text-[#22C55E] focus:ring-[#22C55E]"
               />
               记住我
             </label>
@@ -98,13 +98,13 @@
             <div class="w-full border-t border-white/10" />
           </div>
           <div class="relative flex justify-center text-sm">
-            <span class="px-4 bg-transparent text-[#64748B]">或</span>
+            <span class="px-4 bg-transparent text-[var(--text-muted)]">或</span>
           </div>
         </div>
 
         <!-- Alternative login -->
         <div class="text-center">
-          <p class="text-sm text-[#64748B]">
+          <p class="text-sm text-[var(--text-muted)]">
             还没有账号？
             <a href="#" class="text-[#22C55E] hover:text-[#22C55E]/80 transition-colors">立即注册</a>
           </p>
@@ -112,11 +112,11 @@
       </div>
 
       <!-- Footer -->
-      <p class="text-center text-[#64748B] text-xs mt-6">
+      <p class="text-center text-[var(--text-muted)] text-xs mt-6">
         登录即表示您同意我们的
-        <a href="#" class="text-[#94A3B8] hover:text-[#F8FAFC] transition-colors">服务条款</a>
+        <a href="#" class="text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors">服务条款</a>
         和
-        <a href="#" class="text-[#94A3B8] hover:text-[#F8FAFC] transition-colors">隐私政策</a>
+        <a href="#" class="text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors">隐私政策</a>
       </p>
     </div>
   </div>

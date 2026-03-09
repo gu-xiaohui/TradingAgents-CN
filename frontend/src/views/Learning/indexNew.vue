@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-[#020617] text-[#F8FAFC] p-6">
+  <div class="min-h-screen bg-[var(--bg-primary)] text-[var(--text-primary)] p-6">
     <!-- 页面头部 -->
     <div class="mb-8">
       <h1 class="text-3xl font-bold flex items-center gap-3">
@@ -10,7 +10,7 @@
         </div>
         学习中心
       </h1>
-      <p class="text-[#94A3B8] mt-2 ml-13">了解 AI、大模型和智能股票分析</p>
+      <p class="text-[var(--text-secondary)] mt-2 ml-13">了解 AI、大模型和智能股票分析</p>
     </div>
 
     <!-- 分类卡片 -->
@@ -27,10 +27,10 @@
         >
           <component :is="category.icon" class="w-7 h-7" :class="category.iconColor" />
         </div>
-        <h3 class="text-lg font-semibold text-[#F8FAFC] mb-2 group-hover:text-[#22C55E] transition-colors">
+        <h3 class="text-lg font-semibold text-[var(--text-primary)] mb-2 group-hover:text-[#22C55E] transition-colors">
           {{ category.title }}
         </h3>
-        <p class="text-sm text-[#64748B] mb-4 line-clamp-2">
+        <p class="text-sm text-[var(--text-muted)] mb-4 line-clamp-2">
           {{ category.description }}
         </p>
         <div class="flex items-center justify-between">
@@ -40,7 +40,7 @@
           >
             {{ category.count }}篇文章
           </span>
-          <svg class="w-5 h-5 text-[#64748B] group-hover:text-[#22C55E] group-hover:translate-x-1 transition-all" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <svg class="w-5 h-5 text-[var(--text-muted)] group-hover:text-[#22C55E] group-hover:translate-x-1 transition-all" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
             <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
           </svg>
         </div>
@@ -69,12 +69,12 @@
               </svg>
             </div>
             <div class="flex-1 min-w-0">
-              <h4 class="text-sm font-medium text-[#F8FAFC] truncate">{{ article.title }}</h4>
-              <p class="text-xs text-[#64748B] mt-1 line-clamp-2">{{ article.excerpt }}</p>
+              <h4 class="text-sm font-medium text-[var(--text-primary)] truncate">{{ article.title }}</h4>
+              <p class="text-xs text-[var(--text-muted)] mt-1 line-clamp-2">{{ article.excerpt }}</p>
               <div class="flex items-center gap-2 mt-2">
-                <span class="text-xs text-[#64748B]">{{ article.readTime }}</span>
-                <span class="text-xs text-[#64748B]">·</span>
-                <span class="text-xs text-[#64748B]">{{ article.category }}</span>
+                <span class="text-xs text-[var(--text-muted)]">{{ article.readTime }}</span>
+                <span class="text-xs text-[var(--text-muted)]">·</span>
+                <span class="text-xs text-[var(--text-muted)]">{{ article.category }}</span>
               </div>
             </div>
           </div>
@@ -201,8 +201,8 @@ const categories = [
     description: '解答使用过程中的常见疑问',
     icon: IconQuestion,
     bgColor: 'bg-[#64748B]/20',
-    iconColor: 'text-[#64748B]',
-    tagBg: 'bg-[#64748B]/20 text-[#64748B]',
+    iconColor: 'text-[var(--text-muted)]',
+    tagBg: 'bg-[#64748B]/20 text-[var(--text-muted)]',
     count: 5
   }
 ]

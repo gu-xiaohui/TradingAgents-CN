@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-[#020617] text-[#F8FAFC] p-6">
+  <div class="min-h-screen bg-[var(--bg-primary)] text-[var(--text-primary)] p-6">
     <!-- 页面头部 -->
     <div class="mb-8">
       <h1 class="text-3xl font-bold flex items-center gap-3">
@@ -10,7 +10,7 @@
         </div>
         任务中心
       </h1>
-      <p class="text-[#94A3B8] mt-2 ml-13">统一查看并管理分析任务：进行中 / 已完成 / 失败</p>
+      <p class="text-[var(--text-secondary)] mt-2 ml-13">统一查看并管理分析任务：进行中 / 已完成 / 失败</p>
     </div>
 
     <!-- 统计卡片 -->
@@ -22,8 +22,8 @@
           </svg>
         </div>
         <div>
-          <div class="text-2xl font-bold text-[#F8FAFC]">{{ stats.total }}</div>
-          <div class="text-sm text-[#64748B]">总任务</div>
+          <div class="text-2xl font-bold text-[var(--text-primary)]">{{ stats.total }}</div>
+          <div class="text-sm text-[var(--text-muted)]">总任务</div>
         </div>
       </div>
       <div class="card p-4 flex items-center gap-4">
@@ -34,7 +34,7 @@
         </div>
         <div>
           <div class="text-2xl font-bold text-[#22C55E]">{{ stats.completed }}</div>
-          <div class="text-sm text-[#64748B]">已完成</div>
+          <div class="text-sm text-[var(--text-muted)]">已完成</div>
         </div>
       </div>
       <div class="card p-4 flex items-center gap-4">
@@ -45,7 +45,7 @@
         </div>
         <div>
           <div class="text-2xl font-bold text-[#EF4444]">{{ stats.failed }}</div>
-          <div class="text-sm text-[#64748B]">失败</div>
+          <div class="text-sm text-[var(--text-muted)]">失败</div>
         </div>
       </div>
       <div class="card p-4 flex items-center gap-4">
@@ -56,7 +56,7 @@
         </div>
         <div>
           <div class="text-2xl font-bold text-[#8B5CF6]">{{ stats.uniqueStocks }}</div>
-          <div class="text-sm text-[#64748B]">股票数</div>
+          <div class="text-sm text-[var(--text-muted)]">股票数</div>
         </div>
       </div>
     </div>
@@ -72,7 +72,7 @@
           class="px-4 py-2 rounded-lg text-sm font-medium transition-colors"
           :class="activeTab === tab.value 
             ? 'bg-[#22C55E]/10 text-[#22C55E]' 
-            : 'text-[#94A3B8] hover:text-[#F8FAFC] hover:bg-white/5'"
+            : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-white/5'"
         >
           {{ tab.label }}
           <span class="ml-2 px-2 py-0.5 rounded-full text-xs" :class="activeTab === tab.value ? 'bg-[#22C55E]/20' : 'bg-white/10'">
@@ -131,28 +131,28 @@
               <svg v-else-if="task.status === 'failed'" class="w-5 h-5 text-[#EF4444]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
               </svg>
-              <svg v-else class="w-5 h-5 text-[#64748B]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <svg v-else class="w-5 h-5 text-[var(--text-muted)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </div>
 
             <div>
               <div class="flex items-center gap-2">
-                <span class="font-mono font-medium text-[#F8FAFC]">{{ task.stock_code }}</span>
-                <span class="text-sm text-[#94A3B8]">{{ task.stock_name }}</span>
+                <span class="font-mono font-medium text-[var(--text-primary)]">{{ task.stock_code }}</span>
+                <span class="text-sm text-[var(--text-secondary)]">{{ task.stock_name }}</span>
                 <span 
                   class="text-xs px-2 py-0.5 rounded-full"
                   :class="{
                     'bg-[#F59E0B]/20 text-[#F59E0B]': task.status === 'running' || task.status === 'processing',
                     'bg-[#22C55E]/20 text-[#22C55E]': task.status === 'completed',
                     'bg-[#EF4444]/20 text-[#EF4444]': task.status === 'failed',
-                    'bg-[#64748B]/20 text-[#64748B]': task.status === 'pending'
+                    'bg-[#64748B]/20 text-[var(--text-muted)]': task.status === 'pending'
                   }"
                 >
                   {{ getStatusText(task.status) }}
                 </span>
               </div>
-              <div class="text-xs text-[#64748B] mt-1">
+              <div class="text-xs text-[var(--text-muted)] mt-1">
                 {{ formatTime(task.start_time || task.created_at) }}
               </div>
             </div>
@@ -166,7 +166,7 @@
                 :style="{ width: `${task.progress || 0}%` }"
               ></div>
             </div>
-            <div class="text-xs text-[#64748B] text-center mt-1">{{ task.progress || 0 }}%</div>
+            <div class="text-xs text-[var(--text-muted)] text-center mt-1">{{ task.progress || 0 }}%</div>
           </div>
 
           <!-- 操作按钮 -->
@@ -196,29 +196,29 @@
 
         <!-- 空状态 -->
         <div v-if="filteredTasks.length === 0" class="text-center py-16">
-          <svg class="w-16 h-16 mx-auto mb-4 text-[#64748B] opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+          <svg class="w-16 h-16 mx-auto mb-4 text-[var(--text-muted)] opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
             <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
           </svg>
-          <p class="text-[#64748B]">暂无任务</p>
+          <p class="text-[var(--text-muted)]">暂无任务</p>
         </div>
       </div>
 
       <!-- 分页 -->
       <div v-if="total > pageSize" class="flex items-center justify-between mt-6 pt-4 border-t border-white/10">
-        <div class="text-sm text-[#64748B]">共 {{ total }} 条记录</div>
+        <div class="text-sm text-[var(--text-muted)]">共 {{ total }} 条记录</div>
         <div class="flex items-center gap-2">
           <button
             @click="currentPage--"
             :disabled="currentPage === 1"
-            class="px-3 py-1.5 rounded-lg text-sm bg-white/5 text-[#94A3B8] hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed"
+            class="px-3 py-1.5 rounded-lg text-sm bg-white/5 text-[var(--text-secondary)] hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             上一页
           </button>
-          <span class="text-sm text-[#F8FAFC]">{{ currentPage }} / {{ totalPages }}</span>
+          <span class="text-sm text-[var(--text-primary)]">{{ currentPage }} / {{ totalPages }}</span>
           <button
             @click="currentPage++"
             :disabled="currentPage >= totalPages"
-            class="px-3 py-1.5 rounded-lg text-sm bg-white/5 text-[#94A3B8] hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed"
+            class="px-3 py-1.5 rounded-lg text-sm bg-white/5 text-[var(--text-secondary)] hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             下一页
           </button>

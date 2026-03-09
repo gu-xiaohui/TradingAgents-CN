@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-[#020617] text-[#F8FAFC] p-6">
+  <div class="min-h-screen bg-[var(--bg-primary)] text-[var(--text-primary)] p-6">
     <!-- 页面头部 -->
     <div class="mb-8">
       <h1 class="text-3xl font-bold flex items-center gap-3">
@@ -10,7 +10,7 @@
         </div>
         股票筛选
       </h1>
-      <p class="text-[#94A3B8] mt-2 ml-13">多维度筛选条件，快速找到符合投资策略的优质股票</p>
+      <p class="text-[var(--text-secondary)] mt-2 ml-13">多维度筛选条件，快速找到符合投资策略的优质股票</p>
     </div>
 
     <div class="grid grid-cols-12 gap-6">
@@ -19,12 +19,12 @@
         <div class="card sticky top-6">
           <div class="flex items-center justify-between mb-6">
             <h2 class="text-lg font-semibold">筛选条件</h2>
-            <button @click="resetFilters" class="text-sm text-[#94A3B8] hover:text-[#F8FAFC]">重置</button>
+            <button @click="resetFilters" class="text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)]">重置</button>
           </div>
 
           <!-- 市场类型 -->
           <div class="mb-6">
-            <label class="block text-sm text-[#94A3B8] mb-2">市场类型</label>
+            <label class="block text-sm text-[var(--text-secondary)] mb-2">市场类型</label>
             <select v-model="filters.market" class="input">
               <option value="A股">🇨🇳 A股市场</option>
             </select>
@@ -32,18 +32,18 @@
 
           <!-- 行业分类 -->
           <div class="mb-6">
-            <label class="block text-sm text-[#94A3B8] mb-2">行业分类</label>
+            <label class="block text-sm text-[var(--text-secondary)] mb-2">行业分类</label>
             <div class="space-y-2 max-h-40 overflow-y-auto">
               <label v-for="industry in industryOptions" :key="industry.value" class="flex items-center gap-2 p-2 rounded-lg hover:bg-white/5 cursor-pointer">
                 <input type="checkbox" v-model="filters.industries" :value="industry.value" class="w-4 h-4 accent-[#22C55E]" />
-                <span class="text-sm text-[#F8FAFC]">{{ industry.label }}</span>
+                <span class="text-sm text-[var(--text-primary)]">{{ industry.label }}</span>
               </label>
             </div>
           </div>
 
           <!-- 市值范围 -->
           <div class="mb-6">
-            <label class="block text-sm text-[#94A3B8] mb-2">市值范围</label>
+            <label class="block text-sm text-[var(--text-secondary)] mb-2">市值范围</label>
             <select v-model="filters.marketCapRange" class="input">
               <option value="">全部</option>
               <option value="small">小盘股 (&lt; 100亿)</option>
@@ -54,20 +54,20 @@
 
           <!-- 市盈率 -->
           <div class="mb-6">
-            <label class="block text-sm text-[#94A3B8] mb-2">市盈率 (PE)</label>
+            <label class="block text-sm text-[var(--text-secondary)] mb-2">市盈率 (PE)</label>
             <div class="flex items-center gap-2">
               <input v-model.number="filters.peMin" type="number" placeholder="最小" class="input text-sm w-20" />
-              <span class="text-[#64748B]">-</span>
+              <span class="text-[var(--text-muted)]">-</span>
               <input v-model.number="filters.peMax" type="number" placeholder="最大" class="input text-sm w-20" />
             </div>
           </div>
 
           <!-- 涨跌幅 -->
           <div class="mb-6">
-            <label class="block text-sm text-[#94A3B8] mb-2">今日涨跌幅</label>
+            <label class="block text-sm text-[var(--text-secondary)] mb-2">今日涨跌幅</label>
             <div class="flex items-center gap-2">
               <input v-model.number="filters.changeMin" type="number" placeholder="最小%" class="input text-sm w-20" />
-              <span class="text-[#64748B]">-</span>
+              <span class="text-[var(--text-muted)]">-</span>
               <input v-model.number="filters.changeMax" type="number" placeholder="最大%" class="input text-sm w-20" />
             </div>
           </div>
@@ -88,7 +88,7 @@
           <div class="flex items-center justify-between mb-6">
             <div>
               <h2 class="text-lg font-semibold">筛选结果</h2>
-              <p class="text-sm text-[#64748B] mt-1">共找到 {{ filteredStocks.length }} 只符合条件的股票</p>
+              <p class="text-sm text-[var(--text-muted)] mt-1">共找到 {{ filteredStocks.length }} 只符合条件的股票</p>
             </div>
             <div class="flex items-center gap-3">
               <select v-model="sortBy" class="input text-sm w-40">
@@ -114,33 +114,33 @@
                 </div>
                 <div>
                   <div class="flex items-center gap-2">
-                    <span class="font-mono font-medium text-[#F8FAFC]">{{ stock.code }}</span>
+                    <span class="font-mono font-medium text-[var(--text-primary)]">{{ stock.code }}</span>
                     <span class="badge-info text-xs">{{ stock.industry }}</span>
                   </div>
-                  <div class="text-sm text-[#94A3B8] mt-1">{{ stock.name }}</div>
+                  <div class="text-sm text-[var(--text-secondary)] mt-1">{{ stock.name }}</div>
                 </div>
               </div>
               
               <div class="flex items-center gap-8">
                 <div class="text-right">
-                  <div class="text-sm text-[#64748B]">现价</div>
-                  <div class="text-lg font-semibold text-[#F8FAFC]">¥{{ stock.price.toFixed(2) }}</div>
+                  <div class="text-sm text-[var(--text-muted)]">现价</div>
+                  <div class="text-lg font-semibold text-[var(--text-primary)]">¥{{ stock.price.toFixed(2) }}</div>
                 </div>
                 <div class="text-right">
-                  <div class="text-sm text-[#64748B]">涨跌幅</div>
+                  <div class="text-sm text-[var(--text-muted)]">涨跌幅</div>
                   <div :class="stock.change >= 0 ? 'text-[#EF4444]' : 'text-[#22C55E]'" class="text-lg font-semibold">
                     {{ stock.change >= 0 ? '+' : '' }}{{ stock.change.toFixed(2) }}%
                   </div>
                 </div>
                 <div class="text-right">
-                  <div class="text-sm text-[#64748B]">市盈率</div>
-                  <div class="text-lg font-semibold text-[#F8FAFC]">{{ stock.pe.toFixed(2) }}</div>
+                  <div class="text-sm text-[var(--text-muted)]">市盈率</div>
+                  <div class="text-lg font-semibold text-[var(--text-primary)]">{{ stock.pe.toFixed(2) }}</div>
                 </div>
                 <div class="text-right">
-                  <div class="text-sm text-[#64748B]">市值</div>
-                  <div class="text-lg font-semibold text-[#F8FAFC]">{{ formatMarketCap(stock.marketCap) }}</div>
+                  <div class="text-sm text-[var(--text-muted)]">市值</div>
+                  <div class="text-lg font-semibold text-[var(--text-primary)]">{{ formatMarketCap(stock.marketCap) }}</div>
                 </div>
-                <svg class="w-5 h-5 text-[#64748B]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <svg class="w-5 h-5 text-[var(--text-muted)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
                 </svg>
               </div>
@@ -149,11 +149,11 @@
 
           <!-- 空状态 -->
           <div v-else class="text-center py-16">
-            <svg class="w-16 h-16 mx-auto mb-4 text-[#64748B] opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+            <svg class="w-16 h-16 mx-auto mb-4 text-[var(--text-muted)] opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
               <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
-            <p class="text-[#64748B]">暂无符合条件的股票</p>
-            <p class="text-sm text-[#64748B] mt-2">请调整筛选条件后重试</p>
+            <p class="text-[var(--text-muted)]">暂无符合条件的股票</p>
+            <p class="text-sm text-[var(--text-muted)] mt-2">请调整筛选条件后重试</p>
           </div>
         </div>
       </div>

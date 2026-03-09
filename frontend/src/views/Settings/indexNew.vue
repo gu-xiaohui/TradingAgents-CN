@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-[#020617] text-[#F8FAFC] p-6">
+  <div class="min-h-screen bg-[var(--bg-primary)] text-[var(--text-primary)] p-6">
     <!-- 页面头部 -->
     <div class="mb-8">
       <h1 class="text-3xl font-bold flex items-center gap-3">
@@ -11,7 +11,7 @@
         </div>
         设置
       </h1>
-      <p class="text-[#94A3B8] mt-2 ml-13">管理您的账户和应用偏好设置</p>
+      <p class="text-[var(--text-secondary)] mt-2 ml-13">管理您的账户和应用偏好设置</p>
     </div>
 
     <div class="grid grid-cols-12 gap-6">
@@ -26,7 +26,7 @@
               class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors"
               :class="activeTab === item.id 
                 ? 'bg-[#22C55E]/10 text-[#22C55E]' 
-                : 'text-[#94A3B8] hover:text-[#F8FAFC] hover:bg-white/5'"
+                : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-white/5'"
             >
               <component :is="item.icon" class="w-5 h-5" />
               <span class="text-sm font-medium">{{ item.label }}</span>
@@ -43,17 +43,17 @@
           
           <div class="space-y-6">
             <div>
-              <label class="block text-sm text-[#94A3B8] mb-2">用户名</label>
+              <label class="block text-sm text-[var(--text-secondary)] mb-2">用户名</label>
               <input type="text" v-model="settings.username" disabled class="input opacity-60" />
             </div>
             
             <div>
-              <label class="block text-sm text-[#94A3B8] mb-2">邮箱</label>
+              <label class="block text-sm text-[var(--text-secondary)] mb-2">邮箱</label>
               <input type="email" v-model="settings.email" class="input" />
             </div>
             
             <div>
-              <label class="block text-sm text-[#94A3B8] mb-2">语言</label>
+              <label class="block text-sm text-[var(--text-secondary)] mb-2">语言</label>
               <select v-model="settings.language" class="input">
                 <option value="zh-CN">简体中文</option>
                 <option value="en-US">English</option>
@@ -61,7 +61,7 @@
             </div>
             
             <div>
-              <label class="block text-sm text-[#94A3B8] mb-2">时区</label>
+              <label class="block text-sm text-[var(--text-secondary)] mb-2">时区</label>
               <select v-model="settings.timezone" class="input">
                 <option value="Asia/Shanghai">Asia/Shanghai (GMT+8)</option>
                 <option value="America/New_York">America/New_York (GMT-5)</option>
@@ -81,7 +81,7 @@
           
           <div class="space-y-6">
             <div>
-              <label class="block text-sm text-[#94A3B8] mb-2">默认市场</label>
+              <label class="block text-sm text-[var(--text-secondary)] mb-2">默认市场</label>
               <select v-model="settings.defaultMarket" class="input">
                 <option value="A股">A股市场</option>
                 <option value="美股">美股市场</option>
@@ -90,7 +90,7 @@
             </div>
             
             <div>
-              <label class="block text-sm text-[#94A3B8] mb-2">默认分析深度</label>
+              <label class="block text-sm text-[var(--text-secondary)] mb-2">默认分析深度</label>
               <div class="grid grid-cols-5 gap-3">
                 <button
                   v-for="i in 5"
@@ -99,7 +99,7 @@
                   class="p-3 rounded-xl border-2 transition-all text-center"
                   :class="settings.defaultDepth === i 
                     ? 'border-[#22C55E] bg-[#22C55E]/10 text-[#22C55E]' 
-                    : 'border-white/10 bg-white/5 text-[#94A3B8] hover:border-white/20'"
+                    : 'border-white/10 bg-white/5 text-[var(--text-secondary)] hover:border-white/20'"
                 >
                   <div class="text-sm font-medium">{{ i }}级</div>
                 </button>
@@ -107,7 +107,7 @@
             </div>
             
             <div>
-              <label class="block text-sm text-[#94A3B8] mb-3">默认分析师</label>
+              <label class="block text-sm text-[var(--text-secondary)] mb-3">默认分析师</label>
               <div class="grid grid-cols-2 gap-3">
                 <label
                   v-for="analyst in analysts"
@@ -126,7 +126,7 @@
                   <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-[#22C55E]/20 to-[#8B5CF6]/20 flex items-center justify-center">
                     <component :is="analyst.icon" class="w-4 h-4 text-[#22C55E]" />
                   </div>
-                  <span class="text-sm text-[#F8FAFC]">{{ analyst.name }}</span>
+                  <span class="text-sm text-[var(--text-primary)]">{{ analyst.name }}</span>
                   <svg v-if="settings.defaultAnalysts.includes(analyst.id)" class="w-4 h-4 text-[#22C55E] ml-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
                   </svg>
@@ -147,32 +147,32 @@
           <div class="space-y-4">
             <label class="flex items-center justify-between p-4 rounded-xl bg-white/5 cursor-pointer hover:bg-white/10">
               <div>
-                <div class="text-sm font-medium text-[#F8FAFC]">分析完成通知</div>
-                <div class="text-xs text-[#64748B] mt-1">当分析任务完成时发送通知</div>
+                <div class="text-sm font-medium text-[var(--text-primary)]">分析完成通知</div>
+                <div class="text-xs text-[var(--text-muted)] mt-1">当分析任务完成时发送通知</div>
               </div>
               <input type="checkbox" v-model="settings.notifyOnComplete" class="w-5 h-5 accent-[#22C55E]" />
             </label>
             
             <label class="flex items-center justify-between p-4 rounded-xl bg-white/5 cursor-pointer hover:bg-white/10">
               <div>
-                <div class="text-sm font-medium text-[#F8FAFC]">分析失败通知</div>
-                <div class="text-xs text-[#64748B] mt-1">当分析任务失败时发送通知</div>
+                <div class="text-sm font-medium text-[var(--text-primary)]">分析失败通知</div>
+                <div class="text-xs text-[var(--text-muted)] mt-1">当分析任务失败时发送通知</div>
               </div>
               <input type="checkbox" v-model="settings.notifyOnFail" class="w-5 h-5 accent-[#22C55E]" />
             </label>
             
             <label class="flex items-center justify-between p-4 rounded-xl bg-white/5 cursor-pointer hover:bg-white/10">
               <div>
-                <div class="text-sm font-medium text-[#F8FAFC]">市场快讯推送</div>
-                <div class="text-xs text-[#64748B] mt-1">每日推送市场重要快讯</div>
+                <div class="text-sm font-medium text-[var(--text-primary)]">市场快讯推送</div>
+                <div class="text-xs text-[var(--text-muted)] mt-1">每日推送市场重要快讯</div>
               </div>
               <input type="checkbox" v-model="settings.notifyNews" class="w-5 h-5 accent-[#22C55E]" />
             </label>
             
             <label class="flex items-center justify-between p-4 rounded-xl bg-white/5 cursor-pointer hover:bg-white/10">
               <div>
-                <div class="text-sm font-medium text-[#F8FAFC]">邮件订阅</div>
-                <div class="text-xs text-[#64748B] mt-1">接收每周投资分析报告邮件</div>
+                <div class="text-sm font-medium text-[var(--text-primary)]">邮件订阅</div>
+                <div class="text-xs text-[var(--text-muted)] mt-1">接收每周投资分析报告邮件</div>
               </div>
               <input type="checkbox" v-model="settings.emailSubscription" class="w-5 h-5 accent-[#22C55E]" />
             </label>
@@ -191,8 +191,8 @@
             <div class="p-4 rounded-xl bg-white/5 border border-white/10">
               <div class="flex items-center justify-between">
                 <div>
-                  <div class="text-sm font-medium text-[#F8FAFC]">API 密钥配置</div>
-                  <div class="text-xs text-[#64748B] mt-1">管理 LLM API 密钥和数据源配置</div>
+                  <div class="text-sm font-medium text-[var(--text-primary)]">API 密钥配置</div>
+                  <div class="text-xs text-[var(--text-muted)] mt-1">管理 LLM API 密钥和数据源配置</div>
                 </div>
                 <button class="btn-secondary text-sm">管理</button>
               </div>
@@ -201,8 +201,8 @@
             <div class="p-4 rounded-xl bg-white/5 border border-white/10">
               <div class="flex items-center justify-between">
                 <div>
-                  <div class="text-sm font-medium text-[#F8FAFC]">数据源配置</div>
-                  <div class="text-xs text-[#64748B] mt-1">配置股票数据源 (Tushare, AKShare 等)</div>
+                  <div class="text-sm font-medium text-[var(--text-primary)]">数据源配置</div>
+                  <div class="text-xs text-[var(--text-muted)] mt-1">配置股票数据源 (Tushare, AKShare 等)</div>
                 </div>
                 <button class="btn-secondary text-sm">配置</button>
               </div>
@@ -211,8 +211,8 @@
             <div class="p-4 rounded-xl bg-white/5 border border-white/10">
               <div class="flex items-center justify-between">
                 <div>
-                  <div class="text-sm font-medium text-[#F8FAFC]">模型配置</div>
-                  <div class="text-xs text-[#64748B] mt-1">配置 AI 模型参数和选项</div>
+                  <div class="text-sm font-medium text-[var(--text-primary)]">模型配置</div>
+                  <div class="text-xs text-[var(--text-muted)] mt-1">配置 AI 模型参数和选项</div>
                 </div>
                 <button class="btn-secondary text-sm">配置</button>
               </div>
@@ -228,8 +228,8 @@
             <div class="p-4 rounded-xl bg-white/5 border border-white/10">
               <div class="flex items-center justify-between">
                 <div>
-                  <div class="text-sm font-medium text-[#F8FAFC]">清除分析缓存</div>
-                  <div class="text-xs text-[#64748B] mt-1">清除已完成的分析结果缓存</div>
+                  <div class="text-sm font-medium text-[var(--text-primary)]">清除分析缓存</div>
+                  <div class="text-xs text-[var(--text-muted)] mt-1">清除已完成的分析结果缓存</div>
                 </div>
                 <button @click="clearCache('analysis')" class="btn-secondary text-sm">清除</button>
               </div>
@@ -238,8 +238,8 @@
             <div class="p-4 rounded-xl bg-white/5 border border-white/10">
               <div class="flex items-center justify-between">
                 <div>
-                  <div class="text-sm font-medium text-[#F8FAFC]">清除图片缓存</div>
-                  <div class="text-xs text-[#64748B] mt-1">清除图表和图片缓存</div>
+                  <div class="text-sm font-medium text-[var(--text-primary)]">清除图片缓存</div>
+                  <div class="text-xs text-[var(--text-muted)] mt-1">清除图表和图片缓存</div>
                 </div>
                 <button @click="clearCache('images')" class="btn-secondary text-sm">清除</button>
               </div>
@@ -248,8 +248,8 @@
             <div class="p-4 rounded-xl bg-white/5 border border-white/10">
               <div class="flex items-center justify-between">
                 <div>
-                  <div class="text-sm font-medium text-[#F8FAFC]">清除全部缓存</div>
-                  <div class="text-xs text-[#64748B] mt-1">清除所有本地缓存数据</div>
+                  <div class="text-sm font-medium text-[var(--text-primary)]">清除全部缓存</div>
+                  <div class="text-xs text-[var(--text-muted)] mt-1">清除所有本地缓存数据</div>
                 </div>
                 <button @click="clearCache('all')" class="px-3 py-1.5 rounded-lg text-sm bg-[#EF4444]/10 text-[#EF4444] hover:bg-[#EF4444]/20 transition-colors">清除全部</button>
               </div>

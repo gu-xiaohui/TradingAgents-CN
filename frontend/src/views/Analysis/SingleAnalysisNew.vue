@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-[#020617] text-[#F8FAFC] p-6">
+  <div class="min-h-screen bg-[var(--bg-primary)] text-[var(--text-primary)] p-6">
     <!-- 页面头部 -->
     <div class="mb-8">
       <h1 class="text-3xl font-bold flex items-center gap-3">
@@ -10,7 +10,7 @@
         </div>
         单股分析
       </h1>
-      <p class="text-[#94A3B8] mt-2 ml-13">AI 驱动的智能股票分析，多维度评估投资价值与风险</p>
+      <p class="text-[var(--text-secondary)] mt-2 ml-13">AI 驱动的智能股票分析，多维度评估投资价值与风险</p>
     </div>
 
     <div class="grid grid-cols-12 gap-6">
@@ -24,7 +24,7 @@
 
           <!-- 股票信息 -->
           <div class="mb-8">
-            <h3 class="text-sm font-medium text-[#94A3B8] mb-4 flex items-center gap-2">
+            <h3 class="text-sm font-medium text-[var(--text-secondary)] mb-4 flex items-center gap-2">
               <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
               </svg>
@@ -32,7 +32,7 @@
             </h3>
             <div class="grid grid-cols-2 gap-4">
               <div>
-                <label class="block text-sm text-[#94A3B8] mb-2">股票代码 <span class="text-[#EF4444]">*</span></label>
+                <label class="block text-sm text-[var(--text-secondary)] mb-2">股票代码 <span class="text-[#EF4444]">*</span></label>
                 <input
                   v-model="form.stockCode"
                   type="text"
@@ -41,7 +41,7 @@
                 />
               </div>
               <div>
-                <label class="block text-sm text-[#94A3B8] mb-2">市场类型</label>
+                <label class="block text-sm text-[var(--text-secondary)] mb-2">市场类型</label>
                 <select v-model="form.market" class="input">
                   <option value="A股">🇨🇳 A股市场</option>
                   <option value="美股">🇺🇸 美股市场</option>
@@ -53,7 +53,7 @@
 
           <!-- 分析深度 -->
           <div class="mb-8">
-            <h3 class="text-sm font-medium text-[#94A3B8] mb-4 flex items-center gap-2">
+            <h3 class="text-sm font-medium text-[var(--text-secondary)] mb-4 flex items-center gap-2">
               <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
               </svg>
@@ -67,7 +67,7 @@
                 class="p-3 rounded-xl border-2 transition-all text-center"
                 :class="form.researchDepth === index + 1 
                   ? 'border-[#22C55E] bg-[#22C55E]/10 text-[#22C55E]' 
-                  : 'border-white/10 bg-white/5 text-[#94A3B8] hover:border-white/20'"
+                  : 'border-white/10 bg-white/5 text-[var(--text-secondary)] hover:border-white/20'"
               >
                 <!-- 闪电图标 - 快速 -->
                 <svg v-if="depth.icon === 'bolt'" class="w-6 h-6 mx-auto mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -97,7 +97,7 @@
 
           <!-- 分析师团队 -->
           <div class="mb-8">
-            <h3 class="text-sm font-medium text-[#94A3B8] mb-4 flex items-center gap-2">
+            <h3 class="text-sm font-medium text-[var(--text-secondary)] mb-4 flex items-center gap-2">
               <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
               </svg>
@@ -132,8 +132,8 @@
                   </svg>
                 </div>
                 <div class="flex-1 text-left">
-                  <div class="text-sm font-medium text-[#F8FAFC]">{{ analyst.name }}</div>
-                  <div class="text-xs text-[#64748B]">{{ analyst.desc }}</div>
+                  <div class="text-sm font-medium text-[var(--text-primary)]">{{ analyst.name }}</div>
+                  <div class="text-xs text-[var(--text-muted)]">{{ analyst.desc }}</div>
                 </div>
                 <svg v-if="form.selectedAnalysts.includes(analyst.name)" class="w-5 h-5 text-[#22C55E]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
@@ -172,7 +172,7 @@
 
           <!-- AI 模型配置 -->
           <div class="mb-6">
-            <h3 class="text-sm font-medium text-[#94A3B8] mb-3 flex items-center gap-2">
+            <h3 class="text-sm font-medium text-[var(--text-secondary)] mb-3 flex items-center gap-2">
               <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
               </svg>
@@ -180,7 +180,7 @@
             </h3>
             <div class="space-y-3">
               <div>
-                <label class="block text-xs text-[#64748B] mb-1">快速分析模型</label>
+                <label class="block text-xs text-[var(--text-muted)] mb-1">快速分析模型</label>
                 <select v-model="form.quickModel" class="input text-sm">
                   <option value="qwen-turbo">Qwen Turbo</option>
                   <option value="gpt-4o-mini">GPT-4o Mini</option>
@@ -188,7 +188,7 @@
                 </select>
               </div>
               <div>
-                <label class="block text-xs text-[#64748B] mb-1">深度决策模型</label>
+                <label class="block text-xs text-[var(--text-muted)] mb-1">深度决策模型</label>
                 <select v-model="form.deepModel" class="input text-sm">
                   <option value="qwen-max">Qwen Max</option>
                   <option value="gpt-4o">GPT-4o</option>
@@ -200,7 +200,7 @@
 
           <!-- 分析选项 -->
           <div>
-            <h3 class="text-sm font-medium text-[#94A3B8] mb-3 flex items-center gap-2">
+            <h3 class="text-sm font-medium text-[var(--text-secondary)] mb-3 flex items-center gap-2">
               <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
                 <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -209,11 +209,11 @@
             </h3>
             <div class="space-y-3">
               <label class="flex items-center justify-between p-3 rounded-lg bg-white/5 cursor-pointer hover:bg-white/10">
-                <span class="text-sm text-[#F8FAFC]">情绪分析</span>
+                <span class="text-sm text-[var(--text-primary)]">情绪分析</span>
                 <input type="checkbox" v-model="form.includeSentiment" class="w-4 h-4 accent-[#22C55E]" />
               </label>
               <label class="flex items-center justify-between p-3 rounded-lg bg-white/5 cursor-pointer hover:bg-white/10">
-                <span class="text-sm text-[#F8FAFC]">风险评估</span>
+                <span class="text-sm text-[var(--text-primary)]">风险评估</span>
                 <input type="checkbox" v-model="form.includeRisk" class="w-4 h-4 accent-[#22C55E]" />
               </label>
             </div>

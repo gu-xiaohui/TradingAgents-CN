@@ -1,7 +1,7 @@
 <template>
-  <div class="relative">
+  <div class="relative theme-switcher">
     <button
-      @click="toggleMenu"
+      @click.stop="toggleMenu"
       class="p-2 rounded-lg hover:bg-white/5 text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
     >
       <!-- 亮色图标 -->

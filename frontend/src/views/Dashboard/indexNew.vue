@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-[#020617] text-[#F8FAFC] p-6 space-y-6">
+  <div class="min-h-screen bg-[var(--bg-primary)] text-[var(--text-primary)] p-6 space-y-6 transition-colors duration-300">
     <!-- 欢迎区域 -->
     <div class="relative overflow-hidden rounded-2xl bg-gradient-to-r from-[#22C55E]/20 via-[#8B5CF6]/20 to-[#22C55E]/20 p-8">
       <div class="absolute inset-0 bg-gradient-to-r from-[#22C55E]/10 to-[#8B5CF6]/10" />
@@ -7,9 +7,9 @@
         <div>
           <h1 class="text-3xl font-bold flex items-center gap-3">
             TradingAgents-CN
-            <span class="text-sm font-normal px-3 py-1 rounded-full bg-white/10 text-[#94A3B8]">v1.0.0-preview</span>
+            <span class="text-sm font-normal px-3 py-1 rounded-full bg-white/10 text-[var(--text-secondary)]">v1.0.0-preview</span>
           </h1>
-          <p class="text-[#94A3B8] mt-2 text-lg">AI 多智能体股票分析系统</p>
+          <p class="text-[var(--text-secondary)] mt-2 text-lg">AI 多智能体股票分析系统</p>
         </div>
         <div class="flex gap-3">
           <button @click="quickAnalysis" class="btn-primary flex items-center gap-2">
@@ -37,8 +37,8 @@
           </svg>
         </div>
         <div class="flex-1">
-          <h2 class="text-xl font-semibold text-[#F8FAFC]">AI 股票分析学习中心</h2>
-          <p class="text-[#94A3B8] mt-1">从零开始学习 AI、大语言模型和智能股票分析</p>
+          <h2 class="text-xl font-semibold text-[var(--text-primary)]">AI 股票分析学习中心</h2>
+          <p class="text-[var(--text-secondary)] mt-1">从零开始学习 AI、大语言模型和智能股票分析</p>
           <div class="flex flex-wrap gap-2 mt-3">
             <span class="badge-success">AI 基础知识</span>
             <span class="badge-success">提示词工程</span>
@@ -79,10 +79,10 @@
                 <component :is="action.icon" />
               </div>
               <div class="flex-1">
-                <h4 class="font-medium text-[#F8FAFC]">{{ action.title }}</h4>
-                <p class="text-sm text-[#64748B]">{{ action.desc }}</p>
+                <h4 class="font-medium text-[var(--text-primary)]">{{ action.title }}</h4>
+                <p class="text-sm text-[var(--text-muted)]">{{ action.desc }}</p>
               </div>
-              <svg class="w-5 h-5 text-[#64748B] group-hover:text-[#22C55E] group-hover:translate-x-1 transition-all" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <svg class="w-5 h-5 text-[var(--text-muted)] group-hover:text-[#22C55E] group-hover:translate-x-1 transition-all" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
               </svg>
             </div>
@@ -110,33 +110,33 @@
             <table class="w-full">
               <thead>
                 <tr class="border-b border-white/10 text-left">
-                  <th class="pb-3 text-sm font-medium text-[#64748B]">股票代码</th>
-                  <th class="pb-3 text-sm font-medium text-[#64748B]">股票名称</th>
-                  <th class="pb-3 text-sm font-medium text-[#64748B]">状态</th>
-                  <th class="pb-3 text-sm font-medium text-[#64748B]">创建时间</th>
-                  <th class="pb-3 text-sm font-medium text-[#64748B]">操作</th>
+                  <th class="pb-3 text-sm font-medium text-[var(--text-muted)]">股票代码</th>
+                  <th class="pb-3 text-sm font-medium text-[var(--text-muted)]">股票名称</th>
+                  <th class="pb-3 text-sm font-medium text-[var(--text-muted)]">状态</th>
+                  <th class="pb-3 text-sm font-medium text-[var(--text-muted)]">创建时间</th>
+                  <th class="pb-3 text-sm font-medium text-[var(--text-muted)]">操作</th>
                 </tr>
               </thead>
               <tbody>
                 <tr v-for="analysis in recentAnalyses" :key="analysis.task_id" class="border-b border-white/5 hover:bg-white/5">
-                  <td class="py-3 text-[#F8FAFC] font-mono">{{ analysis.stock_code }}</td>
-                  <td class="py-3 text-[#94A3B8]">{{ analysis.stock_name }}</td>
+                  <td class="py-3 text-[var(--text-primary)] font-mono">{{ analysis.stock_code }}</td>
+                  <td class="py-3 text-[var(--text-secondary)]">{{ analysis.stock_name }}</td>
                   <td class="py-3">
                     <span :class="getStatusBadgeClass(analysis.status)">
                       {{ getStatusText(analysis.status) }}
                     </span>
                   </td>
-                  <td class="py-3 text-[#64748B] text-sm">{{ formatTime(analysis.start_time) }}</td>
+                  <td class="py-3 text-[var(--text-muted)] text-sm">{{ formatTime(analysis.start_time) }}</td>
                   <td class="py-3">
                     <button @click="viewAnalysis(analysis)" class="text-[#22C55E] hover:text-[#22C55E]/80 text-sm mr-3">查看</button>
-                    <button v-if="analysis.status === 'completed'" @click="downloadReport(analysis)" class="text-[#94A3B8] hover:text-[#F8FAFC] text-sm">下载</button>
+                    <button v-if="analysis.status === 'completed'" @click="downloadReport(analysis)" class="text-[var(--text-secondary)] hover:text-[var(--text-primary)] text-sm">下载</button>
                   </td>
                 </tr>
               </tbody>
             </table>
           </div>
           
-          <div v-else class="text-center py-8 text-[#64748B]">
+          <div v-else class="text-center py-8 text-[var(--text-muted)]">
             <svg class="w-12 h-12 mx-auto mb-3 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
               <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
             </svg>
@@ -160,12 +160,12 @@
               @click="openNewsUrl(news.url)"
               class="p-3 rounded-lg bg-white/5 hover:bg-white/10 cursor-pointer transition-colors"
             >
-              <p class="text-[#F8FAFC] text-sm">{{ news.title }}</p>
-              <p class="text-[#64748B] text-xs mt-1">{{ formatTime(news.time) }}</p>
+              <p class="text-[var(--text-primary)] text-sm">{{ news.title }}</p>
+              <p class="text-[var(--text-muted)] text-xs mt-1">{{ formatTime(news.time) }}</p>
             </div>
           </div>
           
-          <div v-else class="text-center py-8 text-[#64748B]">
+          <div v-else class="text-center py-8 text-[var(--text-muted)]">
             <svg class="w-12 h-12 mx-auto mb-3 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
               <path stroke-linecap="round" stroke-linejoin="round" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
             </svg>
@@ -196,23 +196,23 @@
               class="flex items-center justify-between p-3 rounded-lg bg-white/5 hover:bg-white/10 cursor-pointer transition-colors"
             >
               <div>
-                <p class="font-mono text-[#F8FAFC]">{{ stock.stock_code }}</p>
-                <p class="text-xs text-[#64748B]">{{ stock.stock_name }}</p>
+                <p class="font-mono text-[var(--text-primary)]">{{ stock.stock_code }}</p>
+                <p class="text-xs text-[var(--text-muted)]">{{ stock.stock_name }}</p>
               </div>
               <div class="text-right">
-                <p class="font-medium text-[#F8FAFC]">¥{{ stock.current_price }}</p>
+                <p class="font-medium text-[var(--text-primary)]">¥{{ stock.current_price }}</p>
                 <p :class="getPriceChangeClass(stock.change_percent)" class="text-sm">
                   {{ stock.change_percent > 0 ? '+' : '' }}{{ Number(stock.change_percent).toFixed(2) }}%
                 </p>
               </div>
             </div>
             
-            <button v-if="favoriteStocks.length > 5" @click="goToFavorites" class="w-full text-center text-sm text-[#94A3B8] hover:text-[#F8FAFC] py-2">
+            <button v-if="favoriteStocks.length > 5" @click="goToFavorites" class="w-full text-center text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] py-2">
               查看全部 {{ favoriteStocks.length }} 只自选股
             </button>
           </div>
           
-          <div v-else class="text-center py-6 text-[#64748B]">
+          <div v-else class="text-center py-6 text-[var(--text-muted)]">
             <svg class="w-10 h-10 mx-auto mb-2 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
               <path stroke-linecap="round" stroke-linejoin="round" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
             </svg>
@@ -236,27 +236,27 @@
           <div v-if="paperAccount" class="space-y-4">
             <!-- A股账户 -->
             <div class="p-3 rounded-lg bg-white/5 border border-white/10">
-              <p class="text-xs text-[#64748B] mb-2 flex items-center gap-1">
+              <p class="text-xs text-[var(--text-muted)] mb-2 flex items-center gap-1">
                 🇨🇳 A股账户
               </p>
               <div class="space-y-2">
                 <div class="flex justify-between text-sm">
-                  <span class="text-[#94A3B8]">现金</span>
-                  <span class="text-[#F8FAFC]">¥{{ formatMoney(paperAccount.cash?.CNY || paperAccount.cash) }}</span>
+                  <span class="text-[var(--text-secondary)]">现金</span>
+                  <span class="text-[var(--text-primary)]">¥{{ formatMoney(paperAccount.cash?.CNY || paperAccount.cash) }}</span>
                 </div>
                 <div class="flex justify-between text-sm">
-                  <span class="text-[#94A3B8]">持仓市值</span>
-                  <span class="text-[#F8FAFC]">¥{{ formatMoney(paperAccount.positions_value?.CNY || paperAccount.positions_value) }}</span>
+                  <span class="text-[var(--text-secondary)]">持仓市值</span>
+                  <span class="text-[var(--text-primary)]">¥{{ formatMoney(paperAccount.positions_value?.CNY || paperAccount.positions_value) }}</span>
                 </div>
                 <div class="flex justify-between text-sm pt-2 border-t border-white/10">
-                  <span class="text-[#94A3B8]">总资产</span>
+                  <span class="text-[var(--text-secondary)]">总资产</span>
                   <span class="text-[#22C55E] font-semibold">¥{{ formatMoney(paperAccount.equity?.CNY || paperAccount.equity) }}</span>
                 </div>
               </div>
             </div>
           </div>
           
-          <div v-else class="text-center py-6 text-[#64748B]">
+          <div v-else class="text-center py-6 text-[var(--text-muted)]">
             <svg class="w-10 h-10 mx-auto mb-2 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
               <path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
             </svg>
@@ -390,7 +390,7 @@ const getStatusBadgeClass = (status: string | AnalysisStatus) => {
 const getPriceChangeClass = (changePercent: number) => {
   if (changePercent > 0) return 'text-[#EF4444]'
   if (changePercent < 0) return 'text-[#22C55E]'
-  return 'text-[#94A3B8]'
+  return 'text-[var(--text-secondary)]'
 }
 
 // 加载数据
