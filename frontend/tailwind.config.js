@@ -8,15 +8,15 @@ export default {
   theme: {
     extend: {
       colors: {
-        primary: {
-          DEFAULT: '#0F172A',
-          light: '#1E293B',
-          dark: '#020617',
-        },
-        success: '#22C55E',
-        warning: '#F59E0B',
+        // 品牌色
+        primary: '#22C55E',
+        secondary: '#8B5CF6',
+        accent: '#F59E0B',
         danger: '#EF4444',
-        cta: '#8B5CF6',
+        warning: '#F59E0B',
+        success: '#22C55E',
+        info: '#3B82F6',
+        // 文字色
         text: {
           primary: '#F8FAFC',
           secondary: '#94A3B8',

@@ -6,8 +6,8 @@
         <div v-if="item.children" class="mb-2">
           <button
             @click="toggleSubmenu(item.path)"
-            class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-[#94A3B8] hover:text-[#F8FAFC] hover:bg-white/5 transition-colors"
-            :class="{ 'text-[#F8FAFC] bg-white/5': isSubmenuOpen(item.path) }"
+            class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-white/5 transition-colors"
+            :class="{ 'text-[var(--text-primary)] bg-white/5': isSubmenuOpen(item.path) }"
           >
             <div class="flex items-center gap-3">
               <component :is="item.icon" class="w-5 h-5" />
@@ -32,9 +32,9 @@
               class="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors"
               :class="isActive(child.path) 
                 ? 'text-[#22C55E] bg-[#22C55E]/10' 
-                : 'text-[#94A3B8] hover:text-[#F8FAFC] hover:bg-white/5'"
+                : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-white/5'"
             >
-              <span class="w-1.5 h-1.5 rounded-full" :class="isActive(child.path) ? 'bg-[#22C55E]' : 'bg-[#64748B]'"></span>
+              <span class="w-1.5 h-1.5 rounded-full" :class="isActive(child.path) ? 'bg-[#22C55E]' : 'bg-[var(--text-muted)]'"></span>
               {{ child.title }}
             </button>
           </div>
@@ -47,7 +47,7 @@
           class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors"
           :class="isActive(item.path) 
             ? 'text-[#22C55E] bg-[#22C55E]/10' 
-            : 'text-[#94A3B8] hover:text-[#F8FAFC] hover:bg-white/5'"
+            : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-white/5'"
         >
           <component :is="item.icon" class="w-5 h-5" />
           <span v-show="!collapsed" class="text-sm font-medium">{{ item.title }}</span>

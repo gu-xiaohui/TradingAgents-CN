@@ -14,6 +14,7 @@ import router from './router'
 import { setupGlobalComponents } from './components'
 import { useAuthStore } from './stores/auth'
 import { useAppStore } from './stores/app'
+import { useThemeStore } from './stores/theme'
 import { setupTokenRefreshTimer } from './utils/auth'
 
 // Tailwind CSS
@@ -86,12 +87,13 @@ const initApp = async () => {
   try {
     const authStore = useAuthStore()
     const appStore = useAppStore()
+    const themeStore = useThemeStore()
 
     console.log('🔄 初始化应用状态...')
 
     // 应用主题
-    appStore.applyTheme()
-    console.log('🎨 主题已应用:', appStore.theme)
+    themeStore.applyTheme()
+    console.log('🎨 主题已应用:', themeStore.theme, '(实际:', themeStore.getActualTheme(), ')')
 
     // 设置网络状态监听
     window.addEventListener('online', () => {
