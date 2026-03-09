@@ -131,7 +131,7 @@ const handleLogin = async () => {
   // Simulate login
   setTimeout(() => {
     loading.value = false
-    router.push('/dashboard')
+    router.push('/new/dashboard')
   }, 1500)
 }
 </script>

@@ -150,7 +150,7 @@ const handleLogin = async () => {
       username: username.value,
       password: password.value
     })
-    router.push('/dashboard')
+    router.push('/new/dashboard')
   } catch (error: any) {
     errorMsg.value = error.message || '登录失败，请检查用户名和密码'
   } finally {
