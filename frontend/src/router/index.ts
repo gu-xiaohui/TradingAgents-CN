@@ -96,6 +96,12 @@ const routes: RouteRecordRaw[] = [
         name: 'NewLearning',
         component: () => import('@/views/Learning/indexNew.vue'),
         meta: { title: '学习中心', requiresAuth: true }
+      },
+      {
+        path: 'about',
+        name: 'NewAbout',
+        component: () => import('@/views/About/indexNew.vue'),
+        meta: { title: '关于', requiresAuth: true }
       }
     ]
   },

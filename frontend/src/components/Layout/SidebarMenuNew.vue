@@ -139,7 +139,7 @@ const menuItems = [
       { path: '/settings/logs', title: '操作日志' },
     ]
   },
-  { path: '/about', title: '关于', icon: IconInfo },
+  { path: '/new/about', title: '关于', icon: IconInfo },
 ]
 
 // 展开的子菜单
