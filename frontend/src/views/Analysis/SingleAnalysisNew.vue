@@ -228,6 +228,7 @@
 import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
+import { analysisApi } from '@/api/analysis'
 
 const router = useRouter()
 const submitting = ref(false)
@@ -279,12 +280,33 @@ const submitAnalysis = async () => {
 
   submitting.value = true
   
-  // 模拟提交
-  setTimeout(() => {
-    ElMessage.success('分析任务已提交')
+  try {
+    // 调用真正的后端 API
+    const response = await analysisApi.startSingleAnalysis({
+      symbol: form.stockCode.trim(),
+      parameters: {
+        market_type: form.market,
+        research_depth: String(form.researchDepth),
+        selected_analysts: form.selectedAnalysts,
+        include_sentiment: form.includeSentiment,
+        include_risk: form.includeRisk,
+        quick_analysis_model: form.quickModel,
+        deep_analysis_model: form.deepModel,
+      }
+    })
+    
+    if (response.success) {
+      ElMessage.success('分析任务已提交')
+      // 跳转到任务中心
+      router.push('/tasks')
+    } else {
+      ElMessage.error(response.message || '提交失败')
+    }
+  } catch (error: any) {
+    console.error('提交分析失败:', error)
+    ElMessage.error(error.message || '提交失败，请稍后重试')
+  } finally {
     submitting.value = false
-    // 跳转到任务中心
-    router.push('/tasks')
-  }, 1500)
+  }
 }
 </script>
