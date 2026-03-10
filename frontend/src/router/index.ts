@@ -26,6 +26,7 @@ const routes: RouteRecordRaw[] = [
       { path: 'screening', name: 'Screening', component: () => import('@/views/Screening/index.vue'), meta: { title: '股票筛选' } },
       { path: 'tasks', name: 'Tasks', component: () => import('@/views/Tasks/TaskCenter.vue'), meta: { title: '任务中心' } },
       { path: 'settings', name: 'Settings', component: () => import('@/views/Settings/index.vue'), meta: { title: '设置' } },
+      { path: 'settings/config', name: 'ConfigManagement', component: () => import('@/views/Settings/ConfigManagement.vue'), meta: { title: '配置管理' } },
       { path: 'learning', name: 'Learning', component: () => import('@/views/Learning/index.vue'), meta: { title: '学习中心', requiresAuth: false } },
       { path: 'about', name: 'About', component: () => import('@/views/About/index.vue'), meta: { title: '关于', requiresAuth: false } },
       { path: 'favorites', name: 'Favorites', component: () => import('@/views/Favorites/index.vue'), meta: { title: '我的自选股' } },
