@@ -1,146 +1,183 @@
 <template>
-  <div class="usage-statistics-container">
-    <el-card class="header-card">
-      <template #header>
-        <div class="card-header">
-          <span class="title">
-            <el-icon><DataAnalysis /></el-icon>
-            使用统计与计费
-          </span>
-          <div class="header-actions">
-            <el-select v-model="selectedDays" @change="loadData" style="width: 120px; margin-right: 10px;">
-              <el-option label="最近7天" :value="7" />
-              <el-option label="最近30天" :value="30" />
-              <el-option label="最近90天" :value="90" />
-            </el-select>
-            <el-button type="primary" :icon="Refresh" @click="loadData">刷新</el-button>
+  <div class="min-h-screen bg-[var(--bg-primary)] text-[var(--text-primary)] p-6">
+    <!-- 页面标题 -->
+    <div class="flex items-center justify-between mb-6">
+      <h1 class="text-2xl font-bold flex items-center gap-3">
+        <svg class="w-6 h-6 text-[#22C55E]" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" />
+        </svg>
+        使用统计与计费
+      </h1>
+      <div class="flex items-center gap-3">
+        <select v-model="selectedDays" @change="loadData" class="px-4 py-2 bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-lg text-sm">
+          <option :value="7">最近7天</option>
+          <option :value="30">最近30天</option>
+          <option :value="90">最近90天</option>
+        </select>
+        <button 
+          @click="loadData" 
+          :disabled="loading"
+          class="px-4 py-2 bg-[#22C55E] hover:bg-[#16A34A] text-white rounded-lg transition-colors flex items-center gap-2"
+        >
+          <svg :class="{ 'animate-spin': loading }" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
+          </svg>
+          刷新
+        </button>
+      </div>
+    </div>
+
+    <!-- 统计概览 -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      <div class="bg-[var(--bg-secondary)] rounded-xl border border-[var(--border-color)] p-5">
+        <div class="flex items-center gap-2 text-[var(--text-secondary)] text-sm mb-2">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+          </svg>
+          总请求数
+        </div>
+        <div class="text-2xl font-bold text-[#22C55E]">{{ statistics.total_requests.toLocaleString() }}</div>
+      </div>
+      
+      <div class="bg-[var(--bg-secondary)] rounded-xl border border-[var(--border-color)] p-5">
+        <div class="flex items-center gap-2 text-[var(--text-secondary)] text-sm mb-2">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
+          </svg>
+          总输入 Token
+        </div>
+        <div class="text-2xl font-bold text-[#3B82F6]">{{ statistics.total_input_tokens.toLocaleString() }}</div>
+      </div>
+      
+      <div class="bg-[var(--bg-secondary)] rounded-xl border border-[var(--border-color)] p-5">
+        <div class="flex items-center gap-2 text-[var(--text-secondary)] text-sm mb-2">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M13.5 12H3m0 0l4.5-4.5M3 12l4.5 4.5M21 12h-9m9 0l-4.5 4.5M21 12l-4.5-4.5" />
+          </svg>
+          总输出 Token
+        </div>
+        <div class="text-2xl font-bold text-[#8B5CF6]">{{ statistics.total_output_tokens.toLocaleString() }}</div>
+      </div>
+      
+      <div class="bg-[var(--bg-secondary)] rounded-xl border border-[var(--border-color)] p-5">
+        <div class="flex items-center gap-2 text-[var(--text-secondary)] text-sm mb-2">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          总成本
+        </div>
+        <div v-if="Object.keys(statistics.cost_by_currency || {}).length > 0" class="space-y-1">
+          <div v-for="(cost, currency) in statistics.cost_by_currency" :key="currency" class="flex items-baseline gap-1">
+            <span class="text-2xl font-bold text-[#F59E0B]">{{ cost.toFixed(4) }}</span>
+            <span class="text-sm text-[var(--text-secondary)]">{{ getCurrencySymbol(currency) }}</span>
           </div>
         </div>
-      </template>
-
-      <!-- 统计概览 -->
-      <el-row :gutter="20" class="stats-overview">
-        <el-col :span="6">
-          <el-statistic title="总请求数" :value="statistics.total_requests">
-            <template #prefix>
-              <el-icon><Document /></el-icon>
-            </template>
-          </el-statistic>
-        </el-col>
-        <el-col :span="6">
-          <el-statistic title="总输入 Token" :value="statistics.total_input_tokens">
-            <template #prefix>
-              <el-icon><Upload /></el-icon>
-            </template>
-          </el-statistic>
-        </el-col>
-        <el-col :span="6">
-          <el-statistic title="总输出 Token" :value="statistics.total_output_tokens">
-            <template #prefix>
-              <el-icon><Download /></el-icon>
-            </template>
-          </el-statistic>
-        </el-col>
-        <el-col :span="6">
-          <div class="cost-statistic">
-            <div class="cost-label">
-              <el-icon><Money /></el-icon>
-              <span>总成本</span>
-            </div>
-            <div class="cost-values">
-              <div v-for="(cost, currency) in statistics.cost_by_currency" :key="currency" class="cost-item">
-                <span class="cost-amount">{{ cost.toFixed(4) }}</span>
-                <span class="cost-currency">{{ getCurrencySymbol(currency) }}</span>
-              </div>
-              <div v-if="Object.keys(statistics.cost_by_currency || {}).length === 0" class="cost-item">
-                <span class="cost-amount">0.0000</span>
-                <span class="cost-currency">元</span>
-              </div>
-            </div>
-          </div>
-        </el-col>
-      </el-row>
-    </el-card>
+        <div v-else class="flex items-baseline gap-1">
+          <span class="text-2xl font-bold text-[#F59E0B]">0.0000</span>
+          <span class="text-sm text-[var(--text-secondary)]">元</span>
+        </div>
+      </div>
+    </div>
 
     <!-- 图表区域 -->
-    <el-row :gutter="20" style="margin-top: 20px;">
-      <el-col :span="12">
-        <el-card>
-          <template #header>
-            <span>按供应商统计</span>
-          </template>
-          <div ref="providerChartRef" style="height: 300px;"></div>
-        </el-card>
-      </el-col>
-      <el-col :span="12">
-        <el-card>
-          <template #header>
-            <span>按模型统计</span>
-          </template>
-          <div ref="modelChartRef" style="height: 300px;"></div>
-        </el-card>
-      </el-col>
-    </el-row>
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+      <div class="bg-[var(--bg-secondary)] rounded-xl border border-[var(--border-color)] p-5">
+        <h3 class="text-lg font-semibold mb-4">按供应商统计</h3>
+        <div ref="providerChartRef" style="height: 300px;"></div>
+      </div>
+      <div class="bg-[var(--bg-secondary)] rounded-xl border border-[var(--border-color)] p-5">
+        <h3 class="text-lg font-semibold mb-4">按模型统计</h3>
+        <div ref="modelChartRef" style="height: 300px;"></div>
+      </div>
+    </div>
 
-    <el-row :gutter="20" style="margin-top: 20px;">
-      <el-col :span="24">
-        <el-card>
-          <template #header>
-            <span>每日成本趋势</span>
-          </template>
-          <div ref="dailyChartRef" style="height: 300px;"></div>
-        </el-card>
-      </el-col>
-    </el-row>
+    <div class="bg-[var(--bg-secondary)] rounded-xl border border-[var(--border-color)] p-5 mb-6">
+      <h3 class="text-lg font-semibold mb-4">每日成本趋势</h3>
+      <div ref="dailyChartRef" style="height: 300px;"></div>
+    </div>
 
     <!-- 使用记录表格 -->
-    <el-card style="margin-top: 20px;">
-      <template #header>
-        <div class="card-header">
-          <span>使用记录</span>
-          <el-button type="danger" size="small" @click="handleDeleteOldRecords">
-            清理旧记录
-          </el-button>
+    <div class="bg-[var(--bg-secondary)] rounded-xl border border-[var(--border-color)] p-5">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg font-semibold">使用记录</h3>
+        <button 
+          @click="handleDeleteOldRecords"
+          class="px-3 py-1.5 text-sm bg-[#EF4444] hover:bg-[#DC2626] text-white rounded-lg transition-colors"
+        >
+          清理旧记录
+        </button>
+      </div>
+
+      <div v-if="loading" class="flex items-center justify-center py-8">
+        <svg class="w-8 h-8 animate-spin text-[#22C55E]" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+        </svg>
+      </div>
+      
+      <div v-else class="overflow-x-auto">
+        <table class="w-full">
+          <thead>
+            <tr class="border-b border-[var(--border-color)]">
+              <th class="text-left py-3 px-4 text-sm font-medium text-[var(--text-secondary)]">时间</th>
+              <th class="text-left py-3 px-4 text-sm font-medium text-[var(--text-secondary)]">供应商</th>
+              <th class="text-left py-3 px-4 text-sm font-medium text-[var(--text-secondary)]">模型</th>
+              <th class="text-right py-3 px-4 text-sm font-medium text-[var(--text-secondary)]">输入 Token</th>
+              <th class="text-right py-3 px-4 text-sm font-medium text-[var(--text-secondary)]">输出 Token</th>
+              <th class="text-right py-3 px-4 text-sm font-medium text-[var(--text-secondary)]">成本</th>
+              <th class="text-left py-3 px-4 text-sm font-medium text-[var(--text-secondary)]">分析类型</th>
+              <th class="text-left py-3 px-4 text-sm font-medium text-[var(--text-secondary)]">会话ID</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="record in records" :key="record.id" class="border-b border-[var(--border-color)] hover:bg-[var(--bg-hover)]">
+              <td class="py-3 px-4 text-sm text-[var(--text-secondary)]">{{ formatTimestamp(record.timestamp) }}</td>
+              <td class="py-3 px-4">
+                <span class="px-2 py-1 bg-[#3B82F6]/20 text-[#3B82F6] rounded text-xs">{{ record.provider }}</span>
+              </td>
+              <td class="py-3 px-4 font-mono text-sm">{{ record.model_name }}</td>
+              <td class="py-3 px-4 text-right">{{ record.input_tokens.toLocaleString() }}</td>
+              <td class="py-3 px-4 text-right">{{ record.output_tokens.toLocaleString() }}</td>
+              <td class="py-3 px-4 text-right font-medium text-[#F59E0B]">
+                {{ record.cost.toFixed(4) }} {{ getCurrencySymbol(record.currency || 'CNY') }}
+              </td>
+              <td class="py-3 px-4 text-sm">{{ record.analysis_type }}</td>
+              <td class="py-3 px-4 text-xs text-[var(--text-secondary)] font-mono truncate max-w-[120px]">{{ record.session_id }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      
+      <!-- 分页 -->
+      <div v-if="records.length > 0" class="flex items-center justify-between mt-4 pt-4 border-t border-[var(--border-color)]">
+        <div class="text-sm text-[var(--text-secondary)]">
+          共 {{ totalRecords }} 条记录
         </div>
-      </template>
-
-      <el-table :data="records" style="width: 100%" v-loading="loading">
-        <el-table-column prop="timestamp" label="时间" width="180">
-          <template #default="{ row }">
-            {{ formatTimestamp(row.timestamp) }}
-          </template>
-        </el-table-column>
-        <el-table-column prop="provider" label="供应商" width="120" />
-        <el-table-column prop="model_name" label="模型" width="180" />
-        <el-table-column prop="input_tokens" label="输入 Token" width="120" align="right" />
-        <el-table-column prop="output_tokens" label="输出 Token" width="120" align="right" />
-        <el-table-column prop="cost" label="成本" width="140" align="right">
-          <template #default="{ row }">
-            {{ row.cost.toFixed(4) }} {{ getCurrencySymbol(row.currency || 'CNY') }}
-          </template>
-        </el-table-column>
-        <el-table-column prop="analysis_type" label="分析类型" width="150" />
-        <el-table-column prop="session_id" label="会话ID" show-overflow-tooltip />
-      </el-table>
-
-      <el-pagination
-        v-model:current-page="currentPage"
-        v-model:page-size="pageSize"
-        :total="totalRecords"
-        :page-sizes="[10, 20, 50, 100]"
-        layout="total, sizes, prev, pager, next, jumper"
-        @size-change="loadRecords"
-        @current-change="loadRecords"
-        style="margin-top: 20px; justify-content: center;"
-      />
-    </el-card>
+        <div class="flex items-center gap-2">
+          <select v-model="pageSize" @change="loadRecords" class="px-3 py-1.5 bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg text-sm">
+            <option :value="10">10 条/页</option>
+            <option :value="20">20 条/页</option>
+            <option :value="50">50 条/页</option>
+            <option :value="100">100 条/页</option>
+          </select>
+          <button 
+            v-for="p in Math.min(5, Math.ceil(totalRecords / pageSize))" 
+            :key="p"
+            @click="currentPage = p; loadRecords()"
+            :class="currentPage === p ? 'bg-[#22C55E] text-white' : 'bg-[var(--bg-tertiary)] hover:bg-[var(--bg-hover)]'"
+            class="w-8 h-8 rounded-lg text-sm transition-colors"
+          >
+            {{ p }}
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted, nextTick } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { DataAnalysis, Refresh, Document, Upload, Download, Money } from '@element-plus/icons-vue'
 import * as echarts from 'echarts'
 import {
   getUsageRecords,
@@ -261,7 +298,8 @@ const renderProviderChart = () => {
     },
     legend: {
       orient: 'vertical',
-      left: 'left'
+      left: 'left',
+      textStyle: { color: 'var(--text-secondary)' }
     },
     series: [
       {
@@ -297,34 +335,33 @@ const renderModelChart = () => {
       value: value.cost
     }))
     .sort((a, b) => b.value - a.value)
-    .slice(0, 10) // 只显示前10个
+    .slice(0, 10)
 
   const option = {
     tooltip: {
       trigger: 'axis',
-      axisPointer: {
-        type: 'shadow'
-      }
+      axisPointer: { type: 'shadow' }
     },
     xAxis: {
       type: 'category',
       data: data.map(item => item.name),
       axisLabel: {
         rotate: 45,
-        interval: 0
+        interval: 0,
+        color: 'var(--text-secondary)'
       }
     },
     yAxis: {
       type: 'value',
-      name: '成本(元)'
+      name: '成本(元)',
+      nameTextStyle: { color: 'var(--text-secondary)' },
+      axisLabel: { color: 'var(--text-secondary)' }
     },
     series: [
       {
         data: data.map(item => item.value),
         type: 'bar',
-        itemStyle: {
-          color: '#409EFF'
-        }
+        itemStyle: { color: '#22C55E' }
       }
     ]
   }
@@ -344,28 +381,25 @@ const renderDailyChart = () => {
     .sort(([a], [b]) => a.localeCompare(b))
 
   const option = {
-    tooltip: {
-      trigger: 'axis'
-    },
+    tooltip: { trigger: 'axis' },
     xAxis: {
       type: 'category',
-      data: sortedData.map(([date]) => date)
+      data: sortedData.map(([date]) => date),
+      axisLabel: { color: 'var(--text-secondary)' }
     },
     yAxis: {
       type: 'value',
-      name: '成本(元)'
+      name: '成本(元)',
+      nameTextStyle: { color: 'var(--text-secondary)' },
+      axisLabel: { color: 'var(--text-secondary)' }
     },
     series: [
       {
         data: sortedData.map(([, value]: [string, any]) => value.cost),
         type: 'line',
         smooth: true,
-        itemStyle: {
-          color: '#67C23A'
-        },
-        areaStyle: {
-          color: 'rgba(103, 194, 58, 0.2)'
-        }
+        itemStyle: { color: '#22C55E' },
+        areaStyle: { color: 'rgba(34, 197, 94, 0.2)' }
       }
     ]
   }
@@ -404,77 +438,3 @@ onMounted(() => {
   loadData()
 })
 </script>
-
-<style scoped lang="scss">
-.usage-statistics-container {
-  padding: 20px;
-}
-
-.header-card {
-  .card-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-
-    .title {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 16px;
-      font-weight: 600;
-    }
-
-    .header-actions {
-      display: flex;
-      align-items: center;
-    }
-  }
-}
-
-.cost-statistic {
-  padding: 20px;
-
-  .cost-label {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    color: #909399;
-    font-size: 14px;
-    margin-bottom: 12px;
-  }
-
-  .cost-values {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-
-    .cost-item {
-      display: flex;
-      align-items: baseline;
-      gap: 4px;
-
-      .cost-amount {
-        font-size: 24px;
-        font-weight: 600;
-        color: #303133;
-      }
-
-      .cost-currency {
-        font-size: 14px;
-        color: #909399;
-      }
-    }
-  }
-}
-
-.stats-overview {
-  margin-top: 20px;
-}
-
-.card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-</style>
-

@@ -1,252 +1,167 @@
 <template>
-  <div class="log-management">
-    <el-card class="header-card">
-      <template #header>
-        <div class="card-header">
-          <span>📋 日志管理</span>
-          <div class="header-actions">
-            <el-button type="primary" :icon="Refresh" @click="loadLogFiles" :loading="loading">
-              刷新
-            </el-button>
-            <el-button type="success" :icon="Download" @click="showExportDialog">
-              导出日志
-            </el-button>
-          </div>
-        </div>
-      </template>
+  <div class="min-h-screen bg-[var(--bg-primary)] text-[var(--text-primary)] p-6">
+    <!-- 页面标题 -->
+    <div class="flex items-center justify-between mb-6">
+      <h1 class="text-2xl font-bold flex items-center gap-3">
+        <svg class="w-6 h-6 text-[#22C55E]" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+        </svg>
+        日志管理
+      </h1>
+      <div class="flex gap-2">
+        <button @click="loadLogFiles" :disabled="loading" 
+                class="px-4 py-2 bg-[#22C55E] hover:bg-[#16A34A] text-white rounded-lg transition-colors flex items-center gap-2">
+          <svg :class="{ 'animate-spin': loading }" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
+          </svg>
+          刷新
+        </button>
+        <button @click="showExportDialog" 
+                class="px-4 py-2 bg-[#3B82F6] hover:bg-[#2563EB] text-white rounded-lg transition-colors flex items-center gap-2">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+          </svg>
+          导出日志
+        </button>
+      </div>
+    </div>
 
-      <!-- 统计信息 -->
-      <el-row :gutter="20" class="statistics">
-        <el-col :span="6">
-          <el-statistic title="日志文件数" :value="statistics.total_files" />
-        </el-col>
-        <el-col :span="6">
-          <el-statistic title="总大小 (MB)" :value="statistics.total_size_mb" :precision="2" />
-        </el-col>
-        <el-col :span="6">
-          <el-statistic title="错误日志文件" :value="statistics.error_files" />
-        </el-col>
-        <el-col :span="6">
-          <el-button type="primary" @click="loadStatistics">刷新统计</el-button>
-        </el-col>
-      </el-row>
-    </el-card>
+    <!-- 统计信息 -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+      <div class="bg-[var(--bg-secondary)] rounded-xl border border-[var(--border-color)] p-5 text-center">
+        <div class="text-2xl font-bold text-[#22C55E]">{{ statistics.total_files }}</div>
+        <div class="text-sm text-[var(--text-secondary)] mt-1">日志文件数</div>
+      </div>
+      <div class="bg-[var(--bg-secondary)] rounded-xl border border-[var(--border-color)] p-5 text-center">
+        <div class="text-2xl font-bold text-[#3B82F6]">{{ statistics.total_size_mb.toFixed(2) }}</div>
+        <div class="text-sm text-[var(--text-secondary)] mt-1">总大小 (MB)</div>
+      </div>
+      <div class="bg-[var(--bg-secondary)] rounded-xl border border-[var(--border-color)] p-5 text-center">
+        <div class="text-2xl font-bold text-[#EF4444]">{{ statistics.error_files }}</div>
+        <div class="text-sm text-[var(--text-secondary)] mt-1">错误日志文件</div>
+      </div>
+      <div class="bg-[var(--bg-secondary)] rounded-xl border border-[var(--border-color)] p-5 flex items-center justify-center">
+        <button @click="loadStatistics" class="px-4 py-2 bg-[var(--bg-tertiary)] hover:bg-[var(--bg-hover)] rounded-lg transition-colors">
+          刷新统计
+        </button>
+      </div>
+    </div>
 
     <!-- 日志文件列表 -->
-    <el-card class="table-card">
-      <template #header>
-        <div class="card-header">
-          <span>日志文件列表</span>
-          <el-input
-            v-model="searchKeyword"
-            placeholder="搜索文件名"
-            :prefix-icon="Search"
-            style="width: 300px"
-            clearable
-          />
-        </div>
-      </template>
-
-      <el-table
-        :data="filteredLogFiles"
-        v-loading="loading"
-        stripe
-        style="width: 100%"
-      >
-        <el-table-column prop="name" label="文件名" min-width="200">
-          <template #default="{ row }">
-            <el-tag :type="getLogTypeColor(row.type)" size="small">
-              {{ row.type }}
-            </el-tag>
-            {{ row.name }}
-          </template>
-        </el-table-column>
-        <el-table-column prop="size_mb" label="大小 (MB)" width="120" sortable>
-          <template #default="{ row }">
-            {{ row.size_mb.toFixed(2) }}
-          </template>
-        </el-table-column>
-        <el-table-column prop="modified_at" label="修改时间" width="180" sortable>
-          <template #default="{ row }">
-            {{ formatDate(row.modified_at) }}
-          </template>
-        </el-table-column>
-        <el-table-column label="操作" width="300" fixed="right">
-          <template #default="{ row }">
-            <el-button type="primary" size="small" :icon="View" @click="viewLog(row)">
-              查看
-            </el-button>
-            <el-button type="success" size="small" :icon="Download" @click="downloadLog(row)">
-              下载
-            </el-button>
-            <el-popconfirm
-              title="确定要删除这个日志文件吗？"
-              @confirm="deleteLog(row)"
-            >
-              <template #reference>
-                <el-button type="danger" size="small" :icon="Delete">
-                  删除
-                </el-button>
-              </template>
-            </el-popconfirm>
-          </template>
-        </el-table-column>
-      </el-table>
-    </el-card>
-
-    <!-- 查看日志对话框 -->
-    <el-dialog
-      v-model="viewDialogVisible"
-      title="查看日志"
-      width="80%"
-      :close-on-click-modal="false"
-    >
-      <div class="log-viewer">
-        <!-- 过滤选项 -->
-        <el-form :inline="true" class="filter-form">
-          <el-form-item label="日志级别">
-            <el-select v-model="viewFilter.level" placeholder="全部" clearable style="width: 120px">
-              <el-option label="ERROR" value="ERROR" />
-              <el-option label="WARNING" value="WARNING" />
-              <el-option label="INFO" value="INFO" />
-              <el-option label="DEBUG" value="DEBUG" />
-            </el-select>
-          </el-form-item>
-          <el-form-item label="关键词">
-            <el-input v-model="viewFilter.keyword" placeholder="搜索关键词" clearable style="width: 200px" />
-          </el-form-item>
-          <el-form-item label="行数">
-            <el-input-number v-model="viewFilter.lines" :min="100" :max="10000" :step="100" style="width: 150px" />
-          </el-form-item>
-          <el-form-item>
-            <el-button type="primary" @click="loadLogContent" :loading="viewLoading">
-              应用过滤
-            </el-button>
-          </el-form-item>
-        </el-form>
-
-        <!-- 统计信息 -->
-        <el-descriptions v-if="logContent" :column="4" border size="small" class="log-stats">
-          <el-descriptions-item label="总行数">{{ logContent.stats.total_lines }}</el-descriptions-item>
-          <el-descriptions-item label="过滤后">{{ logContent.stats.filtered_lines }}</el-descriptions-item>
-          <el-descriptions-item label="ERROR">
-            <el-tag type="danger" size="small">{{ logContent.stats.error_count }}</el-tag>
-          </el-descriptions-item>
-          <el-descriptions-item label="WARNING">
-            <el-tag type="warning" size="small">{{ logContent.stats.warning_count }}</el-tag>
-          </el-descriptions-item>
-        </el-descriptions>
-
-        <!-- 日志内容 -->
-        <div class="log-content" v-loading="viewLoading">
-          <pre v-if="logContent">{{ logContent.lines.join('\n') }}</pre>
-          <el-empty v-else description="暂无日志内容" />
-        </div>
+    <div class="bg-[var(--bg-secondary)] rounded-xl border border-[var(--border-color)] p-5">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg font-semibold">日志文件列表</h3>
+        <input type="text" v-model="searchKeyword" placeholder="搜索文件名" 
+               class="px-3 py-2 bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg text-sm w-64">
       </div>
-    </el-dialog>
 
-    <!-- 导出对话框 -->
-    <el-dialog
-      v-model="exportDialogVisible"
-      title="导出日志"
-      width="600px"
-      :close-on-click-modal="false"
-    >
-      <el-form :model="exportForm" label-width="100px">
-        <el-form-item label="选择文件">
-          <el-select
-            v-model="exportForm.filenames"
-            multiple
-            placeholder="留空表示导出全部"
-            style="width: 100%"
-          >
-            <el-option
-              v-for="file in logFiles"
-              :key="file.name"
-              :label="file.name"
-              :value="file.name"
-            />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="日志级别">
-          <el-select v-model="exportForm.level" placeholder="全部" clearable>
-            <el-option label="ERROR" value="ERROR" />
-            <el-option label="WARNING" value="WARNING" />
-            <el-option label="INFO" value="INFO" />
-            <el-option label="DEBUG" value="DEBUG" />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="导出格式">
-          <el-radio-group v-model="exportForm.format">
-            <el-radio label="zip">ZIP 压缩包</el-radio>
-            <el-radio label="txt">合并文本文件</el-radio>
-          </el-radio-group>
-        </el-form-item>
-      </el-form>
-      <template #footer>
-        <el-button @click="exportDialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="exportLogs" :loading="exportLoading">
-          导出
-        </el-button>
-      </template>
-    </el-dialog>
+      <div v-if="loading" class="flex items-center justify-center py-8">
+        <svg class="w-8 h-8 animate-spin text-[#22C55E]" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+        </svg>
+      </div>
+
+      <div v-else class="overflow-x-auto">
+        <table class="w-full">
+          <thead>
+            <tr class="border-b border-[var(--border-color)]">
+              <th class="text-left py-3 px-4 text-sm font-medium text-[var(--text-secondary)]">文件名</th>
+              <th class="text-right py-3 px-4 text-sm font-medium text-[var(--text-secondary)]">大小 (MB)</th>
+              <th class="text-left py-3 px-4 text-sm font-medium text-[var(--text-secondary)]">修改时间</th>
+              <th class="text-center py-3 px-4 text-sm font-medium text-[var(--text-secondary)]">操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="file in filteredLogFiles" :key="file.name" class="border-b border-[var(--border-color)] hover:bg-[var(--bg-hover)]">
+              <td class="py-3 px-4">
+                <span :class="getLogTypeClass(file.type)" class="px-2 py-1 rounded text-xs font-medium mr-2">
+                  {{ file.type }}
+                </span>
+                {{ file.name }}
+              </td>
+              <td class="py-3 px-4 text-right">{{ file.size_mb.toFixed(2) }}</td>
+              <td class="py-3 px-4 text-sm text-[var(--text-secondary)]">{{ formatDate(file.modified_at) }}</td>
+              <td class="py-3 px-4">
+                <div class="flex items-center justify-center gap-2">
+                  <button @click="viewLog(file)" class="px-2 py-1 text-sm text-[#3B82F6] hover:text-[#2563EB]">查看</button>
+                  <button @click="downloadLog(file)" class="px-2 py-1 text-sm text-[#22C55E] hover:text-[#16A34A]">下载</button>
+                  <button @click="deleteLog(file)" class="px-2 py-1 text-sm text-[#EF4444] hover:text-[#DC2626]">删除</button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- 查看日志弹窗 -->
+    <div v-if="viewDialogVisible" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50" @click="viewDialogVisible = false">
+      <div class="bg-[var(--bg-secondary)] rounded-xl border border-[var(--border-color)] p-6 w-full max-w-4xl mx-4 max-h-[80vh] overflow-hidden flex flex-col" @click.stop>
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-lg font-semibold">{{ currentLog?.name }}</h3>
+          <button @click="viewDialogVisible = false" class="text-[var(--text-secondary)] hover:text-[var(--text-primary)]">
+            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        <div class="flex gap-2 mb-4">
+          <button @click="tailLines = 100" :class="tailLines === 100 ? 'bg-[#22C55E] text-white' : 'bg-[var(--bg-tertiary)]'" class="px-3 py-1 rounded text-sm">最近100行</button>
+          <button @click="tailLines = 500" :class="tailLines === 500 ? 'bg-[#22C55E] text-white' : 'bg-[var(--bg-tertiary)]'" class="px-3 py-1 rounded text-sm">最近500行</button>
+          <button @click="tailLines = 1000" :class="tailLines === 1000 ? 'bg-[#22C55E] text-white' : 'bg-[var(--bg-tertiary)]'" class="px-3 py-1 rounded text-sm">最近1000行</button>
+          <button @click="tailLines = 0" :class="tailLines === 0 ? 'bg-[#22C55E] text-white' : 'bg-[var(--bg-tertiary)]'" class="px-3 py-1 rounded text-sm">全部</button>
+        </div>
+        <pre class="flex-1 overflow-auto bg-[var(--bg-tertiary)] p-4 rounded-lg text-xs font-mono">{{ logContent }}</pre>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { ElMessage } from 'element-plus'
-import { Refresh, Download, Search, View, Delete } from '@element-plus/icons-vue'
-import { LogsApi, type LogFileInfo, type LogContentResponse, type LogStatistics } from '@/api/logs'
+import { ElMessage, ElMessageBox } from 'element-plus'
+import { logsApi } from '@/api/logs'
 
-// 数据
 const loading = ref(false)
-const viewLoading = ref(false)
-const exportLoading = ref(false)
-const logFiles = ref<LogFileInfo[]>([])
+const viewDialogVisible = ref(false)
+const currentLog = ref<any>(null)
+const logContent = ref('')
+const tailLines = ref(100)
 const searchKeyword = ref('')
-const statistics = ref<LogStatistics>({
+
+const logFiles = ref<any[]>([])
+const statistics = ref({
   total_files: 0,
   total_size_mb: 0,
-  error_files: 0,
-  recent_errors: [],
-  log_types: {}
+  error_files: 0
 })
 
-// 查看日志
-const viewDialogVisible = ref(false)
-const currentLogFile = ref<LogFileInfo | null>(null)
-const logContent = ref<LogContentResponse | null>(null)
-const viewFilter = ref({
-  level: undefined as string | undefined,
-  keyword: '',
-  lines: 1000
-})
-
-// 导出日志
-const exportDialogVisible = ref(false)
-const exportForm = ref({
-  filenames: [] as string[],
-  level: undefined as string | undefined,
-  format: 'zip' as 'zip' | 'txt'
-})
-
-// 计算属性
 const filteredLogFiles = computed(() => {
   if (!searchKeyword.value) return logFiles.value
-  return logFiles.value.filter(file =>
-    file.name.toLowerCase().includes(searchKeyword.value.toLowerCase())
-  )
+  return logFiles.value.filter(f => f.name.toLowerCase().includes(searchKeyword.value.toLowerCase()))
 })
 
-// 方法
+const getLogTypeClass = (type: string): string => {
+  const classMap: Record<string, string> = {
+    'error': 'bg-[#EF4444]/20 text-[#EF4444]',
+    'info': 'bg-[#3B82F6]/20 text-[#3B82F6]',
+    'warning': 'bg-[#F59E0B]/20 text-[#F59E0B]',
+    'debug': 'bg-[#8B5CF6]/20 text-[#8B5CF6]'
+  }
+  return classMap[type] || 'bg-[var(--bg-tertiary)] text-[var(--text-secondary)]'
+}
+
+const formatDate = (date: string) => new Date(date).toLocaleString('zh-CN')
+
 const loadLogFiles = async () => {
   loading.value = true
   try {
-    logFiles.value = await LogsApi.listLogFiles()
-    ElMessage.success('日志文件列表加载成功')
-  } catch (error: any) {
-    ElMessage.error(`加载失败: ${error.message || error}`)
+    const res = await logsApi.getLogFiles()
+    logFiles.value = res.data || []
+  } catch (error) {
+    console.error('加载日志文件失败:', error)
+    ElMessage.error('加载日志文件失败')
   } finally {
     loading.value = false
   }
@@ -254,184 +169,56 @@ const loadLogFiles = async () => {
 
 const loadStatistics = async () => {
   try {
-    statistics.value = await LogsApi.getStatistics(7)
-  } catch (error: any) {
-    ElMessage.error(`加载统计失败: ${error.message || error}`)
+    const res = await logsApi.getStatistics()
+    statistics.value = res.data || statistics.value
+    ElMessage.success('统计信息已刷新')
+  } catch (error) {
+    console.error('加载统计信息失败:', error)
   }
 }
 
-const viewLog = async (file: LogFileInfo) => {
-  currentLogFile.value = file
+const viewLog = async (file: any) => {
+  currentLog.value = file
   viewDialogVisible.value = true
-  await loadLogContent()
-}
-
-const loadLogContent = async () => {
-  if (!currentLogFile.value) return
-  
-  viewLoading.value = true
   try {
-    logContent.value = await LogsApi.readLogFile({
-      filename: currentLogFile.value.name,
-      lines: viewFilter.value.lines,
-      level: viewFilter.value.level as any,
-      keyword: viewFilter.value.keyword || undefined
-    })
-  } catch (error: any) {
-    ElMessage.error(`加载日志内容失败: ${error.message || error}`)
-  } finally {
-    viewLoading.value = false
+    const res = await logsApi.getLogContent(file.name, tailLines.value)
+    logContent.value = res.data || ''
+  } catch (error) {
+    logContent.value = '加载日志内容失败'
   }
 }
 
-const downloadLog = async (file: LogFileInfo) => {
+const downloadLog = async (file: any) => {
   try {
-    const blob = await LogsApi.exportLogs({
-      filenames: [file.name],
-      format: 'zip'
-    })
-    
-    const url = window.URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `${file.name}.zip`
-    document.body.appendChild(a)
-    a.click()
+    const res = await logsApi.downloadLog(file.name)
+    const url = window.URL.createObjectURL(new Blob([res]))
+    const link = document.createElement('a')
+    link.href = url
+    link.download = file.name
+    link.click()
     window.URL.revokeObjectURL(url)
-    document.body.removeChild(a)
-    
-    ElMessage.success('日志下载成功')
-  } catch (error: any) {
-    ElMessage.error(`下载失败: ${error.message || error}`)
+  } catch (error) {
+    ElMessage.error('下载日志失败')
   }
 }
 
-const deleteLog = async (file: LogFileInfo) => {
+const deleteLog = async (file: any) => {
   try {
-    await LogsApi.deleteLogFile(file.name)
+    await ElMessageBox.confirm(`确定要删除日志文件 ${file.name} 吗？`, '确认删除', { type: 'warning' })
+    await logsApi.deleteLog(file.name)
     ElMessage.success('日志文件已删除')
-    await loadLogFiles()
+    loadLogFiles()
   } catch (error: any) {
-    ElMessage.error(`删除失败: ${error.message || error}`)
+    if (error !== 'cancel') ElMessage.error('删除日志失败')
   }
 }
 
 const showExportDialog = () => {
-  exportForm.value = {
-    filenames: [],
-    level: undefined,
-    format: 'zip'
-  }
-  exportDialogVisible.value = true
+  ElMessage.info('导出功能开发中')
 }
 
-const exportLogs = async () => {
-  exportLoading.value = true
-  try {
-    const blob = await LogsApi.exportLogs({
-      filenames: exportForm.value.filenames.length > 0 ? exportForm.value.filenames : undefined,
-      level: exportForm.value.level as any,
-      format: exportForm.value.format
-    })
-    
-    const url = window.URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5)
-    a.download = `logs_export_${timestamp}.${exportForm.value.format}`
-    document.body.appendChild(a)
-    a.click()
-    window.URL.revokeObjectURL(url)
-    document.body.removeChild(a)
-    
-    ElMessage.success('日志导出成功')
-    exportDialogVisible.value = false
-  } catch (error: any) {
-    ElMessage.error(`导出失败: ${error.message || error}`)
-  } finally {
-    exportLoading.value = false
-  }
-}
-
-const getLogTypeColor = (type: string) => {
-  const colors: Record<string, string> = {
-    error: 'danger',
-    webapi: 'primary',
-    worker: 'success',
-    access: 'info',
-    other: ''
-  }
-  return colors[type] || ''
-}
-
-const formatDate = (dateStr: string) => {
-  return new Date(dateStr).toLocaleString('zh-CN')
-}
-
-// 生命周期
 onMounted(() => {
   loadLogFiles()
   loadStatistics()
 })
 </script>
-
-<style scoped lang="scss">
-.log-management {
-  padding: 20px;
-
-  .header-card {
-    margin-bottom: 20px;
-  }
-
-  .card-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-
-    .header-actions {
-      display: flex;
-      gap: 10px;
-    }
-  }
-
-  .statistics {
-    margin-top: 20px;
-  }
-
-  .table-card {
-    margin-top: 20px;
-  }
-
-  .log-viewer {
-    .filter-form {
-      margin-bottom: 20px;
-      padding: 15px;
-      background-color: #f5f7fa;
-      border-radius: 4px;
-    }
-
-    .log-stats {
-      margin-bottom: 15px;
-    }
-
-    .log-content {
-      max-height: 500px;
-      overflow-y: auto;
-      background-color: #1e1e1e;
-      color: #d4d4d4;
-      padding: 15px;
-      border-radius: 4px;
-      font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
-      font-size: 12px;
-      line-height: 1.5;
-
-      pre {
-        margin: 0;
-        white-space: pre-wrap;
-        word-wrap: break-word;
-      }
-    }
-  }
-}
-</style>
-

@@ -1,214 +1,273 @@
 <template>
-  <div class="cache-management">
+  <div class="min-h-screen bg-[var(--bg-primary)] text-[var(--text-primary)] p-6">
     <!-- 页面标题 -->
-    <div class="page-header">
-      <h1 class="page-title">
-        <el-icon><Coin /></el-icon>
+    <div class="mb-6">
+      <h1 class="text-2xl font-bold flex items-center gap-3">
+        <svg class="w-6 h-6 text-[#22C55E]" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M20.25 6.375c0 2.278-3.694 4.125-8.25 4.125S3.75 8.653 3.75 6.375m16.5 0c0-2.278-3.694-4.125-8.25-4.125S3.75 4.097 3.75 6.375m16.5 0v11.25c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125V6.375m16.5 0v3.75m-16.5-3.75v3.75m16.5 0v3.75C20.25 16.153 16.556 18 12 18s-8.25-1.847-8.25-4.125v-3.75m16.5 0c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125" />
+        </svg>
         缓存管理
       </h1>
-      <p class="page-description">
-        管理股票数据缓存，优化系统性能
-      </p>
+      <p class="text-[var(--text-secondary)] mt-1">管理股票数据缓存，优化系统性能</p>
     </div>
 
-    <el-row :gutter="24">
-      <!-- 左侧：缓存统计 -->
-      <el-col :span="12">
-        <el-card class="stats-card" shadow="never">
-          <template #header>
-            <h3>📊 缓存统计</h3>
-          </template>
-          
-          <div v-loading="statsLoading" class="stats-content">
-            <el-row :gutter="16">
-              <el-col :span="12">
-                <div class="stat-item">
-                  <div class="stat-value">{{ cacheStats.totalFiles }}</div>
-                  <div class="stat-label">总文件数</div>
-                </div>
-              </el-col>
-              <el-col :span="12">
-                <div class="stat-item">
-                  <div class="stat-value">{{ formatSize(cacheStats.totalSize) }}</div>
-                  <div class="stat-label">总大小</div>
-                </div>
-              </el-col>
-            </el-row>
-            
-            <el-row :gutter="16" style="margin-top: 16px">
-              <el-col :span="12">
-                <div class="stat-item">
-                  <div class="stat-value">{{ cacheStats.stockDataCount }}</div>
-                  <div class="stat-label">股票数据</div>
-                </div>
-              </el-col>
-              <el-col :span="12">
-                <div class="stat-item">
-                  <div class="stat-value">{{ cacheStats.newsDataCount }}</div>
-                  <div class="stat-label">新闻数据</div>
-                </div>
-              </el-col>
-            </el-row>
-            
-            <el-divider />
-            
-            <div class="cache-usage">
-              <h4>缓存使用情况</h4>
-              <el-progress
-                :percentage="cacheUsagePercentage"
-                :color="getProgressColor(cacheUsagePercentage)"
-                :stroke-width="12"
-              />
-              <p class="usage-text">
-                已使用 {{ formatSize(cacheStats.totalSize) }} / {{ formatSize(cacheStats.maxSize) }}
-              </p>
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <!-- 缓存统计 -->
+      <div class="bg-[var(--bg-secondary)] rounded-xl border border-[var(--border-color)] p-6">
+        <h3 class="text-lg font-semibold mb-4 flex items-center gap-2">
+          <svg class="w-5 h-5 text-[#8B5CF6]" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" />
+          </svg>
+          缓存统计
+        </h3>
+        
+        <div v-if="statsLoading" class="flex items-center justify-center py-8">
+          <svg class="w-8 h-8 animate-spin text-[#22C55E]" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+          </svg>
+        </div>
+        
+        <div v-else class="space-y-4">
+          <div class="grid grid-cols-2 gap-4">
+            <div class="text-center p-4 bg-[var(--bg-tertiary)] rounded-lg">
+              <div class="text-2xl font-bold text-[#22C55E]">{{ cacheStats.totalFiles }}</div>
+              <div class="text-sm text-[var(--text-secondary)]">总文件数</div>
+            </div>
+            <div class="text-center p-4 bg-[var(--bg-tertiary)] rounded-lg">
+              <div class="text-2xl font-bold text-[#22C55E]">{{ formatSize(cacheStats.totalSize) }}</div>
+              <div class="text-sm text-[var(--text-secondary)]">总大小</div>
+            </div>
+            <div class="text-center p-4 bg-[var(--bg-tertiary)] rounded-lg">
+              <div class="text-2xl font-bold text-[#3B82F6]">{{ cacheStats.stockDataCount }}</div>
+              <div class="text-sm text-[var(--text-secondary)]">股票数据</div>
+            </div>
+            <div class="text-center p-4 bg-[var(--bg-tertiary)] rounded-lg">
+              <div class="text-2xl font-bold text-[#F59E0B]">{{ cacheStats.newsDataCount }}</div>
+              <div class="text-sm text-[var(--text-secondary)]">新闻数据</div>
             </div>
           </div>
-        </el-card>
-      </el-col>
+          
+          <div class="pt-4 border-t border-[var(--border-color)]">
+            <h4 class="text-sm font-medium mb-3">缓存使用情况</h4>
+            <div class="w-full bg-[var(--bg-tertiary)] rounded-full h-3 overflow-hidden">
+              <div 
+                class="h-full rounded-full transition-all duration-300"
+                :class="getProgressClass(cacheUsagePercentage)"
+                :style="{ width: cacheUsagePercentage + '%' }"
+              ></div>
+            </div>
+            <p class="text-sm text-[var(--text-secondary)] mt-2 text-center">
+              已使用 {{ formatSize(cacheStats.totalSize) }} / {{ formatSize(cacheStats.maxSize) }}
+            </p>
+          </div>
+        </div>
+      </div>
 
-      <!-- 右侧：缓存操作 -->
-      <el-col :span="12">
-        <el-card class="operations-card" shadow="never">
-          <template #header>
-            <h3>🛠️ 缓存操作</h3>
-          </template>
-          
-          <div class="operations-content">
-            <!-- 刷新统计 -->
-            <div class="operation-item">
-              <h4>🔄 刷新统计</h4>
-              <p>重新获取最新的缓存统计信息</p>
-              <el-button type="primary" @click="refreshStats" :loading="statsLoading">
-                刷新统计
-              </el-button>
-            </div>
-            
-            <el-divider />
-            
-            <!-- 清理过期缓存 -->
-            <div class="operation-item">
-              <h4>🧹 清理过期缓存</h4>
-              <p>删除指定天数之前的缓存文件</p>
-              
-              <el-form-item label="清理天数">
-                <el-slider
-                  v-model="cleanupDays"
-                  :min="1"
-                  :max="30"
-                  :marks="cleanupMarks"
-                  show-stops
-                />
-                <span class="cleanup-description">
-                  将清理 {{ cleanupDays }} 天前的缓存文件
-                </span>
-              </el-form-item>
-              
-              <el-button 
-                type="warning" 
-                @click="cleanupOldCache" 
-                :loading="cleanupLoading"
-              >
-                <el-icon><Delete /></el-icon>
-                清理过期缓存
-              </el-button>
-            </div>
-            
-            <el-divider />
-            
-            <!-- 清空所有缓存 -->
-            <div class="operation-item">
-              <h4>🗑️ 清空所有缓存</h4>
-              <p class="warning-text">⚠️ 此操作将删除所有缓存文件，无法恢复</p>
-              
-              <el-button 
-                type="danger" 
-                @click="clearAllCache" 
-                :loading="clearAllLoading"
-              >
-                <el-icon><Delete /></el-icon>
-                清空所有缓存
-              </el-button>
-            </div>
+      <!-- 缓存操作 -->
+      <div class="bg-[var(--bg-secondary)] rounded-xl border border-[var(--border-color)] p-6">
+        <h3 class="text-lg font-semibold mb-4 flex items-center gap-2">
+          <svg class="w-5 h-5 text-[#8B5CF6]" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M11.42 15.17L17.25 21A2.652 2.652 0 0021 17.25l-5.877-5.877M11.42 15.17l2.496-3.03c.317-.384.74-.626 1.208-.766M11.42 15.17l-4.655 5.653a2.548 2.548 0 11-3.586-3.586l6.837-5.63m5.108-.233c.55-.164 1.163-.188 1.743-.14a4.5 4.5 0 004.486-6.336l-3.276 3.277a3.004 3.004 0 01-2.25-2.25l3.276-3.276a4.5 4.5 0 00-6.336 4.486c.091 1.076-.071 2.264-.904 2.95l-.102.085m-1.745 1.437L5.909 7.5H4.5L2.25 3.75l1.5-1.5L7.5 4.5v1.409l4.26 4.26m-1.745 1.437l1.745-1.437m6.615 8.206L15.75 15.75M4.867 19.125h.008v.008h-.008v-.008z" />
+          </svg>
+          缓存操作
+        </h3>
+        
+        <div class="space-y-6">
+          <!-- 刷新统计 -->
+          <div>
+            <h4 class="font-medium mb-2 flex items-center gap-2">
+              <svg class="w-4 h-4 text-[#22C55E]" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
+              </svg>
+              刷新统计
+            </h4>
+            <p class="text-sm text-[var(--text-secondary)] mb-3">重新获取最新的缓存统计信息</p>
+            <button 
+              @click="refreshStats" 
+              :disabled="statsLoading"
+              class="px-4 py-2 bg-[#22C55E] hover:bg-[#16A34A] text-white rounded-lg transition-colors flex items-center gap-2 disabled:opacity-50"
+            >
+              <svg v-if="statsLoading" class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+              </svg>
+              刷新统计
+            </button>
           </div>
-        </el-card>
-      </el-col>
-    </el-row>
+          
+          <div class="border-t border-[var(--border-color)]"></div>
+          
+          <!-- 清理过期缓存 -->
+          <div>
+            <h4 class="font-medium mb-2 flex items-center gap-2">
+              <svg class="w-4 h-4 text-[#F59E0B]" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
+              </svg>
+              清理过期缓存
+            </h4>
+            <p class="text-sm text-[var(--text-secondary)] mb-3">删除指定天数之前的缓存文件</p>
+            
+            <div class="mb-4">
+              <label class="text-sm text-[var(--text-secondary)] block mb-2">清理天数: {{ cleanupDays }} 天</label>
+              <input 
+                type="range" 
+                v-model="cleanupDays" 
+                min="1" 
+                max="30" 
+                class="w-full h-2 bg-[var(--bg-tertiary)] rounded-lg appearance-none cursor-pointer accent-[#F59E0B]"
+              />
+              <div class="flex justify-between text-xs text-[var(--text-secondary)] mt-1">
+                <span>1天</span>
+                <span>1周</span>
+                <span>2周</span>
+                <span>1月</span>
+              </div>
+            </div>
+            
+            <button 
+              @click="cleanupOldCache" 
+              :disabled="cleanupLoading"
+              class="px-4 py-2 bg-[#F59E0B] hover:bg-[#D97706] text-white rounded-lg transition-colors flex items-center gap-2 disabled:opacity-50"
+            >
+              <svg v-if="cleanupLoading" class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+              </svg>
+              <svg v-else class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
+              </svg>
+              清理过期缓存
+            </button>
+          </div>
+          
+          <div class="border-t border-[var(--border-color)]"></div>
+          
+          <!-- 清空所有缓存 -->
+          <div>
+            <h4 class="font-medium mb-2 flex items-center gap-2">
+              <svg class="w-4 h-4 text-[#EF4444]" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+              </svg>
+              清空所有缓存
+            </h4>
+            <p class="text-sm text-[#EF4444] mb-3">此操作将删除所有缓存文件，无法恢复</p>
+            
+            <button 
+              @click="clearAllCache" 
+              :disabled="clearAllLoading"
+              class="px-4 py-2 bg-[#EF4444] hover:bg-[#DC2626] text-white rounded-lg transition-colors flex items-center gap-2 disabled:opacity-50"
+            >
+              <svg v-if="clearAllLoading" class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+              </svg>
+              <svg v-else class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
+              </svg>
+              清空所有缓存
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
 
     <!-- 缓存详情 -->
-    <el-card class="details-card" shadow="never" style="margin-top: 24px">
-      <template #header>
-        <div class="card-header">
-          <h3>📋 缓存详情</h3>
-          <el-button size="small" @click="loadCacheDetails">
-            <el-icon><Refresh /></el-icon>
-            刷新
-          </el-button>
-        </div>
-      </template>
+    <div class="mt-6 bg-[var(--bg-secondary)] rounded-xl border border-[var(--border-color)] p-6">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg font-semibold flex items-center gap-2">
+          <svg class="w-5 h-5 text-[#8B5CF6]" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3 12h3.375c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H3v12h3.375c.621 0 1.125-.504 1.125-1.125v-2.25c0-.621-.504-1.125-1.125-1.125H3V12z" />
+          </svg>
+          缓存详情
+        </h3>
+        <button 
+          @click="loadCacheDetails" 
+          :disabled="detailsLoading"
+          class="px-3 py-1.5 text-sm bg-[var(--bg-tertiary)] hover:bg-[var(--bg-hover)] rounded-lg transition-colors flex items-center gap-1.5"
+        >
+          <svg :class="{ 'animate-spin': detailsLoading }" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
+          </svg>
+          刷新
+        </button>
+      </div>
       
-      <div v-loading="detailsLoading">
-        <el-table :data="cacheDetails" style="width: 100%">
-          <el-table-column prop="type" label="类型" width="120">
-            <template #default="{ row }">
-              <el-tag :type="getCacheTypeTag(row.type)">{{ row.type }}</el-tag>
-            </template>
-          </el-table-column>
-          <el-table-column prop="symbol" label="股票代码" width="120" />
-          <el-table-column prop="size" label="大小" width="100">
-            <template #default="{ row }">
-              {{ formatSize(row.size) }}
-            </template>
-          </el-table-column>
-          <el-table-column prop="created_at" label="创建时间" width="180">
-            <template #default="{ row }">
-              {{ formatDate(row.created_at) }}
-            </template>
-          </el-table-column>
-          <el-table-column prop="last_accessed" label="最后访问" width="180">
-            <template #default="{ row }">
-              {{ formatDate(row.last_accessed) }}
-            </template>
-          </el-table-column>
-          <el-table-column prop="hit_count" label="命中次数" width="100" />
-          <el-table-column label="操作" width="120">
-            <template #default="{ row }">
-              <el-button 
-                size="small" 
-                type="danger" 
-                @click="deleteCacheItem(row)"
-              >
-                删除
-              </el-button>
-            </template>
-          </el-table-column>
-        </el-table>
+      <div v-if="detailsLoading" class="flex items-center justify-center py-8">
+        <svg class="w-8 h-8 animate-spin text-[#22C55E]" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+        </svg>
+      </div>
+      
+      <div v-else class="overflow-x-auto">
+        <table class="w-full">
+          <thead>
+            <tr class="border-b border-[var(--border-color)]">
+              <th class="text-left py-3 px-4 text-sm font-medium text-[var(--text-secondary)]">类型</th>
+              <th class="text-left py-3 px-4 text-sm font-medium text-[var(--text-secondary)]">股票代码</th>
+              <th class="text-left py-3 px-4 text-sm font-medium text-[var(--text-secondary)]">大小</th>
+              <th class="text-left py-3 px-4 text-sm font-medium text-[var(--text-secondary)]">创建时间</th>
+              <th class="text-left py-3 px-4 text-sm font-medium text-[var(--text-secondary)]">最后访问</th>
+              <th class="text-left py-3 px-4 text-sm font-medium text-[var(--text-secondary)]">命中次数</th>
+              <th class="text-left py-3 px-4 text-sm font-medium text-[var(--text-secondary)]">操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="item in cacheDetails" :key="item.id" class="border-b border-[var(--border-color)] hover:bg-[var(--bg-hover)]">
+              <td class="py-3 px-4">
+                <span :class="getCacheTypeClass(item.type)" class="px-2 py-1 rounded text-xs font-medium">
+                  {{ item.type }}
+                </span>
+              </td>
+              <td class="py-3 px-4 font-mono">{{ item.symbol }}</td>
+              <td class="py-3 px-4">{{ formatSize(item.size) }}</td>
+              <td class="py-3 px-4 text-sm text-[var(--text-secondary)]">{{ formatDate(item.created_at) }}</td>
+              <td class="py-3 px-4 text-sm text-[var(--text-secondary)]">{{ formatDate(item.last_accessed) }}</td>
+              <td class="py-3 px-4">{{ item.hit_count }}</td>
+              <td class="py-3 px-4">
+                <button 
+                  @click="deleteCacheItem(item)"
+                  class="text-[#EF4444] hover:text-[#DC2626] transition-colors"
+                >
+                  删除
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
         
         <!-- 分页 -->
-        <el-pagination
-          v-if="cacheDetails.length > 0"
-          v-model:current-page="currentPage"
-          v-model:page-size="pageSize"
-          :total="totalItems"
-          :page-sizes="[10, 20, 50, 100]"
-          layout="total, sizes, prev, pager, next, jumper"
-          style="margin-top: 16px; text-align: right"
-          @size-change="loadCacheDetails"
-          @current-change="loadCacheDetails"
-        />
+        <div v-if="cacheDetails.length > 0" class="flex items-center justify-between mt-4 pt-4 border-t border-[var(--border-color)]">
+          <div class="text-sm text-[var(--text-secondary)]">
+            共 {{ totalItems }} 条记录
+          </div>
+          <div class="flex items-center gap-2">
+            <select v-model="pageSize" @change="loadCacheDetails" class="px-3 py-1.5 bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg text-sm">
+              <option :value="10">10 条/页</option>
+              <option :value="20">20 条/页</option>
+              <option :value="50">50 条/页</option>
+              <option :value="100">100 条/页</option>
+            </select>
+            <button 
+              v-for="p in Math.ceil(totalItems / pageSize)" 
+              :key="p"
+              @click="currentPage = p; loadCacheDetails()"
+              :class="currentPage === p ? 'bg-[#22C55E] text-white' : 'bg-[var(--bg-tertiary)] hover:bg-[var(--bg-hover)]'"
+              class="w-8 h-8 rounded-lg text-sm transition-colors"
+            >
+              {{ p }}
+            </button>
+          </div>
+        </div>
       </div>
-    </el-card>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import {
-  Coin,
-  Delete,
-  Refresh
-} from '@element-plus/icons-vue'
 import * as cacheApi from '@/api/cache'
 
 // 响应式数据
@@ -233,15 +292,7 @@ const cacheStats = ref({
 })
 
 // 缓存详情数据
-const cacheDetails = ref([])
-
-// 清理天数标记
-const cleanupMarks = {
-  1: '1天',
-  7: '1周',
-  14: '2周',
-  30: '1月'
-}
+const cacheDetails = ref<any[]>([])
 
 // 计算属性
 const cacheUsagePercentage = computed(() => {
@@ -262,26 +313,25 @@ const formatDate = (dateString: string): string => {
   return new Date(dateString).toLocaleString('zh-CN')
 }
 
-const getProgressColor = (percentage: number): string => {
-  if (percentage < 50) return '#67c23a'
-  if (percentage < 80) return '#e6a23c'
-  return '#f56c6c'
+const getProgressClass = (percentage: number): string => {
+  if (percentage < 50) return 'bg-[#22C55E]'
+  if (percentage < 80) return 'bg-[#F59E0B]'
+  return 'bg-[#EF4444]'
 }
 
-const getCacheTypeTag = (type: string): string => {
-  const typeMap = {
-    'stock': 'primary',
-    'news': 'success',
-    'analysis': 'warning'
+const getCacheTypeClass = (type: string): string => {
+  const classMap: Record<string, string> = {
+    'stock': 'bg-[#3B82F6]/20 text-[#3B82F6]',
+    'news': 'bg-[#22C55E]/20 text-[#22C55E]',
+    'analysis': 'bg-[#F59E0B]/20 text-[#F59E0B]'
   }
-  return typeMap[type] || 'info'
+  return classMap[type] || 'bg-[var(--bg-tertiary)] text-[var(--text-secondary)]'
 }
 
 const refreshStats = async () => {
   statsLoading.value = true
   try {
     const response = await cacheApi.getCacheStats()
-    // 从 ApiResponse 中提取 data 字段
     cacheStats.value = response.data || response
     ElMessage.success('缓存统计已刷新')
   } catch (error: any) {
@@ -301,13 +351,10 @@ const cleanupOldCache = async () => {
     )
 
     cleanupLoading.value = true
-
     await cacheApi.cleanupOldCache(cleanupDays.value)
-
     ElMessage.success(`已清理 ${cleanupDays.value} 天前的缓存文件`)
     await refreshStats()
     await loadCacheDetails()
-
   } catch (error: any) {
     if (error !== 'cancel') {
       console.error('清理缓存失败:', error)
@@ -331,13 +378,10 @@ const clearAllCache = async () => {
     )
 
     clearAllLoading.value = true
-
     await cacheApi.clearAllCache()
-
     ElMessage.success('所有缓存已清空')
     await refreshStats()
     await loadCacheDetails()
-
   } catch (error: any) {
     if (error !== 'cancel') {
       console.error('清空缓存失败:', error)
@@ -352,7 +396,6 @@ const loadCacheDetails = async () => {
   detailsLoading.value = true
   try {
     const response = await cacheApi.getCacheDetails(currentPage.value, pageSize.value)
-    // 从 ApiResponse 中提取 data 字段
     const data = response.data || response
     cacheDetails.value = data.items || []
     totalItems.value = data.total || 0
@@ -372,13 +415,10 @@ const deleteCacheItem = async (item: any) => {
       { type: 'warning' }
     )
     
-    // 模拟API调用
     await new Promise(resolve => setTimeout(resolve, 500))
-    
     ElMessage.success('缓存项已删除')
     await loadCacheDetails()
     await refreshStats()
-    
   } catch (error) {
     if (error !== 'cancel') {
       ElMessage.error('删除缓存项失败')
@@ -392,99 +432,3 @@ onMounted(() => {
   loadCacheDetails()
 })
 </script>
-
-<style lang="scss" scoped>
-.cache-management {
-  .page-header {
-    margin-bottom: 24px;
-
-    .page-title {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 24px;
-      font-weight: 600;
-      color: var(--el-text-color-primary);
-      margin: 0 0 8px 0;
-    }
-
-    .page-description {
-      color: var(--el-text-color-regular);
-      margin: 0;
-    }
-  }
-
-  .stats-card {
-    .stats-content {
-      .stat-item {
-        text-align: center;
-        
-        .stat-value {
-          font-size: 24px;
-          font-weight: 600;
-          color: var(--el-color-primary);
-          margin-bottom: 4px;
-        }
-        
-        .stat-label {
-          font-size: 14px;
-          color: var(--el-text-color-regular);
-        }
-      }
-      
-      .cache-usage {
-        h4 {
-          margin: 0 0 12px 0;
-          font-size: 16px;
-        }
-        
-        .usage-text {
-          margin: 8px 0 0 0;
-          font-size: 14px;
-          color: var(--el-text-color-regular);
-          text-align: center;
-        }
-      }
-    }
-  }
-
-  .operations-card {
-    .operations-content {
-      .operation-item {
-        h4 {
-          margin: 0 0 8px 0;
-          font-size: 16px;
-        }
-        
-        p {
-          margin: 0 0 16px 0;
-          font-size: 14px;
-          color: var(--el-text-color-regular);
-          
-          &.warning-text {
-            color: var(--el-color-warning);
-          }
-        }
-        
-        .cleanup-description {
-          font-size: 12px;
-          color: var(--el-text-color-placeholder);
-          margin-left: 12px;
-        }
-      }
-    }
-  }
-
-  .details-card {
-    .card-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      
-      h3 {
-        margin: 0;
-      }
-    }
-  }
-}
-</style>
