@@ -135,7 +135,16 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
-import { multiSourceApi } from '@/api/multiSource'
+import * as syncApi from '@/api/sync'
+
+// 包装 syncApi 以匹配组件中使用的 multiSourceApi
+const multiSourceApi = {
+  getDataSources: () => syncApi.getDataSourcesStatus(),
+  getSyncHistory: () => syncApi.getSyncStatus().then((res: any) => ({ data: res.data?.history || [] })),
+  runFullTest: () => syncApi.testDataSources(),
+  startSync: (params: any) => syncApi.startSync(params),
+  stopSync: () => syncApi.stopSync()
+}
 
 const testing = ref(false)
 const syncing = ref(false)

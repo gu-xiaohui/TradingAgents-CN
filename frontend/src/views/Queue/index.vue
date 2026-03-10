@@ -171,7 +171,16 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted, onUnmounted } from 'vue'
 import { ElMessage } from 'element-plus'
-import { queueApi } from '@/api/queue'
+import { request } from '@/api/request'
+import { analysisApi } from '@/api/analysis'
+
+// 复用 analysisApi 的任务相关方法作为 queueApi
+const queueApi = {
+  getTasks: () => analysisApi.getTaskList({ limit: 100 }),
+  cancelTask: (taskId: string) => request.post(`/api/analysis/tasks/${taskId}/cancel`),
+  retryTask: (taskId: string) => request.post(`/api/analysis/tasks/${taskId}/retry`),
+  clearCompleted: () => request.delete('/api/analysis/tasks/completed')
+}
 
 const loading = ref(false)
 const detailDialogVisible = ref(false)
