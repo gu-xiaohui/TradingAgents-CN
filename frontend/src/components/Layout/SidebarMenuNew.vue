@@ -112,34 +112,23 @@ const collapsed = computed(() => appStore.sidebarCollapsed)
 
 // 菜单配置
 const menuItems = [
-  { path: '/new/dashboard', title: '仪表板', icon: IconDashboard },
-  { path: '/new/learning', title: '学习中心', icon: IconBook },
+  { path: '/dashboard', title: '仪表板', icon: IconDashboard },
+  { path: '/learning', title: '学习中心', icon: IconBook },
   {
     path: '/analysis',
     title: '股票分析',
     icon: IconChart,
     children: [
-      { path: '/new/analysis', title: '单股分析' },
-      { path: '/analysis/batch', title: '批量分析' },
+      { path: '/analysis', title: '单股分析' },
       { path: '/reports', title: '分析报告' },
     ]
   },
-  { path: '/new/tasks', title: '任务中心', icon: IconList },
-  { path: '/new/screening', title: '股票筛选', icon: IconSearch },
+  { path: '/tasks', title: '任务中心', icon: IconList },
+  { path: '/screening', title: '股票筛选', icon: IconSearch },
   { path: '/favorites', title: '我的自选股', icon: IconStar },
   { path: '/paper', title: '模拟交易', icon: IconWallet },
-  {
-    path: '/settings',
-    title: '设置',
-    icon: IconSettings,
-    children: [
-      { path: '/new/settings', title: '通用设置' },
-      { path: '/settings/config', title: '配置管理' },
-      { path: '/settings/database', title: '数据库管理' },
-      { path: '/settings/logs', title: '操作日志' },
-    ]
-  },
-  { path: '/new/about', title: '关于', icon: IconInfo },
+  { path: '/settings', title: '设置', icon: IconSettings },
+  { path: '/about', title: '关于', icon: IconInfo },
 ]
 
 // 展开的子菜单
@@ -157,8 +146,10 @@ const toggleSubmenu = (path: string) => {
 const isSubmenuOpen = (path: string) => openSubmenus.value.includes(path)
 
 const isActive = (path: string) => {
-  if (path === '/new/dashboard' && route.path === '/') return true
-  return route.path === path || route.path.startsWith(path + '/')
+  // 精确匹配或前缀匹配（但避免 / 匹配所有）
+  if (route.path === path) return true
+  if (path !== '/' && route.path.startsWith(path + '/')) return true
+  return false
 }
 
 const navigate = (path: string) => {

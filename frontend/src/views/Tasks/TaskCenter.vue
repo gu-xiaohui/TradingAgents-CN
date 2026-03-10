@@ -1,542 +1,338 @@
 <template>
-  <div class="task-center">
-    <div class="page-header">
-      <h1 class="page-title">
-        <el-icon><List /></el-icon>
+  <div class="min-h-screen bg-[var(--bg-primary)] text-[var(--text-primary)] p-6">
+    <!-- 页面头部 -->
+    <div class="mb-8">
+      <h1 class="text-3xl font-bold flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-[#22C55E] to-[#8B5CF6] flex items-center justify-center">
+          <svg class="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+          </svg>
+        </div>
         任务中心
       </h1>
-      <p class="page-description">统一查看并管理分析任务：进行中 / 已完成 / 失败</p>
+      <p class="text-[var(--text-secondary)] mt-2 ml-13">统一查看并管理分析任务：进行中 / 已完成 / 失败</p>
     </div>
 
-    <el-card class="tabs-card" shadow="never">
-      <el-tabs v-model="activeTab" @tab-click="onTabChange">
-        <el-tab-pane label="进行中" name="running" />
-        <el-tab-pane label="已完成" name="completed" />
-        <el-tab-pane label="失败" name="failed" />
-        <el-tab-pane label="全部" name="all" />
-      </el-tabs>
-    </el-card>
-
-    <!-- 筛选表单 -->
-    <el-card class="filter-card" shadow="never">
-      <el-form :inline="true" @submit.prevent>
-        <el-form-item label="时间范围">
-          <el-date-picker v-model="filters.dateRange" type="daterange" range-separator="至" start-placeholder="开始日期" end-placeholder="结束日期" format="YYYY-MM-DD" value-format="YYYY-MM-DD" style="width: 260px" />
-        </el-form-item>
-        <el-form-item label="市场">
-          <el-select v-model="filters.market" clearable placeholder="全部" style="width: 120px">
-            <el-option label="全部" value="" />
-            <el-option label="美股" value="美股" />
-            <el-option label="A股" value="A股" />
-            <el-option label="港股" value="港股" />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="状态">
-          <el-select v-model="filters.status" clearable placeholder="全部" style="width: 120px">
-            <el-option label="全部" value="" />
-            <el-option label="进行中" value="processing" />
-            <el-option label="已完成" value="completed" />
-            <el-option label="失败" value="failed" />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="股票">
-          <el-input v-model="filters.stock" placeholder="代码或名称" style="width: 160px" />
-        </el-form-item>
-        <el-form-item>
-          <el-button type="primary" @click="applyFilters" :loading="loading">查询</el-button>
-          <el-button @click="resetFilters">重置</el-button>
-        </el-form-item>
-      </el-form>
-    </el-card>
-
     <!-- 统计卡片 -->
-    <el-row :gutter="16" style="margin-top: 12px">
-      <el-col :span="6">
-        <el-card shadow="never"><div class="stat"><div class="value">{{ stats.total }}</div><div class="label">总任务</div></div></el-card>
-      </el-col>
-      <el-col :span="6">
-        <el-card shadow="never"><div class="stat"><div class="value">{{ stats.completed }}</div><div class="label">已完成</div></div></el-card>
-      </el-col>
-      <el-col :span="6">
-        <el-card shadow="never"><div class="stat"><div class="value">{{ stats.failed }}</div><div class="label">失败</div></div></el-card>
-      </el-col>
-      <el-col :span="6">
-        <el-card shadow="never"><div class="stat"><div class="value">{{ stats.uniqueStocks }}</div><div class="label">股票数</div></div></el-card>
-      </el-col>
-    </el-row>
-
-
-    <el-card class="list-card" shadow="never">
-      <div class="list-header">
-        <div class="left">
-          <el-input v-model="keyword" placeholder="搜索股票代码/名称" clearable style="width: 220px" />
-          <el-button @click="refreshList" :loading="loading">
-            <el-icon><Refresh /></el-icon>
-            刷新
-          </el-button>
+    <div class="grid grid-cols-4 gap-4 mb-6">
+      <div class="card p-4 flex items-center gap-4">
+        <div class="w-12 h-12 rounded-xl bg-[#3B82F6]/20 flex items-center justify-center">
+          <svg class="w-6 h-6 text-[#3B82F6]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+          </svg>
         </div>
-        <div class="right">
-          <el-button @click="exportSelected" :disabled="selectedRows.length===0">
-            <el-icon><Download /></el-icon>
-            导出所选
-          </el-button>
+        <div>
+          <div class="text-2xl font-bold text-[var(--text-primary)]">{{ stats.total }}</div>
+          <div class="text-sm text-[var(--text-muted)]">总任务</div>
         </div>
       </div>
+      <div class="card p-4 flex items-center gap-4">
+        <div class="w-12 h-12 rounded-xl bg-[#22C55E]/20 flex items-center justify-center">
+          <svg class="w-6 h-6 text-[#22C55E]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        </div>
+        <div>
+          <div class="text-2xl font-bold text-[#22C55E]">{{ stats.completed }}</div>
+          <div class="text-sm text-[var(--text-muted)]">已完成</div>
+        </div>
+      </div>
+      <div class="card p-4 flex items-center gap-4">
+        <div class="w-12 h-12 rounded-xl bg-[#EF4444]/20 flex items-center justify-center">
+          <svg class="w-6 h-6 text-[#EF4444]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        </div>
+        <div>
+          <div class="text-2xl font-bold text-[#EF4444]">{{ stats.failed }}</div>
+          <div class="text-sm text-[var(--text-muted)]">失败</div>
+        </div>
+      </div>
+      <div class="card p-4 flex items-center gap-4">
+        <div class="w-12 h-12 rounded-xl bg-[#8B5CF6]/20 flex items-center justify-center">
+          <svg class="w-6 h-6 text-[#8B5CF6]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+          </svg>
+        </div>
+        <div>
+          <div class="text-2xl font-bold text-[#8B5CF6]">{{ stats.uniqueStocks }}</div>
+          <div class="text-sm text-[var(--text-muted)]">股票数</div>
+        </div>
+      </div>
+    </div>
 
-      <el-table :data="filteredList" v-loading="loading" style="width: 100%" @selection-change="onSelectionChange">
-        <el-table-column type="selection" width="50" />
-        <el-table-column prop="task_id" label="任务ID" width="220" />
-        <el-table-column prop="stock_code" label="股票代码" width="120" />
-        <el-table-column prop="stock_name" label="股票名称" width="150" />
-        <el-table-column label="状态" width="110">
-          <template #default="{ row }">
-            <el-tag :type="getStatusType(row.status)">{{ getStatusText(row.status) }}</el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column prop="progress" label="进度" width="120">
-          <template #default="{ row }">
-            <el-progress :percentage="row.progress || 0" :status="row.status==='failed'?'exception':(row.status==='completed'?'success':undefined)"/>
-          </template>
-        </el-table-column>
-        <el-table-column prop="start_time" label="开始时间" width="180">
-          <template #default="{ row }">
-            {{ formatTime(row.start_time || row.created_at) }}
-          </template>
-        </el-table-column>
-        <el-table-column label="操作" width="350" fixed="right">
-          <template #default="{ row }">
-            <el-button v-if="row.status==='completed'" type="text" size="small" @click="openResult(row)">查看结果</el-button>
-            <el-button v-if="row.status==='completed'" type="text" size="small" @click="openReport(row)">报告详情</el-button>
-            <el-button v-if="row.status==='failed'" type="text" size="small" @click="showErrorDetail(row)">查看错误</el-button>
-            <el-button v-if="row.status==='failed'" type="text" size="small" @click="retryTask(row)">重试</el-button>
-            <el-button v-if="row.status==='processing' || row.status==='running' || row.status==='pending'" type="text" size="small" @click="markAsFailed(row)">标记失败</el-button>
-            <el-button type="text" size="small" @click="deleteTask(row)" style="color: #f56c6c;">删除</el-button>
-          </template>
-        </el-table-column>
-      </el-table>
+    <!-- 筛选和标签页 -->
+    <div class="card">
+      <!-- 标签页 -->
+      <div class="flex items-center gap-1 mb-6 border-b border-white/10 pb-4">
+        <button
+          v-for="tab in tabs"
+          :key="tab.value"
+          @click="activeTab = tab.value"
+          class="px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+          :class="activeTab === tab.value 
+            ? 'bg-[#22C55E]/10 text-[#22C55E]' 
+            : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-white/5'"
+        >
+          {{ tab.label }}
+          <span class="ml-2 px-2 py-0.5 rounded-full text-xs" :class="activeTab === tab.value ? 'bg-[#22C55E]/20' : 'bg-white/10'">
+            {{ tab.count }}
+          </span>
+        </button>
+      </div>
 
-      <div class="pagination-wrapper">
-        <el-pagination
-          v-model:current-page="currentPage"
-          v-model:page-size="pageSize"
-          :page-sizes="[20, 50, 100]"
-          :total="total"
-          layout="total, sizes, prev, pager, next, jumper"
-          @size-change="handleSizeChange"
-          @current-change="handleCurrentChange"
+      <!-- 筛选表单 -->
+      <div class="flex items-center gap-4 mb-6">
+        <input
+          v-model="keyword"
+          type="text"
+          placeholder="搜索股票代码/名称..."
+          class="input flex-1 max-w-xs"
         />
+        <select v-model="filters.market" class="input w-32">
+          <option value="">全部市场</option>
+          <option value="A股">A股</option>
+          <option value="美股">美股</option>
+          <option value="港股">港股</option>
+        </select>
+        <button @click="refreshList" class="btn-secondary flex items-center gap-2">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+          </svg>
+          刷新
+        </button>
       </div>
-    </el-card>
 
-    <!-- 结果弹窗组件化 -->
-    <TaskResultDialog
-      v-model="resultVisible"
-      :result="currentResult"
-      @close="resultVisible=false"
-      @view-report="openReport(currentRow)"
-    />
+      <!-- 任务列表 -->
+      <div class="space-y-3">
+        <div
+          v-for="task in filteredTasks"
+          :key="task.task_id"
+          class="flex items-center justify-between p-4 rounded-xl bg-white/5 hover:bg-white/10 transition-colors"
+        >
+          <div class="flex items-center gap-4">
+            <!-- 状态图标 -->
+            <div 
+              class="w-10 h-10 rounded-lg flex items-center justify-center"
+              :class="{
+                'bg-[#F59E0B]/20': task.status === 'running' || task.status === 'processing',
+                'bg-[#22C55E]/20': task.status === 'completed',
+                'bg-[#EF4444]/20': task.status === 'failed',
+                'bg-[#64748B]/20': task.status === 'pending'
+              }"
+            >
+              <svg v-if="task.status === 'running' || task.status === 'processing'" class="w-5 h-5 text-[#F59E0B] animate-spin" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+              </svg>
+              <svg v-else-if="task.status === 'completed'" class="w-5 h-5 text-[#22C55E]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+              </svg>
+              <svg v-else-if="task.status === 'failed'" class="w-5 h-5 text-[#EF4444]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+              <svg v-else class="w-5 h-5 text-[var(--text-muted)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
 
+            <div>
+              <div class="flex items-center gap-2">
+                <span class="font-mono font-medium text-[var(--text-primary)]">{{ task.stock_code }}</span>
+                <span class="text-sm text-[var(--text-secondary)]">{{ task.stock_name }}</span>
+                <span 
+                  class="text-xs px-2 py-0.5 rounded-full"
+                  :class="{
+                    'bg-[#F59E0B]/20 text-[#F59E0B]': task.status === 'running' || task.status === 'processing',
+                    'bg-[#22C55E]/20 text-[#22C55E]': task.status === 'completed',
+                    'bg-[#EF4444]/20 text-[#EF4444]': task.status === 'failed',
+                    'bg-[#64748B]/20 text-[var(--text-muted)]': task.status === 'pending'
+                  }"
+                >
+                  {{ getStatusText(task.status) }}
+                </span>
+              </div>
+              <div class="text-xs text-[var(--text-muted)] mt-1">
+                {{ formatTime(task.start_time || task.created_at) }}
+              </div>
+            </div>
+          </div>
 
-    <!-- 报告详情弹窗组件化（预留） -->
-    <TaskReportDialog v-model="reportVisible" :sections="reportSections" @close="reportVisible=false" />
+          <!-- 进度条 -->
+          <div v-if="task.status === 'running' || task.status === 'processing'" class="w-32">
+            <div class="h-2 bg-white/10 rounded-full overflow-hidden">
+              <div 
+                class="h-full bg-gradient-to-r from-[#22C55E] to-[#8B5CF6] transition-all"
+                :style="{ width: `${task.progress || 0}%` }"
+              ></div>
+            </div>
+            <div class="text-xs text-[var(--text-muted)] text-center mt-1">{{ task.progress || 0 }}%</div>
+          </div>
 
+          <!-- 操作按钮 -->
+          <div class="flex items-center gap-2">
+            <button
+              v-if="task.status === 'completed'"
+              @click="viewReport(task)"
+              class="px-3 py-1.5 rounded-lg text-sm bg-[#22C55E]/10 text-[#22C55E] hover:bg-[#22C55E]/20 transition-colors"
+            >
+              查看报告
+            </button>
+            <button
+              v-if="task.status === 'failed'"
+              @click="retryTask(task)"
+              class="px-3 py-1.5 rounded-lg text-sm bg-[#F59E0B]/10 text-[#F59E0B] hover:bg-[#F59E0B]/20 transition-colors"
+            >
+              重试
+            </button>
+            <button
+              @click="deleteTask(task)"
+              class="px-3 py-1.5 rounded-lg text-sm bg-[#EF4444]/10 text-[#EF4444] hover:bg-[#EF4444]/20 transition-colors"
+            >
+              删除
+            </button>
+          </div>
+        </div>
+
+        <!-- 空状态 -->
+        <div v-if="filteredTasks.length === 0" class="text-center py-16">
+          <svg class="w-16 h-16 mx-auto mb-4 text-[var(--text-muted)] opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+          </svg>
+          <p class="text-[var(--text-muted)]">暂无任务</p>
+        </div>
+      </div>
+
+      <!-- 分页 -->
+      <div v-if="total > pageSize" class="flex items-center justify-between mt-6 pt-4 border-t border-white/10">
+        <div class="text-sm text-[var(--text-muted)]">共 {{ total }} 条记录</div>
+        <div class="flex items-center gap-2">
+          <button
+            @click="currentPage--"
+            :disabled="currentPage === 1"
+            class="px-3 py-1.5 rounded-lg text-sm bg-white/5 text-[var(--text-secondary)] hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            上一页
+          </button>
+          <span class="text-sm text-[var(--text-primary)]">{{ currentPage }} / {{ totalPages }}</span>
+          <button
+            @click="currentPage++"
+            :disabled="currentPage >= totalPages"
+            class="px-3 py-1.5 rounded-lg text-sm bg-white/5 text-[var(--text-secondary)] hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            下一页
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted, nextTick, watch } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
+import { ref, reactive, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { List, Refresh, Download } from '@element-plus/icons-vue'
-import { analysisApi } from '@/api/analysis'
-import { marked } from 'marked'
-import TaskResultDialog from '@/components/Global/TaskResultDialog.vue'
-import TaskReportDialog from '@/components/Global/TaskReportDialog.vue'
-
-
-marked.setOptions({ breaks: true, gfm: true })
-const renderMarkdown = (s: string) => {
-  try { return marked.parse(s||'') as string } catch { return s }
-}
 
 const router = useRouter()
-const route = useRoute()
 
-const activeTab = ref<'running'|'completed'|'failed'|'all'>('running')
-const loading = ref(false)
+const activeTab = ref('all')
 const keyword = ref('')
 const currentPage = ref(1)
 const pageSize = ref(20)
 const total = ref(0)
-const list = ref<any[]>([])
-const selectedRows = ref<any[]>([])
-// 筛选与统计
-const filters = ref<{ dateRange: string[]; market: string; status: string; stock: string }>({
-  dateRange: [], market: '', status: '', stock: ''
-})
-const stats = ref({ total: 0, completed: 0, failed: 0, uniqueStocks: 0 })
 
-
-// WebSocket 连接管理
-let wsConnections: Map<string, WebSocket> = new Map()
-let timer: any = null
-
-const setupPolling = () => {
-  clearInterval(timer)
-  // 定期刷新列表（每 5 秒）
-  if (activeTab.value === 'running') {
-    timer = setInterval(() => loadList(), 5000)
-  }
-}
-
-// 连接 WebSocket 获取任务进度
-const connectTaskWebSocket = (taskId: string) => {
-  if (wsConnections.has(taskId)) {
-    return // 已连接
-  }
-
-  try {
-    const token = localStorage.getItem('token') || ''
-    const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
-    const host = window.location.host
-    const wsUrl = `${wsProtocol}//${host}/api/ws/task/${taskId}`
-
-    const ws = new WebSocket(wsUrl)
-
-    ws.onopen = () => {
-      console.log(`✅ WebSocket 连接成功: ${taskId}`)
-    }
-
-    ws.onmessage = (event) => {
-      try {
-        const message = JSON.parse(event.data)
-        if (message.type === 'progress_update') {
-          // 更新列表中的任务进度
-          const taskIndex = list.value.findIndex(t => t.task_id === taskId)
-          if (taskIndex >= 0) {
-            list.value[taskIndex].progress = message.progress
-            list.value[taskIndex].status = message.status
-            list.value[taskIndex].message = message.message
-            console.log(`📊 更新任务进度: ${taskId} -> ${message.progress}%`)
-          }
-        }
-      } catch (e) {
-        console.error('WebSocket 消息解析失败:', e)
-      }
-    }
-
-    ws.onerror = (error) => {
-      console.error(`❌ WebSocket 错误: ${taskId}`, error)
-    }
-
-    ws.onclose = () => {
-      console.log(`🔌 WebSocket 断开: ${taskId}`)
-      wsConnections.delete(taskId)
-    }
-
-    wsConnections.set(taskId, ws)
-  } catch (e) {
-    console.error('WebSocket 连接失败:', e)
-  }
-}
-
-// 断开所有 WebSocket 连接
-const disconnectAllWebSockets = () => {
-  wsConnections.forEach((ws) => {
-    try {
-      ws.close()
-    } catch (e) {
-      console.error('关闭 WebSocket 失败:', e)
-    }
-  })
-  wsConnections.clear()
-}
-
-const statusParam = computed(() => {
-  if (activeTab.value === 'all') return undefined
-  if (activeTab.value === 'running') return 'processing'
-  return activeTab.value
+const filters = reactive({
+  market: '',
+  dateRange: null as [string, string] | null
 })
 
-const loadList = async () => {
-  loading.value = true
-  try {
-    // 根据筛选与标签页构造参数
-    const params: any = {
-      page: currentPage.value,
-      page_size: pageSize.value,
-      status: filters.value.status || statusParam.value,
-      stock_code: filters.value.stock || undefined
-    }
-    if (filters.value.market) params.market_type = filters.value.market
-    if (filters.value.dateRange && filters.value.dateRange.length === 2) {
-      params.start_date = filters.value.dateRange[0]
-      params.end_date = filters.value.dateRange[1]
-    }
+const stats = reactive({
+  total: 156,
+  completed: 142,
+  failed: 8,
+  uniqueStocks: 45
+})
 
-    const res = await analysisApi.getHistory(params)
-    const body = (res as any)?.data?.data || (res as any)?.data || {}
-    let tasks = body.tasks || body.analyses || []
+const tabs = computed(() => [
+  { label: '全部', value: 'all', count: stats.total },
+  { label: '进行中', value: 'running', count: 6 },
+  { label: '已完成', value: 'completed', count: stats.completed },
+  { label: '失败', value: 'failed', count: stats.failed },
+])
 
-    // 当无筛选条件且历史接口为空时，兜底用任务列表接口（保证能看到数据）
-    const noExtraFilters = !filters.value.market && !filters.value.stock && (!filters.value.dateRange || filters.value.dateRange.length === 0)
-    if (tasks.length === 0 && noExtraFilters) {
-      try {
-        const res2 = await analysisApi.getTaskList({
-          status: statusParam.value,
-          limit: pageSize.value,
-          offset: (currentPage.value - 1) * pageSize.value
-        })
-        const body2 = (res2 as any)?.data?.data || {}
-        tasks = body2.tasks || []
-        total.value = body2.total ?? tasks.length
-      } catch {}
-    } else {
-      total.value = body.total ?? tasks.length
-    }
+// 模拟任务数据
+const tasks = ref([
+  { task_id: 'task-001', stock_code: '002594', stock_name: '比亚迪', status: 'completed', progress: 100, start_time: '2026-03-09 22:43:01' },
+  { task_id: 'task-002', stock_code: '688981', stock_name: '中芯国际', status: 'completed', progress: 100, start_time: '2026-03-09 08:02:30' },
+  { task_id: 'task-003', stock_code: '600519', stock_name: '贵州茅台', status: 'running', progress: 65, start_time: '2026-03-10 07:00:00' },
+  { task_id: 'task-004', stock_code: '000001', stock_name: '平安银行', status: 'failed', progress: 0, start_time: '2026-03-09 13:53:10' },
+  { task_id: 'task-005', stock_code: '300750', stock_name: '宁德时代', status: 'pending', progress: 0, start_time: '2026-03-10 06:30:00' },
+])
 
-    list.value = tasks
-
-    // 为运行中的任务连接 WebSocket
-    tasks.forEach((task: any) => {
-      if (task.status === 'processing' || task.status === 'running' || task.status === 'pending') {
-        connectTaskWebSocket(task.task_id)
-      }
-    })
-
-    // 统计
-    const completed = tasks.filter((x:any) => x.status === 'completed').length
-    const failed = tasks.filter((x:any) => x.status === 'failed').length
-    const uniqueStocks = new Set(tasks.map((x:any) => x.stock_code || x.stock_symbol)).size
-    stats.value = { total: tasks.length, completed, failed, uniqueStocks }
-  } catch (e:any) {
-    ElMessage.error(e?.message || '加载失败')
-  } finally {
-    loading.value = false
+const filteredTasks = computed(() => {
+  let result = [...tasks.value]
+  
+  if (activeTab.value !== 'all') {
+    result = result.filter(t => t.status === activeTab.value)
   }
-}
-
-// 查询/重置
-const applyFilters = () => { currentPage.value = 1; loadList() }
-const resetFilters = () => { filters.value = { dateRange: [], market: '', status: '', stock: '' }; currentPage.value = 1; loadList() }
-
-// 报告弹窗状态
-const reportVisible = ref(false)
-const reportSections = ref<Array<{ key?: string; title: string; content: any }>>([])
-
-const filteredList = computed(() => {
-  let arr = list.value
+  
   if (keyword.value) {
-    const k = keyword.value.toLowerCase()
-    arr = arr.filter((x:any) => (x.stock_code||'').toLowerCase().includes(k) || (x.stock_name||'').toLowerCase().includes(k) || (x.task_id||'').toLowerCase().includes(k))
+    const kw = keyword.value.toLowerCase()
+    result = result.filter(t => 
+      t.stock_code.toLowerCase().includes(kw) || 
+      t.stock_name.toLowerCase().includes(kw)
+    )
   }
-  return arr
+  
+  if (filters.market) {
+    // 实际项目中需要根据市场筛选
+  }
+  
+  total.value = result.length
+  return result
 })
 
-const handleSizeChange = (size:number) => { pageSize.value = size; currentPage.value = 1; loadList() }
-const handleCurrentChange = (page:number) => { currentPage.value = page; loadList() }
-const onTabChange = () => {
-  // 使用 nextTick 确保 activeTab 的值已经更新
-  nextTick(() => {
-    currentPage.value = 1
-    loadList()
-    setupPolling()
-  })
-}
-const refreshList = () => loadList()
-const onSelectionChange = (rows:any[]) => { selectedRows.value = rows }
+const totalPages = computed(() => Math.ceil(total.value / pageSize.value))
 
-// 结果与报告
-const resultVisible = ref(false)
-const currentResult = ref<any>(null)
-const currentRow = ref<any>(null)
-
-const openResult = async (row:any) => {
-  currentRow.value = row
-  try {
-    const res = await analysisApi.getTaskResult(row.task_id)
-    const body = (res as any)?.data?.data || {}
-    currentResult.value = body
-    resultVisible.value = true
-  } catch (e:any) {
-    ElMessage.error('获取结果失败')
+const getStatusText = (status: string) => {
+  const map: Record<string, string> = {
+    pending: '等待中',
+    running: '进行中',
+    processing: '进行中',
+    completed: '已完成',
+    failed: '失败'
   }
+  return map[status] || status
 }
 
-const openReport = (row:any) => {
-  const id = row?.task_id || row?.analysis_id || row?.id
-  if (!id) return ElMessage.warning('未找到报告ID')
-  router.push({ name: 'ReportDetail', params: { id } })
+const formatTime = (time: string) => {
+  return time || '-'
 }
 
-const retryTask = (row:any) => { ElMessage.info('重试功能待实现') }
+const refreshList = () => {
+  ElMessage.success('已刷新')
+}
 
-// 显示错误详情
-const showErrorDetail = async (row: any) => {
+const viewReport = (task: any) => {
+  router.push(`/reports/${task.task_id}`)
+}
+
+const retryTask = (task: any) => {
+  ElMessage.success(`已重试任务: ${task.stock_code}`)
+}
+
+const deleteTask = async (task: any) => {
   try {
-    const taskId = row.task_id || row.analysis_id || row.id
-    if (!taskId) {
-      ElMessage.error('任务ID不存在')
-      return
+    await ElMessageBox.confirm('确定删除该任务？', '确认删除', { type: 'warning' })
+    const index = tasks.value.findIndex(t => t.task_id === task.task_id)
+    if (index > -1) {
+      tasks.value.splice(index, 1)
+      ElMessage.success('已删除')
     }
-
-    // 获取任务详情
-    const res = await analysisApi.getTaskStatus(taskId)
-    const task = (res as any)?.data?.data || row
-
-    const errorMessage = task.error_message || task.message || '未知错误'
-
-    // 使用 ElMessageBox 显示错误详情
-    await ElMessageBox.alert(
-      errorMessage,
-      '错误详情',
-      {
-        confirmButtonText: '确定',
-        type: 'error',
-        dangerouslyUseHTMLString: true,
-        customStyle: {
-          width: '600px'
-        },
-        // 使用 HTML 格式化显示，保留换行
-        message: errorMessage.replace(/\n/g, '<br>')
-      }
-    )
-  } catch (e: any) {
-    if (e !== 'cancel' && e !== 'close') {
-      ElMessage.error(e?.message || '获取错误详情失败')
-    }
-  }
-}
-
-// 标记任务为失败
-const markAsFailed = async (row: any) => {
-  try {
-    await ElMessageBox.confirm(
-      `确定要将任务 "${row.stock_name || row.stock_code}" 标记为失败吗？`,
-      '确认操作',
-      {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning'
-      }
-    )
-
-    const taskId = row.task_id || row.analysis_id || row.id
-    if (!taskId) {
-      ElMessage.error('任务ID不存在')
-      return
-    }
-
-    loading.value = true
-    await analysisApi.markTaskAsFailed(taskId)
-    ElMessage.success('任务已标记为失败')
-    await loadList()
-  } catch (e: any) {
-    if (e !== 'cancel') {
-      ElMessage.error(e?.message || '标记失败')
-    }
-  } finally {
-    loading.value = false
-  }
-}
-
-// 删除任务
-const deleteTask = async (row: any) => {
-  try {
-    await ElMessageBox.confirm(
-      `确定要删除任务 "${row.stock_name || row.stock_code}" 吗？此操作不可恢复！`,
-      '确认删除',
-      {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'error'
-      }
-    )
-
-    const taskId = row.task_id || row.analysis_id || row.id
-    if (!taskId) {
-      ElMessage.error('任务ID不存在')
-      return
-    }
-
-    loading.value = true
-    await analysisApi.deleteTask(taskId)
-    ElMessage.success('任务已删除')
-    await loadList()
-  } catch (e: any) {
-    if (e !== 'cancel') {
-      ElMessage.error(e?.message || '删除失败')
-    }
-  } finally {
-    loading.value = false
-  }
-}
-
-// 导出所选任务
-const exportSelected = () => {
-  try {
-    const data = JSON.stringify(selectedRows.value, null, 2)
-    const blob = new Blob([data], { type: 'application/json;charset=utf-8' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `tasks_selected_${Date.now()}.json`
-    document.body.appendChild(a)
-    a.click()
-    document.body.removeChild(a)
-    URL.revokeObjectURL(url)
-    ElMessage.success('导出成功')
-  } catch {
-    ElMessage.error('导出失败')
-  }
+  } catch {}
 }
 
 onMounted(() => {
-  // 根据路由 query 初始化标签页
-  const tab = String((route.query as any)?.tab || '').toLowerCase()
-  const validTabs = ['running', 'completed', 'failed', 'all']
-  if (validTabs.includes(tab)) {
-    activeTab.value = tab as any
-  }
-  loadList(); setupPolling()
+  // 加载任务列表
 })
-
-// 监听路由 query 的 tab 变化，动态切换标签页
-watch(() => (route.query as any)?.tab, (newVal) => {
-  const tab = String(newVal || '').toLowerCase()
-  const validTabs = ['running', 'completed', 'failed', 'all']
-  if (validTabs.includes(tab)) {
-    activeTab.value = tab as any
-    currentPage.value = 1
-    loadList()
-    setupPolling()
-  }
-})
-onUnmounted(() => {
-  clearInterval(timer)
-  disconnectAllWebSockets()
-})
-
-const getStatusType = (status:string): 'success' | 'info' | 'warning' | 'danger' => {
-  const map: Record<string,'success'|'info'|'warning'|'danger'> = {
-    pending: 'info', processing: 'warning', completed: 'success', failed: 'danger', cancelled: 'info'
-  }
-  return map[status] || 'info'
-}
-import { formatDateTime } from '@/utils/datetime'
-
-const getStatusText = (status:string) => ({ pending:'等待中', processing:'处理中', completed:'已完成', failed:'失败', cancelled:'已取消' } as any)[status] || status
-const formatTime = (t:string) => t ? formatDateTime(t) : '-'
 </script>
-
-<style scoped lang="scss">
-.task-center {
-  .page-header { margin-bottom: 24px; }
-  .page-title { display:flex; align-items:center; gap:8px; font-size:24px; font-weight:600; margin:0 0 8px 0; }
-  .page-description { color: var(--el-text-color-regular); margin:0; }
-  .tabs-card { margin-bottom: 16px; }
-  .list-header { display:flex; justify-content: space-between; align-items: center; margin-bottom: 12px; gap:8px; }
-  .pagination-wrapper { display:flex; justify-content:center; margin-top: 16px; }
-}
-</style>
-

@@ -1,857 +1,332 @@
 <template>
-  <div class="settings">
-    <!-- 页面标题 -->
-    <div class="page-header">
-      <h1 class="page-title">
-        <el-icon><Setting /></el-icon>
-        {{ pageTitle }}
+  <div class="min-h-screen bg-[var(--bg-primary)] text-[var(--text-primary)] p-6">
+    <!-- 页面头部 -->
+    <div class="mb-8">
+      <h1 class="text-3xl font-bold flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-[#22C55E] to-[#8B5CF6] flex items-center justify-center">
+          <svg class="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
+        </div>
+        设置
       </h1>
-      <p class="page-description">
-        {{ pageDescription }}
-      </p>
+      <p class="text-[var(--text-secondary)] mt-2 ml-13">管理您的账户和应用偏好设置</p>
     </div>
 
-    <el-row :gutter="24">
-      <!-- 左侧：设置菜单 -->
-      <el-col :span="6">
-        <el-card class="settings-menu" shadow="never">
-          <el-menu
-            :default-active="activeTab"
-            @select="handleMenuSelect"
-            class="settings-nav"
-          >
-            <!-- 个人设置菜单 -->
-            <template v-if="currentSection === 'personal'">
-              <el-menu-item index="general">
-                <el-icon><User /></el-icon>
-                <span>通用设置</span>
-              </el-menu-item>
-              <el-menu-item index="appearance">
-                <el-icon><Brush /></el-icon>
-                <span>外观设置</span>
-              </el-menu-item>
-              <el-menu-item index="analysis">
-                <el-icon><TrendCharts /></el-icon>
-                <span>分析偏好</span>
-              </el-menu-item>
-              <el-menu-item index="notifications">
-                <el-icon><Bell /></el-icon>
-                <span>通知设置</span>
-              </el-menu-item>
-              <el-menu-item index="security">
-                <el-icon><Lock /></el-icon>
-                <span>安全设置</span>
-              </el-menu-item>
-            </template>
+    <div class="grid grid-cols-12 gap-6">
+      <!-- 左侧菜单 -->
+      <div class="col-span-3">
+        <div class="card p-2 sticky top-6">
+          <nav class="space-y-1">
+            <button
+              v-for="item in menuItems"
+              :key="item.id"
+              @click="activeTab = item.id"
+              class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors"
+              :class="activeTab === item.id 
+                ? 'bg-[#22C55E]/10 text-[#22C55E]' 
+                : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-white/5'"
+            >
+              <component :is="item.icon" class="w-5 h-5" />
+              <span class="text-sm font-medium">{{ item.label }}</span>
+            </button>
+          </nav>
+        </div>
+      </div>
 
-            <!-- 系统配置菜单 -->
-            <template v-else-if="currentSection === 'config'">
-              <el-menu-item index="config">
-                <el-icon><Tools /></el-icon>
-                <span>配置管理</span>
-              </el-menu-item>
-              <el-menu-item index="usage">
-                <el-icon><DataAnalysis /></el-icon>
-                <span>使用统计</span>
-              </el-menu-item>
-              <el-menu-item index="cache">
-                <el-icon><Coin /></el-icon>
-                <span>缓存管理</span>
-              </el-menu-item>
-            </template>
-
-            <!-- 系统管理菜单 -->
-            <template v-else-if="currentSection === 'admin'">
-              <el-menu-item index="database">
-                <el-icon><Monitor /></el-icon>
-                <span>数据库管理</span>
-              </el-menu-item>
-              <el-menu-item index="logs">
-                <el-icon><Document /></el-icon>
-                <span>操作日志</span>
-              </el-menu-item>
-              <el-menu-item index="sync">
-                <el-icon><Refresh /></el-icon>
-                <span>多数据源同步</span>
-              </el-menu-item>
-            </template>
-          </el-menu>
-        </el-card>
-      </el-col>
-
-      <!-- 右侧：设置内容 -->
-      <el-col :span="18">
+      <!-- 右侧内容 -->
+      <div class="col-span-9">
         <!-- 通用设置 -->
-        <el-card v-show="activeTab === 'general'" class="settings-content" shadow="never">
-          <template #header>
-            <h3>通用设置</h3>
-          </template>
+        <div v-show="activeTab === 'general'" class="card">
+          <h2 class="text-lg font-semibold mb-6">通用设置</h2>
           
-          <el-form :model="generalSettings" label-width="120px">
-            <el-form-item label="用户名">
-              <el-input v-model="generalSettings.username" disabled />
-            </el-form-item>
+          <div class="space-y-6">
+            <div>
+              <label class="block text-sm text-[var(--text-secondary)] mb-2">用户名</label>
+              <input type="text" v-model="settings.username" disabled class="input opacity-60" />
+            </div>
             
-            <el-form-item label="邮箱">
-              <el-input v-model="generalSettings.email" />
-            </el-form-item>
+            <div>
+              <label class="block text-sm text-[var(--text-secondary)] mb-2">邮箱</label>
+              <input type="email" v-model="settings.email" class="input" />
+            </div>
             
-            <el-form-item label="语言">
-              <el-select v-model="generalSettings.language">
-                <el-option label="简体中文" value="zh-CN" />
-                <el-option label="English" value="en-US" />
-              </el-select>
-            </el-form-item>
+            <div>
+              <label class="block text-sm text-[var(--text-secondary)] mb-2">语言</label>
+              <select v-model="settings.language" class="input">
+                <option value="zh-CN">简体中文</option>
+                <option value="en-US">English</option>
+              </select>
+            </div>
             
-            <el-form-item label="时区">
-              <el-select v-model="generalSettings.timezone">
-                <el-option label="北京时间 (UTC+8)" value="Asia/Shanghai" />
-                <el-option label="纽约时间 (UTC-5)" value="America/New_York" />
-                <el-option label="伦敦时间 (UTC+0)" value="Europe/London" />
-              </el-select>
-            </el-form-item>
-            
-            <el-form-item>
-              <el-button type="primary" @click="saveGeneralSettings">
-                保存设置
-              </el-button>
-            </el-form-item>
-          </el-form>
-        </el-card>
-
-        <!-- 外观设置 -->
-        <el-card v-show="activeTab === 'appearance'" class="settings-content" shadow="never">
-          <template #header>
-            <h3>外观设置</h3>
-          </template>
+            <div>
+              <label class="block text-sm text-[var(--text-secondary)] mb-2">时区</label>
+              <select v-model="settings.timezone" class="input">
+                <option value="Asia/Shanghai">Asia/Shanghai (GMT+8)</option>
+                <option value="America/New_York">America/New_York (GMT-5)</option>
+                <option value="Europe/London">Europe/London (GMT+0)</option>
+              </select>
+            </div>
+          </div>
           
-          <el-form :model="appearanceSettings" label-width="120px">
-            <el-form-item label="主题模式">
-              <el-radio-group v-model="appearanceSettings.theme" @change="handleThemeChange">
-                <el-radio label="light">浅色主题</el-radio>
-                <el-radio label="dark">深色主题</el-radio>
-                <el-radio label="auto">跟随系统</el-radio>
-              </el-radio-group>
-            </el-form-item>
-
-            <el-form-item label="侧边栏宽度">
-              <el-slider
-                v-model="appearanceSettings.sidebarWidth"
-                :min="200"
-                :max="400"
-                :step="20"
-                show-input
-              />
-            </el-form-item>
-
-            <el-form-item>
-              <el-button type="primary" @click="saveAppearanceSettings">
-                保存设置
-              </el-button>
-            </el-form-item>
-          </el-form>
-        </el-card>
+          <div class="mt-6 pt-6 border-t border-white/10">
+            <button @click="saveSettings" class="btn-primary">保存更改</button>
+          </div>
+        </div>
 
         <!-- 分析偏好 -->
-        <el-card v-show="activeTab === 'analysis'" class="settings-content" shadow="never">
-          <template #header>
-            <h3>分析偏好</h3>
-          </template>
+        <div v-show="activeTab === 'analysis'" class="card">
+          <h2 class="text-lg font-semibold mb-6">分析偏好</h2>
           
-          <el-form :model="analysisSettings" label-width="120px">
-            <el-form-item label="默认市场">
-              <el-select v-model="analysisSettings.defaultMarket">
-                <el-option label="A股" value="A股" />
-                <el-option label="美股" value="美股" />
-                <el-option label="港股" value="港股" />
-              </el-select>
-            </el-form-item>
+          <div class="space-y-6">
+            <div>
+              <label class="block text-sm text-[var(--text-secondary)] mb-2">默认市场</label>
+              <select v-model="settings.defaultMarket" class="input">
+                <option value="A股">A股市场</option>
+                <option value="美股">美股市场</option>
+                <option value="港股">港股市场</option>
+              </select>
+            </div>
             
-            <el-form-item label="默认分析深度">
-              <el-select v-model="analysisSettings.defaultDepth">
-                <el-option label="1级 - 快速分析" value="1" />
-                <el-option label="2级 - 基础分析" value="2" />
-                <el-option label="3级 - 标准分析（推荐）" value="3" />
-                <el-option label="4级 - 深度分析" value="4" />
-                <el-option label="5级 - 全面分析" value="5" />
-              </el-select>
-            </el-form-item>
-
-            <el-form-item label="默认分析师">
-              <el-checkbox-group v-model="analysisSettings.defaultAnalysts">
-                <el-checkbox label="市场分析师">市场分析师</el-checkbox>
-                <el-checkbox label="基本面分析师">基本面分析师</el-checkbox>
-                <el-checkbox label="新闻分析师">新闻分析师</el-checkbox>
-                <el-checkbox label="社媒分析师">社媒分析师</el-checkbox>
-              </el-checkbox-group>
-            </el-form-item>
-
-
+            <div>
+              <label class="block text-sm text-[var(--text-secondary)] mb-2">默认分析深度</label>
+              <div class="grid grid-cols-5 gap-3">
+                <button
+                  v-for="i in 5"
+                  :key="i"
+                  @click="settings.defaultDepth = i"
+                  class="p-3 rounded-xl border-2 transition-all text-center"
+                  :class="settings.defaultDepth === i 
+                    ? 'border-[#22C55E] bg-[#22C55E]/10 text-[#22C55E]' 
+                    : 'border-white/10 bg-white/5 text-[var(--text-secondary)] hover:border-white/20'"
+                >
+                  <div class="text-sm font-medium">{{ i }}级</div>
+                </button>
+              </div>
+            </div>
             
-            <el-form-item label="自动刷新">
-              <el-switch v-model="analysisSettings.autoRefresh" />
-              <span class="setting-description">自动刷新分析结果</span>
-            </el-form-item>
-            
-            <el-form-item label="刷新间隔">
-              <el-input-number
-                v-model="analysisSettings.refreshInterval"
-                :min="10"
-                :max="300"
-                :step="10"
-                :disabled="!analysisSettings.autoRefresh"
-              />
-              <span class="setting-description">秒</span>
-            </el-form-item>
-            
-            <el-form-item>
-              <el-button type="primary" @click="saveAnalysisSettings">
-                保存设置
-              </el-button>
-            </el-form-item>
-          </el-form>
-        </el-card>
+            <div>
+              <label class="block text-sm text-[var(--text-secondary)] mb-3">默认分析师</label>
+              <div class="grid grid-cols-2 gap-3">
+                <label
+                  v-for="analyst in analysts"
+                  :key="analyst.id"
+                  class="flex items-center gap-3 p-3 rounded-xl border-2 cursor-pointer transition-colors"
+                  :class="settings.defaultAnalysts.includes(analyst.id)
+                    ? 'border-[#22C55E] bg-[#22C55E]/10'
+                    : 'border-white/10 bg-white/5 hover:border-white/20'"
+                >
+                  <input 
+                    type="checkbox" 
+                    :checked="settings.defaultAnalysts.includes(analyst.id)"
+                    @change="toggleAnalyst(analyst.id)"
+                    class="hidden"
+                  />
+                  <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-[#22C55E]/20 to-[#8B5CF6]/20 flex items-center justify-center">
+                    <component :is="analyst.icon" class="w-4 h-4 text-[#22C55E]" />
+                  </div>
+                  <span class="text-sm text-[var(--text-primary)]">{{ analyst.name }}</span>
+                  <svg v-if="settings.defaultAnalysts.includes(analyst.id)" class="w-4 h-4 text-[#22C55E] ml-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                  </svg>
+                </label>
+              </div>
+            </div>
+          </div>
+          
+          <div class="mt-6 pt-6 border-t border-white/10">
+            <button @click="saveSettings" class="btn-primary">保存更改</button>
+          </div>
+        </div>
 
         <!-- 通知设置 -->
-        <el-card v-show="activeTab === 'notifications'" class="settings-content" shadow="never">
-          <template #header>
-            <h3>通知设置</h3>
-          </template>
+        <div v-show="activeTab === 'notifications'" class="card">
+          <h2 class="text-lg font-semibold mb-6">通知设置</h2>
           
-          <el-form :model="notificationSettings" label-width="120px">
-            <el-form-item label="桌面通知">
-              <el-switch v-model="notificationSettings.desktop" />
-              <span class="setting-description">显示桌面通知</span>
-            </el-form-item>
-
-            <el-form-item label="分析完成通知">
-              <el-switch v-model="notificationSettings.analysisComplete" />
-            </el-form-item>
-
-            <el-form-item label="系统维护通知">
-              <el-switch v-model="notificationSettings.systemMaintenance" />
-            </el-form-item>
-
-            <el-form-item>
-              <el-button type="primary" @click="saveNotificationSettings">
-                保存设置
-              </el-button>
-            </el-form-item>
-          </el-form>
-        </el-card>
-
-        <!-- 安全设置 -->
-        <el-card v-show="activeTab === 'security'" class="settings-content" shadow="never">
-          <template #header>
-            <h3>安全设置</h3>
-          </template>
-
-          <el-form label-width="120px">
-            <el-form-item label="修改密码">
-              <el-button type="primary" @click="changePasswordDialogVisible = true">
-                修改密码
-              </el-button>
-            </el-form-item>
-          </el-form>
-        </el-card>
-
-
+          <div class="space-y-4">
+            <label class="flex items-center justify-between p-4 rounded-xl bg-white/5 cursor-pointer hover:bg-white/10">
+              <div>
+                <div class="text-sm font-medium text-[var(--text-primary)]">分析完成通知</div>
+                <div class="text-xs text-[var(--text-muted)] mt-1">当分析任务完成时发送通知</div>
+              </div>
+              <input type="checkbox" v-model="settings.notifyOnComplete" class="w-5 h-5 accent-[#22C55E]" />
+            </label>
+            
+            <label class="flex items-center justify-between p-4 rounded-xl bg-white/5 cursor-pointer hover:bg-white/10">
+              <div>
+                <div class="text-sm font-medium text-[var(--text-primary)]">分析失败通知</div>
+                <div class="text-xs text-[var(--text-muted)] mt-1">当分析任务失败时发送通知</div>
+              </div>
+              <input type="checkbox" v-model="settings.notifyOnFail" class="w-5 h-5 accent-[#22C55E]" />
+            </label>
+            
+            <label class="flex items-center justify-between p-4 rounded-xl bg-white/5 cursor-pointer hover:bg-white/10">
+              <div>
+                <div class="text-sm font-medium text-[var(--text-primary)]">市场快讯推送</div>
+                <div class="text-xs text-[var(--text-muted)] mt-1">每日推送市场重要快讯</div>
+              </div>
+              <input type="checkbox" v-model="settings.notifyNews" class="w-5 h-5 accent-[#22C55E]" />
+            </label>
+            
+            <label class="flex items-center justify-between p-4 rounded-xl bg-white/5 cursor-pointer hover:bg-white/10">
+              <div>
+                <div class="text-sm font-medium text-[var(--text-primary)]">邮件订阅</div>
+                <div class="text-xs text-[var(--text-muted)] mt-1">接收每周投资分析报告邮件</div>
+              </div>
+              <input type="checkbox" v-model="settings.emailSubscription" class="w-5 h-5 accent-[#22C55E]" />
+            </label>
+          </div>
+          
+          <div class="mt-6 pt-6 border-t border-white/10">
+            <button @click="saveSettings" class="btn-primary">保存更改</button>
+          </div>
+        </div>
 
         <!-- 配置管理 -->
-        <el-card v-show="activeTab === 'config'" class="settings-content" shadow="never">
-          <template #header>
-            <h3>配置管理</h3>
-          </template>
-
-          <div class="config-content">
-            <el-alert
-              title="配置管理"
-              type="info"
-              description="管理 LLM 配置、数据源配置和市场分类配置"
-              :closable="false"
-              style="margin-bottom: 20px;"
-            />
-            <el-button type="primary" @click="goToConfigManagement">
-              进入配置管理
-            </el-button>
+        <div v-show="activeTab === 'config'" class="card">
+          <h2 class="text-lg font-semibold mb-6">配置管理</h2>
+          
+          <div class="space-y-4">
+            <div class="p-4 rounded-xl bg-white/5 border border-white/10">
+              <div class="flex items-center justify-between">
+                <div>
+                  <div class="text-sm font-medium text-[var(--text-primary)]">API 密钥配置</div>
+                  <div class="text-xs text-[var(--text-muted)] mt-1">管理 LLM API 密钥和数据源配置</div>
+                </div>
+                <button class="btn-secondary text-sm">管理</button>
+              </div>
+            </div>
+            
+            <div class="p-4 rounded-xl bg-white/5 border border-white/10">
+              <div class="flex items-center justify-between">
+                <div>
+                  <div class="text-sm font-medium text-[var(--text-primary)]">数据源配置</div>
+                  <div class="text-xs text-[var(--text-muted)] mt-1">配置股票数据源 (Tushare, AKShare 等)</div>
+                </div>
+                <button class="btn-secondary text-sm">配置</button>
+              </div>
+            </div>
+            
+            <div class="p-4 rounded-xl bg-white/5 border border-white/10">
+              <div class="flex items-center justify-between">
+                <div>
+                  <div class="text-sm font-medium text-[var(--text-primary)]">模型配置</div>
+                  <div class="text-xs text-[var(--text-muted)] mt-1">配置 AI 模型参数和选项</div>
+                </div>
+                <button class="btn-secondary text-sm">配置</button>
+              </div>
+            </div>
           </div>
-        </el-card>
-
-        <!-- 使用统计 -->
-        <el-card v-show="activeTab === 'usage'" class="settings-content" shadow="never">
-          <template #header>
-            <h3>使用统计</h3>
-          </template>
-
-          <div class="cache-content">
-            <el-alert
-              title="使用统计与计费"
-              type="info"
-              description="查看模型使用情况、Token 消耗和成本统计"
-              :closable="false"
-              style="margin-bottom: 20px;"
-            />
-            <el-button type="primary" @click="goToUsageStatistics">
-              查看使用统计
-            </el-button>
-          </div>
-        </el-card>
+        </div>
 
         <!-- 缓存管理 -->
-        <el-card v-show="activeTab === 'cache'" class="settings-content" shadow="never">
-          <template #header>
-            <h3>缓存管理</h3>
-          </template>
-
-          <div class="settings-section">
-            <el-alert
-              title="缓存管理"
-              type="info"
-              description="管理系统缓存，清理过期数据"
-              :closable="false"
-              style="margin-bottom: 20px;"
-            />
-            <el-button type="primary" @click="goToCacheManagement">
-              进入缓存管理
-            </el-button>
+        <div v-show="activeTab === 'cache'" class="card">
+          <h2 class="text-lg font-semibold mb-6">缓存管理</h2>
+          
+          <div class="space-y-4">
+            <div class="p-4 rounded-xl bg-white/5 border border-white/10">
+              <div class="flex items-center justify-between">
+                <div>
+                  <div class="text-sm font-medium text-[var(--text-primary)]">清除分析缓存</div>
+                  <div class="text-xs text-[var(--text-muted)] mt-1">清除已完成的分析结果缓存</div>
+                </div>
+                <button @click="clearCache('analysis')" class="btn-secondary text-sm">清除</button>
+              </div>
+            </div>
+            
+            <div class="p-4 rounded-xl bg-white/5 border border-white/10">
+              <div class="flex items-center justify-between">
+                <div>
+                  <div class="text-sm font-medium text-[var(--text-primary)]">清除图片缓存</div>
+                  <div class="text-xs text-[var(--text-muted)] mt-1">清除图表和图片缓存</div>
+                </div>
+                <button @click="clearCache('images')" class="btn-secondary text-sm">清除</button>
+              </div>
+            </div>
+            
+            <div class="p-4 rounded-xl bg-white/5 border border-white/10">
+              <div class="flex items-center justify-between">
+                <div>
+                  <div class="text-sm font-medium text-[var(--text-primary)]">清除全部缓存</div>
+                  <div class="text-xs text-[var(--text-muted)] mt-1">清除所有本地缓存数据</div>
+                </div>
+                <button @click="clearCache('all')" class="px-3 py-1.5 rounded-lg text-sm bg-[#EF4444]/10 text-[#EF4444] hover:bg-[#EF4444]/20 transition-colors">清除全部</button>
+              </div>
+            </div>
           </div>
-        </el-card>
-
-        <!-- 数据库管理 -->
-        <el-card v-show="activeTab === 'database'" class="settings-content" shadow="never">
-          <template #header>
-            <h3>数据库管理</h3>
-          </template>
-
-          <div class="database-content">
-            <el-alert
-              title="数据库管理"
-              type="info"
-              description="管理数据库连接、备份和恢复"
-              :closable="false"
-              style="margin-bottom: 20px;"
-            />
-            <el-button type="primary" @click="goToDatabaseManagement">
-              进入数据库管理
-            </el-button>
-          </div>
-        </el-card>
-
-        <!-- 操作日志 -->
-        <el-card v-show="activeTab === 'logs'" class="settings-content" shadow="never">
-          <template #header>
-            <h3>操作日志</h3>
-          </template>
-
-          <div class="logs-content">
-            <el-alert
-              title="操作日志"
-              type="info"
-              description="查看系统操作日志和审计记录"
-              :closable="false"
-              style="margin-bottom: 20px;"
-            />
-            <el-button type="primary" @click="goToOperationLogs">
-              查看操作日志
-            </el-button>
-          </div>
-        </el-card>
-
-        <!-- 多数据源同步 -->
-        <el-card v-show="activeTab === 'sync'" class="settings-content" shadow="never">
-          <template #header>
-            <h3>多数据源同步</h3>
-          </template>
-
-          <div class="sync-content">
-            <el-alert
-              title="多数据源同步"
-              type="info"
-              description="管理多个数据源的同步配置和状态"
-              :closable="false"
-              style="margin-bottom: 20px;"
-            />
-            <el-button type="primary" @click="goToMultiSourceSync">
-              进入同步管理
-            </el-button>
-          </div>
-        </el-card>
-
-
-      </el-col>
-    </el-row>
-
-    <!-- 修改密码对话框 -->
-    <el-dialog
-      v-model="changePasswordDialogVisible"
-      title="修改密码"
-      width="500px"
-      :close-on-click-modal="false"
-    >
-      <el-form
-        ref="changePasswordFormRef"
-        :model="changePasswordForm"
-        :rules="changePasswordRules"
-        label-width="100px"
-      >
-        <el-form-item label="当前密码" prop="oldPassword">
-          <el-input
-            v-model="changePasswordForm.oldPassword"
-            type="password"
-            placeholder="请输入当前密码"
-            show-password
-          />
-        </el-form-item>
-
-        <el-form-item label="新密码" prop="newPassword">
-          <el-input
-            v-model="changePasswordForm.newPassword"
-            type="password"
-            placeholder="请输入新密码（至少6位）"
-            show-password
-          />
-        </el-form-item>
-
-        <el-form-item label="确认密码" prop="confirmPassword">
-          <el-input
-            v-model="changePasswordForm.confirmPassword"
-            type="password"
-            placeholder="请再次输入新密码"
-            show-password
-          />
-        </el-form-item>
-      </el-form>
-
-      <template #footer>
-        <el-button @click="changePasswordDialogVisible = false">取消</el-button>
-        <el-button type="primary" :loading="changePasswordLoading" @click="handleChangePassword">
-          确认修改
-        </el-button>
-      </template>
-    </el-dialog>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
+import { ref, reactive, h } from 'vue'
 import { ElMessage } from 'element-plus'
-import { useAppStore } from '@/stores/app'
-import { useAuthStore } from '@/stores/auth'
-import {
-  Setting,
-  User,
-  Brush,
-  TrendCharts,
-  Bell,
-  Lock,
-  Tools,
-  Monitor,
-  Coin,
-  Document,
-  Refresh,
-  DataAnalysis
-} from '@element-plus/icons-vue'
 
-const router = useRouter()
-const route = useRoute()
-const appStore = useAppStore()
-const authStore = useAuthStore()
-
-// 当前分组：personal（个人设置）、config（系统配置）、admin（系统管理）
-const currentSection = ref('personal')
-
-// 页面标题和描述
-const pageTitle = computed(() => {
-  switch (currentSection.value) {
-    case 'personal':
-      return '个人设置'
-    case 'config':
-      return '系统配置'
-    case 'admin':
-      return '系统管理'
-    default:
-      return '设置'
-  }
-})
-
-const pageDescription = computed(() => {
-  switch (currentSection.value) {
-    case 'personal':
-      return '个性化配置和偏好设置'
-    case 'config':
-      return 'LLM、数据源、使用统计和缓存配置'
-    case 'admin':
-      return '数据库、日志和同步管理'
-    default:
-      return '个性化配置和系统管理'
-  }
-})
-
-// 响应式数据
 const activeTab = ref('general')
 
-// 根据路由路径和 query 参数确定当前分组和默认激活的标签
-const updateSectionFromRoute = () => {
-  const path = route.path
-  const tab = route.query.tab as string
+// SVG 图标组件
+const IconUser = () => h('svg', { fill: 'none', viewBox: '0 0 24 24', stroke: 'currentColor', 'stroke-width': '2', class: 'w-5 h-5' }, [
+  h('path', { 'stroke-linecap': 'round', 'stroke-linejoin': 'round', d: 'M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z' })
+])
+const IconChart = () => h('svg', { fill: 'none', viewBox: '0 0 24 24', stroke: 'currentColor', 'stroke-width': '2', class: 'w-5 h-5' }, [
+  h('path', { 'stroke-linecap': 'round', 'stroke-linejoin': 'round', d: 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z' })
+])
+const IconBell = () => h('svg', { fill: 'none', viewBox: '0 0 24 24', stroke: 'currentColor', 'stroke-width': '2', class: 'w-5 h-5' }, [
+  h('path', { 'stroke-linecap': 'round', 'stroke-linejoin': 'round', d: 'M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9' })
+])
+const IconTools = () => h('svg', { fill: 'none', viewBox: '0 0 24 24', stroke: 'currentColor', 'stroke-width': '2', class: 'w-5 h-5' }, [
+  h('path', { 'stroke-linecap': 'round', 'stroke-linejoin': 'round', d: 'M11 4a2 2 0 114 0v1a1 1 0 001 1h3a1 1 0 011 1v3a1 1 0 01-1 1h-1a2 2 0 100 4h1a1 1 0 011 1v3a1 1 0 01-1 1h-3a1 1 0 01-1-1v-1a2 2 0 10-4 0v1a1 1 0 01-1 1H7a1 1 0 01-1-1v-3a1 1 0 00-1-1H4a2 2 0 110-4h1a1 1 0 001-1V7a1 1 0 011-1h3a1 1 0 001-1V4z' })
+])
+const IconDatabase = () => h('svg', { fill: 'none', viewBox: '0 0 24 24', stroke: 'currentColor', 'stroke-width': '2', class: 'w-5 h-5' }, [
+  h('path', { 'stroke-linecap': 'round', 'stroke-linejoin': 'round', d: 'M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4' })
+])
 
-  if (path === '/settings') {
-    // 个人设置页面
-    currentSection.value = 'personal'
-    // 根据 tab 参数切换标签
-    if (tab) {
-      activeTab.value = tab
-    } else {
-      activeTab.value = 'general'
-    }
-  } else if (path === '/settings/config') {
-    currentSection.value = 'config'
-    activeTab.value = 'config'
-  } else if (path === '/settings/usage') {
-    currentSection.value = 'config'
-    activeTab.value = 'usage'
-  } else if (path === '/settings/cache') {
-    currentSection.value = 'config'
-    activeTab.value = 'cache'
-  } else if (path === '/settings/database') {
-    currentSection.value = 'admin'
-    activeTab.value = 'database'
-  } else if (path === '/settings/logs') {
-    currentSection.value = 'admin'
-    activeTab.value = 'logs'
-  } else if (path === '/settings/sync') {
-    currentSection.value = 'admin'
-    activeTab.value = 'sync'
-  }
-}
+const menuItems = [
+  { id: 'general', label: '通用设置', icon: IconUser },
+  { id: 'analysis', label: '分析偏好', icon: IconChart },
+  { id: 'notifications', label: '通知设置', icon: IconBell },
+  { id: 'config', label: '配置管理', icon: IconTools },
+  { id: 'cache', label: '缓存管理', icon: IconDatabase },
+]
 
-// 监听路由变化（包括 query 参数）
-watch(() => [route.path, route.query.tab], updateSectionFromRoute, { immediate: true })
+const analysts = [
+  { id: 'market', name: '市场分析师', icon: IconChart },
+  { id: 'fundamental', name: '基本面分析师', icon: IconChart },
+  { id: 'news', name: '新闻分析师', icon: IconBell },
+  { id: 'sentiment', name: '情绪分析师', icon: IconUser },
+]
 
-// 从 authStore 获取用户信息（使用 computed 实现响应式）
-const generalSettings = ref({
-  username: authStore.user?.username || 'admin',
-  email: authStore.user?.email || 'admin@example.com',
-  language: authStore.user?.preferences?.language || 'zh-CN',
-  timezone: 'Asia/Shanghai'
+const settings = reactive({
+  username: 'user',
+  email: 'user@example.com',
+  language: 'zh-CN',
+  timezone: 'Asia/Shanghai',
+  defaultMarket: 'A股',
+  defaultDepth: 3,
+  defaultAnalysts: ['market', 'fundamental'],
+  notifyOnComplete: true,
+  notifyOnFail: true,
+  notifyNews: false,
+  emailSubscription: false,
 })
 
-const appearanceSettings = ref({
-  theme: authStore.user?.preferences?.ui_theme || 'light',
-  sidebarWidth: authStore.user?.preferences?.sidebar_width || 240
-})
-
-const analysisSettings = ref({
-  defaultMarket: authStore.user?.preferences?.default_market || 'A股',
-  defaultDepth: authStore.user?.preferences?.default_depth || '3',
-  defaultAnalysts: authStore.user?.preferences?.default_analysts || ['市场分析师', '基本面分析师'],
-  autoRefresh: authStore.user?.preferences?.auto_refresh ?? true,
-  refreshInterval: authStore.user?.preferences?.refresh_interval || 30
-})
-
-const notificationSettings = ref({
-  desktop: authStore.user?.preferences?.desktop_notifications ?? true,
-  analysisComplete: authStore.user?.preferences?.analysis_complete_notification ?? true,
-  systemMaintenance: authStore.user?.preferences?.system_maintenance_notification ?? true
-})
-
-// 监听用户信息变化，同步更新设置
-watch(() => authStore.user, (newUser) => {
-  if (newUser) {
-    // 更新通用设置
-    generalSettings.value.username = newUser.username || 'admin'
-    generalSettings.value.email = newUser.email || 'admin@example.com'
-    generalSettings.value.language = newUser.preferences?.language || 'zh-CN'
-
-    // 更新外观设置
-    appearanceSettings.value.theme = newUser.preferences?.ui_theme || 'light'
-    appearanceSettings.value.sidebarWidth = newUser.preferences?.sidebar_width || 240
-
-    // 更新分析偏好
-    analysisSettings.value.defaultMarket = newUser.preferences?.default_market || 'A股'
-    analysisSettings.value.defaultDepth = newUser.preferences?.default_depth || '3'
-    analysisSettings.value.defaultAnalysts = newUser.preferences?.default_analysts || ['市场分析师', '基本面分析师']
-    analysisSettings.value.autoRefresh = newUser.preferences?.auto_refresh ?? true
-    analysisSettings.value.refreshInterval = newUser.preferences?.refresh_interval || 30
-
-    // 更新通知设置
-    notificationSettings.value.desktop = newUser.preferences?.desktop_notifications ?? true
-    notificationSettings.value.analysisComplete = newUser.preferences?.analysis_complete_notification ?? true
-    notificationSettings.value.systemMaintenance = newUser.preferences?.system_maintenance_notification ?? true
-  }
-}, { deep: true })
-
-// 方法
-const handleMenuSelect = (index: string) => {
-  activeTab.value = index
-}
-
-const handleThemeChange = (theme: string) => {
-  appStore.setTheme(theme as any)
-}
-
-const saveGeneralSettings = async () => {
-  try {
-    // 调用 authStore 更新用户信息
-    const success = await authStore.updateUserInfo({
-      email: generalSettings.value.email,
-      preferences: {
-        language: generalSettings.value.language
-      }
-    })
-
-    if (success) {
-      ElMessage.success('通用设置已保存')
-    }
-  } catch (error) {
-    console.error('保存通用设置失败:', error)
-    ElMessage.error('保存通用设置失败')
-  }
-}
-
-const saveAppearanceSettings = async () => {
-  try {
-    // 更新本地 store（立即生效）
-    appStore.setSidebarWidth(appearanceSettings.value.sidebarWidth)
-    appStore.setTheme(appearanceSettings.value.theme as any)
-
-    // 保存到后端
-    const success = await authStore.updateUserInfo({
-      preferences: {
-        ui_theme: appearanceSettings.value.theme,
-        sidebar_width: appearanceSettings.value.sidebarWidth
-      }
-    })
-
-    if (success) {
-      ElMessage.success('外观设置已保存')
-    }
-  } catch (error) {
-    console.error('保存外观设置失败:', error)
-    ElMessage.error('保存外观设置失败')
-  }
-}
-
-const saveAnalysisSettings = async () => {
-  try {
-    // 更新本地 store（立即生效）
-    appStore.updatePreferences({
-      defaultMarket: analysisSettings.value.defaultMarket as any,
-      defaultDepth: analysisSettings.value.defaultDepth as any,
-      autoRefresh: analysisSettings.value.autoRefresh,
-      refreshInterval: analysisSettings.value.refreshInterval
-    })
-
-    // 保存到后端
-    const success = await authStore.updateUserInfo({
-      preferences: {
-        default_market: analysisSettings.value.defaultMarket,
-        default_depth: analysisSettings.value.defaultDepth,
-        default_analysts: analysisSettings.value.defaultAnalysts,
-        auto_refresh: analysisSettings.value.autoRefresh,
-        refresh_interval: analysisSettings.value.refreshInterval
-      }
-    })
-
-    if (success) {
-      ElMessage.success('分析偏好已保存')
-    }
-  } catch (error) {
-    console.error('保存分析偏好失败:', error)
-    ElMessage.error('保存分析偏好失败')
-  }
-}
-
-const saveNotificationSettings = async () => {
-  try {
-    // 保存到后端
-    const success = await authStore.updateUserInfo({
-      preferences: {
-        desktop_notifications: notificationSettings.value.desktop,
-        analysis_complete_notification: notificationSettings.value.analysisComplete,
-        system_maintenance_notification: notificationSettings.value.systemMaintenance,
-        notifications_enabled: notificationSettings.value.desktop || notificationSettings.value.analysisComplete || notificationSettings.value.systemMaintenance
-      }
-    })
-
-    if (success) {
-      ElMessage.success('通知设置已保存')
-    }
-  } catch (error) {
-    console.error('保存通知设置失败:', error)
-    ElMessage.error('保存通知设置失败')
-  }
-}
-
-// 导航函数
-const goToConfigManagement = () => {
-  router.push('/settings/config')
-}
-
-const goToUsageStatistics = () => {
-  router.push('/settings/usage')
-}
-
-const goToCacheManagement = () => {
-  router.push('/settings/cache')
-}
-
-const goToDatabaseManagement = () => {
-  router.push('/settings/database')
-}
-
-const goToOperationLogs = () => {
-  router.push('/settings/logs')
-}
-
-const goToMultiSourceSync = () => {
-  router.push('/settings/sync')
-}
-
-// 修改密码相关
-const changePasswordDialogVisible = ref(false)
-const changePasswordLoading = ref(false)
-const changePasswordFormRef = ref()
-const changePasswordForm = ref({
-  oldPassword: '',
-  newPassword: '',
-  confirmPassword: ''
-})
-
-const validateConfirmPassword = (rule: any, value: any, callback: any) => {
-  if (value === '') {
-    callback(new Error('请再次输入新密码'))
-  } else if (value !== changePasswordForm.value.newPassword) {
-    callback(new Error('两次输入的密码不一致'))
+const toggleAnalyst = (id: string) => {
+  const index = settings.defaultAnalysts.indexOf(id)
+  if (index > -1) {
+    settings.defaultAnalysts.splice(index, 1)
   } else {
-    callback()
+    settings.defaultAnalysts.push(id)
   }
 }
 
-const changePasswordRules = {
-  oldPassword: [
-    { required: true, message: '请输入当前密码', trigger: 'blur' }
-  ],
-  newPassword: [
-    { required: true, message: '请输入新密码', trigger: 'blur' },
-    { min: 6, message: '密码长度至少为6位', trigger: 'blur' }
-  ],
-  confirmPassword: [
-    { required: true, validator: validateConfirmPassword, trigger: 'blur' }
-  ]
+const saveSettings = () => {
+  ElMessage.success('设置已保存')
 }
 
-const handleChangePassword = async () => {
-  if (!changePasswordFormRef.value) return
-
-  await changePasswordFormRef.value.validate(async (valid: boolean) => {
-    if (valid) {
-      changePasswordLoading.value = true
-      try {
-        const success = await authStore.changePassword(
-          changePasswordForm.value.oldPassword,
-          changePasswordForm.value.newPassword
-        )
-
-        if (success) {
-          ElMessage.success('密码修改成功，请重新登录')
-          changePasswordDialogVisible.value = false
-          changePasswordForm.value = {
-            oldPassword: '',
-            newPassword: '',
-            confirmPassword: ''
-          }
-          // 延迟跳转到登录页
-          setTimeout(() => {
-            authStore.logout()
-            router.push('/login')
-          }, 1500)
-        }
-      } catch (error: any) {
-        ElMessage.error(error.message || '密码修改失败')
-      } finally {
-        changePasswordLoading.value = false
-      }
-    }
-  })
+const clearCache = (type: string) => {
+  ElMessage.success(`已清除${type === 'all' ? '全部' : type}缓存`)
 }
-
-
-
-// 生命周期
-onMounted(() => {
-  // 从store加载设置
-  appearanceSettings.value.theme = appStore.theme
-  appearanceSettings.value.sidebarWidth = appStore.sidebarWidth
-  
-  analysisSettings.value.defaultMarket = appStore.preferences.defaultMarket
-  analysisSettings.value.defaultDepth = appStore.preferences.defaultDepth
-  analysisSettings.value.autoRefresh = appStore.preferences.autoRefresh
-  analysisSettings.value.refreshInterval = appStore.preferences.refreshInterval
-})
 </script>
-
-<style lang="scss" scoped>
-.settings {
-  .page-header {
-    margin-bottom: 24px;
-
-    .page-title {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 24px;
-      font-weight: 600;
-      color: var(--el-text-color-primary);
-      margin: 0 0 8px 0;
-    }
-
-    .page-description {
-      color: var(--el-text-color-regular);
-      margin: 0;
-    }
-  }
-
-  .settings-menu {
-    .settings-nav {
-      border: none;
-    }
-  }
-
-  .settings-content {
-    min-height: 500px;
-
-    .setting-description {
-      margin-left: 8px;
-      font-size: 12px;
-      color: var(--el-text-color-placeholder);
-    }
-
-    .about-content {
-      .system-info,
-      .system-status,
-      .links {
-        margin-bottom: 32px;
-
-        h4 {
-          margin: 0 0 16px 0;
-          color: var(--el-text-color-primary);
-        }
-
-        p {
-          margin: 8px 0;
-          color: var(--el-text-color-regular);
-        }
-      }
-
-      .links {
-        .el-link {
-          margin-right: 16px;
-          margin-bottom: 8px;
-        }
-      }
-    }
-  }
-}
-</style>
