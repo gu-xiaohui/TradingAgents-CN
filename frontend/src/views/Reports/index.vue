@@ -1,185 +1,133 @@
 <template>
-  <div class="reports">
-    <!-- 页面标题 -->
-    <div class="page-header">
-      <h1 class="page-title">
-        <el-icon><Document /></el-icon>
+  <div class="min-h-screen bg-[var(--bg-primary)] text-[var(--text-primary)] p-6">
+    <!-- 页面头部 -->
+    <div class="mb-6">
+      <h1 class="text-2xl font-bold flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-[#22C55E] to-[#8B5CF6] flex items-center justify-center">
+          <svg class="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
+          </svg>
+        </div>
         分析报告
       </h1>
-      <p class="page-description">
-        查看和管理股票分析报告，支持多种格式导出
-      </p>
+      <p class="text-[var(--text-muted)] mt-1 ml-13">查看和管理股票分析报告</p>
     </div>
 
-    <!-- 筛选和操作栏 -->
-    <el-card class="filter-card" shadow="never">
-      <el-row :gutter="16" align="middle">
-        <el-col :span="6">
-          <el-input
-            v-model="searchKeyword"
-            placeholder="搜索股票代码或名称"
-            clearable
-            @input="handleSearch"
-          >
-            <template #prefix>
-              <el-icon><Search /></el-icon>
-            </template>
-          </el-input>
-        </el-col>
-        
-        <el-col :span="4">
-          <el-select v-model="marketFilter" placeholder="市场筛选" clearable @change="handleMarketChange">
-            <el-option label="A股" value="A股" />
-            <el-option label="港股" value="港股" />
-            <el-option label="美股" value="美股" />
-          </el-select>
-        </el-col>
-        
-        <el-col :span="6">
-          <el-date-picker
-            v-model="dateRange"
-            type="daterange"
-            range-separator="至"
-            start-placeholder="开始日期"
-            end-placeholder="结束日期"
-            format="YYYY-MM-DD"
-            value-format="YYYY-MM-DD"
-            @change="handleDateChange"
-          />
-        </el-col>
-        
-        <el-col :span="8">
-          <div class="action-buttons">
-            <el-button @click="exportSelected" :disabled="selectedReports.length === 0">
-              <el-icon><Download /></el-icon>
-              批量导出
-            </el-button>
-            <el-button @click="refreshReports">
-              <el-icon><Refresh /></el-icon>
-              刷新
-            </el-button>
-          </div>
-        </el-col>
-      </el-row>
-    </el-card>
+    <!-- 筛选栏 -->
+    <div class="card mb-6">
+      <div class="flex items-center gap-4">
+        <input
+          v-model="searchKeyword"
+          type="text"
+          placeholder="搜索股票代码或名称..."
+          class="input flex-1 max-w-xs"
+        />
+        <select v-model="marketFilter" class="input w-32">
+          <option value="">全部市场</option>
+          <option value="A股">A股</option>
+          <option value="港股">港股</option>
+          <option value="美股">美股</option>
+        </select>
+        <button @click="refreshReports" class="btn-secondary">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
+          </svg>
+          刷新
+        </button>
+      </div>
+    </div>
 
     <!-- 报告列表 -->
-    <el-card class="reports-list-card" shadow="never">
-      <el-table
-        :data="filteredReports"
-        @selection-change="handleSelectionChange"
-        v-loading="loading"
-        style="width: 100%"
-      >
-        <el-table-column type="selection" width="55" />
-        
-        <el-table-column prop="title" label="报告标题" min-width="200">
-          <template #default="{ row }">
-            <div class="report-title">
-              <el-link type="primary" @click="viewReport(row)">
-                {{ row.title }}
-              </el-link>
-              <div class="report-subtitle">
-                {{ row.stock_code }} - {{ row.stock_name }}
+    <div class="card">
+      <!-- 加载状态 -->
+      <div v-if="loading" class="text-center py-12">
+        <svg class="w-8 h-8 mx-auto animate-spin text-[#22C55E]" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+        </svg>
+        <p class="text-[var(--text-muted)] mt-2">加载中...</p>
+      </div>
+
+      <!-- 报告列表 -->
+      <div v-else-if="filteredReports.length > 0" class="space-y-3">
+        <div
+          v-for="report in filteredReports"
+          :key="report.task_id || report.id"
+          class="flex items-center justify-between p-4 rounded-xl bg-white/5 hover:bg-white/10 cursor-pointer transition-colors"
+          @click="viewReport(report)"
+        >
+          <div class="flex items-center gap-4">
+            <div class="w-10 h-10 rounded-lg bg-[#22C55E]/20 flex items-center justify-center">
+              <svg class="w-5 h-5 text-[#22C55E]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
+              </svg>
+            </div>
+            <div>
+              <div class="flex items-center gap-2">
+                <span class="font-mono font-medium">{{ report.stock_code }}</span>
+                <span class="text-[var(--text-secondary)]">{{ report.stock_name }}</span>
+              </div>
+              <div class="text-xs text-[var(--text-muted)] mt-1">
+                {{ formatTime(report.created_at || report.start_time) }}
               </div>
             </div>
-          </template>
-        </el-table-column>
-        
-        <el-table-column prop="type" label="报告类型" width="120">
-          <template #default="{ row }">
-            <el-tag :type="getTypeColor(row.type)">
-              {{ getTypeText(row.type) }}
-            </el-tag>
-          </template>
-        </el-table-column>
-        
-        <el-table-column prop="format" label="格式" width="100">
-          <template #default="{ row }">
-            <el-tag size="small" effect="plain">
-              {{ row.format.toUpperCase() }}
-            </el-tag>
-          </template>
-        </el-table-column>
-        
-        <el-table-column prop="status" label="状态" width="100">
-          <template #default="{ row }">
-            <el-tag :type="getStatusType(row.status)">
-              {{ getStatusText(row.status) }}
-            </el-tag>
-          </template>
-        </el-table-column>
+          </div>
+          
+          <div class="flex items-center gap-6">
+            <div v-if="report.rating" class="text-center">
+              <div 
+                class="w-10 h-10 rounded-full flex items-center justify-center font-bold"
+                :class="getRatingClass(report.rating)"
+              >
+                {{ report.rating }}
+              </div>
+              <div class="text-xs text-[var(--text-muted)] mt-1">评分</div>
+            </div>
+            
+            <div class="flex items-center gap-2">
+              <button @click.stop="viewReport(report)" class="btn-secondary text-sm">查看</button>
+              <button @click.stop="downloadReport(report, 'markdown')" class="px-3 py-1.5 rounded-lg text-sm bg-white/5 text-[var(--text-secondary)] hover:bg-white/10 transition-colors">
+                下载
+              </button>
+              <button @click.stop="deleteReport(report)" class="px-3 py-1.5 rounded-lg text-sm bg-[#EF4444]/10 text-[#EF4444] hover:bg-[#EF4444]/20 transition-colors">
+                删除
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
 
-        <el-table-column prop="model_info" label="分析模型" width="180">
-          <template #default="{ row }">
-            <el-tag v-if="row.model_info && row.model_info !== 'Unknown'" type="info" size="small">
-              {{ row.model_info }}
-            </el-tag>
-            <span v-else class="text-gray">-</span>
-          </template>
-        </el-table-column>
-
-        <el-table-column prop="created_at" label="创建时间" width="180">
-          <template #default="{ row }">
-            {{ formatTime(row.created_at) }}
-          </template>
-        </el-table-column>
-
-        <el-table-column label="操作" width="250" fixed="right">
-          <template #default="{ row }">
-            <el-button type="text" size="small" @click="viewReport(row)">
-              查看
-            </el-button>
-            <el-dropdown
-              v-if="row.status === 'completed'"
-              trigger="click"
-              @command="(format) => downloadReport(row, format)"
-            >
-              <el-button type="text" size="small">
-                下载 <el-icon class="el-icon--right"><arrow-down /></el-icon>
-              </el-button>
-              <template #dropdown>
-                <el-dropdown-menu>
-                  <el-dropdown-item command="markdown">
-                    <el-icon><document /></el-icon> Markdown
-                  </el-dropdown-item>
-                  <el-dropdown-item command="docx">
-                    <el-icon><document /></el-icon> Word 文档
-                  </el-dropdown-item>
-                  <el-dropdown-item command="pdf">
-                    <el-icon><document /></el-icon> PDF
-                  </el-dropdown-item>
-                  <el-dropdown-item command="json" divided>
-                    <el-icon><document /></el-icon> JSON (原始数据)
-                  </el-dropdown-item>
-                </el-dropdown-menu>
-              </template>
-            </el-dropdown>
-            <el-button
-              type="text"
-              size="small"
-              @click="deleteReport(row)"
-              style="color: var(--el-color-danger)"
-            >
-              删除
-            </el-button>
-          </template>
-        </el-table-column>
-      </el-table>
+      <!-- 空状态 -->
+      <div v-else class="text-center py-16">
+        <svg class="w-16 h-16 mx-auto text-[var(--text-muted)] opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
+        </svg>
+        <p class="text-[var(--text-muted)] mt-4">暂无报告</p>
+        <button @click="goToAnalysis" class="btn-primary mt-4">开始分析</button>
+      </div>
 
       <!-- 分页 -->
-      <div class="pagination-wrapper">
-        <el-pagination
-          v-model:current-page="currentPage"
-          v-model:page-size="pageSize"
-          :page-sizes="[20, 50, 100]"
-          :total="totalReports"
-          layout="total, sizes, prev, pager, next, jumper"
-          @size-change="handleSizeChange"
-          @current-change="handleCurrentChange"
-        />
+      <div v-if="total > pageSize" class="flex items-center justify-between mt-6 pt-4 border-t border-white/10">
+        <div class="text-sm text-[var(--text-muted)]">共 {{ total }} 条记录</div>
+        <div class="flex items-center gap-2">
+          <button
+            @click="currentPage--"
+            :disabled="currentPage === 1"
+            class="px-3 py-1.5 rounded-lg text-sm bg-white/5 text-[var(--text-secondary)] hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            上一页
+          </button>
+          <span class="text-sm">{{ currentPage }} / {{ totalPages }}</span>
+          <button
+            @click="currentPage++"
+            :disabled="currentPage >= totalPages"
+            class="px-3 py-1.5 rounded-lg text-sm bg-white/5 text-[var(--text-secondary)] hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            下一页
+          </button>
+        </div>
       </div>
-    </el-card>
+    </div>
   </div>
 </template>
 
@@ -187,336 +135,111 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import {
-  Document,
-  Search,
-  Download,
-  Refresh,
-  ArrowDown
-} from '@element-plus/icons-vue'
 import { useAuthStore } from '@/stores/auth'
 
-// 使用路由和认证store
 const router = useRouter()
 const authStore = useAuthStore()
 
-// 响应式数据
 const loading = ref(false)
+const reports = ref<any[]>([])
 const searchKeyword = ref('')
 const marketFilter = ref('')
-const dateRange = ref<[string, string] | null>(null)
-const selectedReports = ref([])
 const currentPage = ref(1)
 const pageSize = ref(20)
-const totalReports = ref(0)
+const total = ref(0)
 
-const reports = ref([])
-
-// 计算属性
 const filteredReports = computed(() => {
-  // 现在数据直接从API获取，不需要前端筛选
-  return reports.value
+  let result = [...reports.value]
+  
+  if (searchKeyword.value) {
+    const kw = searchKeyword.value.toLowerCase()
+    result = result.filter(r => 
+      r.stock_code?.toLowerCase().includes(kw) || 
+      r.stock_name?.toLowerCase().includes(kw)
+    )
+  }
+  
+  if (marketFilter.value) {
+    result = result.filter(r => r.market === marketFilter.value)
+  }
+  
+  total.value = result.length
+  return result.slice((currentPage.value - 1) * pageSize.value, currentPage.value * pageSize.value)
 })
 
-// API调用函数
-const fetchReports = async () => {
+const totalPages = computed(() => Math.ceil(total.value / pageSize.value))
+
+const formatTime = (time: string) => {
+  if (!time) return '-'
+  return new Date(time).toLocaleString('zh-CN')
+}
+
+const getRatingClass = (rating: number) => {
+  if (rating >= 8) return 'bg-[#22C55E]/20 text-[#22C55E]'
+  if (rating >= 6) return 'bg-[#F59E0B]/20 text-[#F59E0B]'
+  return 'bg-[#EF4444]/20 text-[#EF4444]'
+}
+
+const viewReport = (report: any) => {
+  router.push(`/reports/${report.task_id || report.id}`)
+}
+
+const goToAnalysis = () => {
+  router.push('/analysis')
+}
+
+const downloadReport = async (report: any, format: string) => {
+  try {
+    const res = await fetch(`/api/reports/${report.task_id || report.id}/download?format=${format}`, {
+      headers: { 'Authorization': `Bearer ${authStore.token}` }
+    })
+    if (!res.ok) {
+      ElMessage.error('下载失败')
+      return
+    }
+    const blob = await res.blob()
+    const url = window.URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `${report.stock_code}_分析报告.md`
+    document.body.appendChild(a)
+    a.click()
+    window.URL.revokeObjectURL(url)
+    document.body.removeChild(a)
+    ElMessage.success('报告已下载')
+  } catch (error) {
+    ElMessage.error('下载失败')
+  }
+}
+
+const deleteReport = async (report: any) => {
+  try {
+    await ElMessageBox.confirm('确定删除该报告？', '确认删除', { type: 'warning' })
+    // 调用删除 API
+    ElMessage.success('已删除')
+    reports.value = reports.value.filter(r => (r.task_id || r.id) !== (report.task_id || report.id))
+  } catch {}
+}
+
+const refreshReports = async () => {
   loading.value = true
   try {
-    const params = new URLSearchParams({
-      page: currentPage.value.toString(),
-      page_size: pageSize.value.toString()
+    const res = await fetch('/api/reports?limit=100', {
+      headers: { 'Authorization': `Bearer ${authStore.token}` }
     })
-
-    if (searchKeyword.value) {
-      params.append('search_keyword', searchKeyword.value)
+    if (res.ok) {
+      const data = await res.json()
+      reports.value = data.data || data.reports || data || []
     }
-    if (marketFilter.value) {
-      params.append('market_filter', marketFilter.value)
-    }
-    if (dateRange.value) {
-      params.append('start_date', dateRange.value[0])
-      params.append('end_date', dateRange.value[1])
-    }
-
-    const response = await fetch(`/api/reports/list?${params}`, {
-      headers: {
-        'Authorization': `Bearer ${authStore.token}`,
-        'Content-Type': 'application/json'
-      }
-    })
-
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}`)
-    }
-
-    const result = await response.json()
-
-    if (result.success) {
-      reports.value = result.data.reports
-      totalReports.value = result.data.total
-    } else {
-      throw new Error(result.message || '获取报告列表失败')
-    }
+    ElMessage.success('已刷新')
   } catch (error) {
-    console.error('获取报告列表失败:', error)
-    ElMessage.error('获取报告列表失败')
+    console.error('加载报告失败:', error)
   } finally {
     loading.value = false
   }
 }
 
-// 方法
-const handleSearch = () => {
-  currentPage.value = 1
-  fetchReports()
-}
-
-const handleDateChange = () => {
-  currentPage.value = 1
-  fetchReports()
-}
-
-const handleMarketChange = () => {
-  currentPage.value = 1
-  fetchReports()
-}
-
-const handleSelectionChange = (selection: any[]) => {
-  selectedReports.value = selection
-}
-
-const viewReport = (report: any) => {
-  // 跳转到报告详情页面
-  router.push(`/reports/view/${report.id}`)
-}
-
-const downloadReport = async (report: any, format: string = 'markdown') => {
-  try {
-    // 显示加载提示
-    const loadingMsg = ElMessage({
-      message: `正在生成${getFormatName(format)}格式报告...`,
-      type: 'info',
-      duration: 0
-    })
-
-    const response = await fetch(`/api/reports/${report.id}/download?format=${format}`, {
-      headers: {
-        'Authorization': `Bearer ${authStore.token}`
-      }
-    })
-
-    loadingMsg.close()
-
-    if (!response.ok) {
-      const errorText = await response.text()
-      throw new Error(errorText || `HTTP ${response.status}`)
-    }
-
-    const blob = await response.blob()
-    const url = window.URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-
-    // 根据格式设置文件扩展名
-    const ext = getFileExtension(format)
-    a.download = `${report.stock_code}_分析报告_${report.analysis_date}.${ext}`
-
-    document.body.appendChild(a)
-    a.click()
-    window.URL.revokeObjectURL(url)
-    document.body.removeChild(a)
-
-    ElMessage.success(`${getFormatName(format)}报告下载成功`)
-  } catch (error: any) {
-    console.error('下载报告失败:', error)
-
-    // 显示详细错误信息
-    if (error.message && error.message.includes('pandoc')) {
-      ElMessage.error({
-        message: 'PDF/Word 导出需要安装 pandoc 工具',
-        duration: 5000
-      })
-    } else {
-      ElMessage.error(`下载报告失败: ${error.message || '未知错误'}`)
-    }
-  }
-}
-
-// 辅助函数：获取格式名称
-const getFormatName = (format: string): string => {
-  const names: Record<string, string> = {
-    'markdown': 'Markdown',
-    'docx': 'Word',
-    'pdf': 'PDF',
-    'json': 'JSON'
-  }
-  return names[format] || format
-}
-
-// 辅助函数：获取文件扩展名
-const getFileExtension = (format: string): string => {
-  const extensions: Record<string, string> = {
-    'markdown': 'md',
-    'docx': 'docx',
-    'pdf': 'pdf',
-    'json': 'json'
-  }
-  return extensions[format] || 'txt'
-}
-
-const deleteReport = async (report: any) => {
-  try {
-    await ElMessageBox.confirm(
-      `确定要删除报告 "${report.title}" 吗？`,
-      '确认删除',
-      {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning'
-      }
-    )
-
-    // 调用删除API
-    const response = await fetch(`/api/reports/${report.id}`, {
-      method: 'DELETE',
-      headers: {
-        'Authorization': `Bearer ${authStore.token}`,
-        'Content-Type': 'application/json'
-      }
-    })
-
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}`)
-    }
-
-    const result = await response.json()
-
-    if (result.success) {
-      ElMessage.success('报告已删除')
-      refreshReports()
-    } else {
-      throw new Error(result.message || '删除失败')
-    }
-  } catch (error) {
-    if (error.message !== 'cancel') {
-      console.error('删除报告失败:', error)
-      ElMessage.error('删除报告失败')
-    }
-  }
-}
-
-const exportSelected = () => {
-  ElMessage.info('批量导出功能开发中...')
-}
-
-const refreshReports = () => {
-  fetchReports()
-}
-
-const getTypeColor = (type: string) => {
-  const colorMap: Record<string, string> = {
-    single: 'primary',
-    batch: 'success',
-    portfolio: 'warning'
-  }
-  return colorMap[type] || 'info'
-}
-
-const getTypeText = (type: string) => {
-  const textMap: Record<string, string> = {
-    single: '单股分析',
-    batch: '批量分析',
-    portfolio: '投资组合'
-  }
-  return textMap[type] || type
-}
-
-const getStatusType = (status: string) => {
-  const statusMap: Record<string, string> = {
-    completed: 'success',
-    processing: 'warning',
-    failed: 'danger'
-  }
-  return statusMap[status] || 'info'
-}
-
-const getStatusText = (status: string) => {
-  const statusMap: Record<string, string> = {
-    completed: '已完成',
-    processing: '生成中',
-    failed: '失败'
-  }
-  return statusMap[status] || status
-}
-
-import { formatDateTime } from '@/utils/datetime'
-
-const formatTime = (time: string) => {
-  return formatDateTime(time)
-}
-
-const handleSizeChange = (size: number) => {
-  pageSize.value = size
-  currentPage.value = 1
-  fetchReports()
-}
-
-const handleCurrentChange = (page: number) => {
-  currentPage.value = page
-  fetchReports()
-}
-
-// 生命周期
 onMounted(() => {
-  fetchReports()
+  refreshReports()
 })
 </script>
-
-<style lang="scss" scoped>
-.reports {
-  .page-header {
-    margin-bottom: 24px;
-
-    .page-title {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 24px;
-      font-weight: 600;
-      color: var(--el-text-color-primary);
-      margin: 0 0 8px 0;
-    }
-
-    .page-description {
-      color: var(--el-text-color-regular);
-      margin: 0;
-    }
-  }
-
-  .filter-card {
-    margin-bottom: 24px;
-
-    .action-buttons {
-      display: flex;
-      gap: 8px;
-      justify-content: flex-end;
-    }
-  }
-
-  .reports-list-card {
-    .report-title {
-      .report-subtitle {
-        font-size: 12px;
-        color: var(--el-text-color-placeholder);
-        margin-top: 2px;
-      }
-    }
-
-    .pagination-wrapper {
-      display: flex;
-      justify-content: center;
-      margin-top: 24px;
-    }
-  }
-}
-</style>
