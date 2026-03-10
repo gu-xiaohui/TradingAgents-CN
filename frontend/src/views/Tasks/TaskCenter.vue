@@ -232,6 +232,7 @@
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { analysisApi } from '@/api/analysis'
 
 const router = useRouter()
 
@@ -240,6 +241,7 @@ const keyword = ref('')
 const currentPage = ref(1)
 const pageSize = ref(20)
 const total = ref(0)
+const loading = ref(false)
 
 const filters = reactive({
   market: '',
@@ -247,33 +249,35 @@ const filters = reactive({
 })
 
 const stats = reactive({
-  total: 156,
-  completed: 142,
-  failed: 8,
-  uniqueStocks: 45
+  total: 0,
+  completed: 0,
+  failed: 0,
+  uniqueStocks: 0
 })
 
 const tabs = computed(() => [
   { label: '全部', value: 'all', count: stats.total },
-  { label: '进行中', value: 'running', count: 6 },
+  { label: '进行中', value: 'running', count: runningCount.value },
   { label: '已完成', value: 'completed', count: stats.completed },
   { label: '失败', value: 'failed', count: stats.failed },
 ])
 
-// 模拟任务数据
-const tasks = ref([
-  { task_id: 'task-001', stock_code: '002594', stock_name: '比亚迪', status: 'completed', progress: 100, start_time: '2026-03-09 22:43:01' },
-  { task_id: 'task-002', stock_code: '688981', stock_name: '中芯国际', status: 'completed', progress: 100, start_time: '2026-03-09 08:02:30' },
-  { task_id: 'task-003', stock_code: '600519', stock_name: '贵州茅台', status: 'running', progress: 65, start_time: '2026-03-10 07:00:00' },
-  { task_id: 'task-004', stock_code: '000001', stock_name: '平安银行', status: 'failed', progress: 0, start_time: '2026-03-09 13:53:10' },
-  { task_id: 'task-005', stock_code: '300750', stock_name: '宁德时代', status: 'pending', progress: 0, start_time: '2026-03-10 06:30:00' },
-])
+// 任务数据
+const tasks = ref<any[]>([])
+
+const runningCount = computed(() => {
+  return tasks.value.filter(t => t.status === 'running' || t.status === 'processing' || t.status === 'pending').length
+})
 
 const filteredTasks = computed(() => {
   let result = [...tasks.value]
   
   if (activeTab.value !== 'all') {
-    result = result.filter(t => t.status === activeTab.value)
+    if (activeTab.value === 'running') {
+      result = result.filter(t => t.status === 'running' || t.status === 'processing' || t.status === 'pending')
+    } else {
+      result = result.filter(t => t.status === activeTab.value)
+    }
   }
   
   if (keyword.value) {
@@ -309,8 +313,29 @@ const formatTime = (time: string) => {
   return time || '-'
 }
 
-const refreshList = () => {
-  ElMessage.success('已刷新')
+const refreshList = async () => {
+  loading.value = true
+  try {
+    const response = await analysisApi.getTaskList({ limit: 100, offset: 0 })
+    const body: any = response?.data?.data || response?.data || response || {}
+    tasks.value = body.tasks || []
+    
+    // 更新统计
+    stats.total = tasks.value.length
+    stats.completed = tasks.value.filter((t: any) => t.status === 'completed').length
+    stats.failed = tasks.value.filter((t: any) => t.status === 'failed').length
+    
+    // 计算唯一股票数
+    const uniqueStocks = new Set(tasks.value.map((t: any) => t.stock_code))
+    stats.uniqueStocks = uniqueStocks.size
+    
+    ElMessage.success('已刷新')
+  } catch (error) {
+    console.error('加载任务失败:', error)
+    ElMessage.error('加载任务失败')
+  } finally {
+    loading.value = false
+  }
 }
 
 const viewReport = (task: any) => {
@@ -332,7 +357,7 @@ const deleteTask = async (task: any) => {
   } catch {}
 }
 
-onMounted(() => {
-  // 加载任务列表
+onMounted(async () => {
+  await refreshList()
 })
 </script>
