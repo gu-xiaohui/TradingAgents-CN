@@ -1,924 +1,253 @@
 <template>
-  <div class="batch-analysis">
+  <div class="min-h-screen bg-[var(--bg-primary)] text-[var(--text-primary)] p-6">
     <!-- 页面头部 -->
-    <div class="page-header">
-      <div class="header-content">
-        <div class="title-section">
-          <h1 class="page-title">
-            <el-icon class="title-icon"><Files /></el-icon>
-            批量分析
-          </h1>
-          <p class="page-description">
-            AI驱动的批量股票分析，高效处理多只股票
-          </p>
+    <div class="mb-6">
+      <h1 class="text-2xl font-bold flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-[#22C55E] to-[#8B5CF6] flex items-center justify-center">
+          <svg class="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" transform="translate(4, 4) scale(0.6)" />
+          </svg>
         </div>
-      </div>
+        批量分析
+      </h1>
+      <p class="text-[var(--text-muted)] mt-1 ml-13">AI 驱动的批量股票分析，高效处理多只股票</p>
+    </div>
 
-      <!-- 风险提示 -->
-      <div class="risk-disclaimer">
-        <el-alert
-          type="warning"
-          :closable="false"
-          show-icon
-        >
-          <template #title>
-            <span style="font-size: 14px;">
-              <strong>⚠️ 重要提示：</strong>本工具为股票分析辅助工具，所有分析结果仅供参考，不构成投资建议。投资有风险，决策需谨慎。
-            </span>
-          </template>
-        </el-alert>
+    <!-- 风险提示 -->
+    <div class="p-4 rounded-xl bg-[#F59E0B]/10 border border-[#F59E0B]/20 mb-6">
+      <div class="flex gap-3">
+        <svg class="w-5 h-5 text-[#F59E0B] flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
+        </svg>
+        <div class="text-sm">
+          <p class="font-medium text-[#F59E0B]">⚠️ 重要提示</p>
+          <p class="text-[var(--text-secondary)]">本工具为股票分析辅助工具，所有分析结果仅供参考，不构成投资建议。投资有风险，决策需谨慎。</p>
+        </div>
       </div>
     </div>
 
-    <!-- 股票列表输入区域 -->
-    <div class="analysis-container">
-      <el-row :gutter="24">
-        <el-col :span="24">
-          <el-card class="stock-list-card" shadow="hover">
-            <template #header>
-              <div class="card-header">
-                <h3>📋 股票列表</h3>
-                <el-tag :type="stockCodes.length > 0 ? 'success' : 'info'" size="small">
-                  {{ stockCodes.length }} 只股票
-                </el-tag>
-              </div>
-            </template>
+    <div class="grid grid-cols-12 gap-6">
+      <!-- 左侧：股票输入 -->
+      <div class="col-span-6">
+        <div class="card">
+          <div class="flex items-center justify-between mb-4">
+            <h2 class="text-lg font-semibold">股票列表</h2>
+            <span class="badge-info">{{ stockCodes.length }} 只股票</span>
+          </div>
 
-            <div class="stock-input-section">
-              <div class="input-area">
-                <el-input
-                  v-model="stockInput"
-                  type="textarea"
-                  :rows="8"
-                  placeholder="请输入股票代码，每行一个&#10;支持格式：&#10;000001&#10;000002.SZ&#10;600036.SH&#10;AAPL&#10;TSLA"
-                  @input="parseStockCodes"
-                  class="stock-textarea"
-                />
-                <div class="input-actions">
-                  <el-button type="primary" @click="parseStockCodes" size="small">
-                    解析股票代码
-                  </el-button>
-                  <el-button @click="clearStocks" size="small">清空</el-button>
-                </div>
-              </div>
+          <textarea
+            v-model="stockInput"
+            rows="12"
+            placeholder="请输入股票代码，每行一个&#10;支持格式：&#10;000001&#10;000002.SZ&#10;600036.SH&#10;AAPL"
+            class="input mb-4 font-mono text-sm"
+          />
 
-              <!-- 股票预览 -->
-              <div v-if="stockCodes.length > 0" class="stock-preview">
-                <h4>股票预览</h4>
-                <div class="stock-tags">
-                  <el-tag
-                    v-for="(code, index) in stockCodes.slice(0, 20)"
-                    :key="code"
-                    closable
-                    @close="removeStock(index)"
-                    class="stock-tag"
-                  >
-                    {{ code }}
-                  </el-tag>
-                  <el-tag v-if="stockCodes.length > 20" type="info">
-                    +{{ stockCodes.length - 20 }} 更多...
-                  </el-tag>
-                </div>
-              </div>
+          <div class="flex gap-3">
+            <button @click="parseStockCodes" class="btn-secondary text-sm">解析股票代码</button>
+            <button @click="clearStocks" class="btn-secondary text-sm">清空</button>
+          </div>
 
-              <!-- 无效代码提示 -->
-              <div v-if="invalidCodes.length > 0" class="invalid-codes">
-                <el-alert
-                  title="以下股票代码格式可能有误，请检查："
-                  type="warning"
-                  :closable="false"
+          <!-- 股票预览 -->
+          <div v-if="stockCodes.length > 0" class="mt-4 pt-4 border-t border-white/10">
+            <h3 class="text-sm font-medium text-[var(--text-secondary)] mb-3">股票预览</h3>
+            <div class="flex flex-wrap gap-2">
+              <span
+                v-for="(code, index) in stockCodes.slice(0, 30)"
+                :key="code"
+                class="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-white/5 text-sm"
+              >
+                {{ code }}
+                <button @click="removeStock(index)" class="text-[var(--text-muted)] hover:text-[#EF4444]">
+                  <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </span>
+              <span v-if="stockCodes.length > 30" class="px-2 py-1 text-sm text-[var(--text-muted)]">
+                +{{ stockCodes.length - 30 }} 更多...
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 右侧：分析配置 -->
+      <div class="col-span-6">
+        <div class="card">
+          <h2 class="text-lg font-semibold mb-6">分析配置</h2>
+
+          <div class="space-y-6">
+            <!-- 分析深度 -->
+            <div>
+              <label class="block text-sm text-[var(--text-secondary)] mb-3">分析深度</label>
+              <div class="grid grid-cols-5 gap-2">
+                <button
+                  v-for="i in 5"
+                  :key="i"
+                  @click="config.depth = i"
+                  class="p-3 rounded-xl border-2 transition-all text-center"
+                  :class="config.depth === i 
+                    ? 'border-[#22C55E] bg-[#22C55E]/10 text-[#22C55E]' 
+                    : 'border-white/10 bg-white/5 text-[var(--text-secondary)] hover:border-white/20'"
                 >
-                  <div class="invalid-list">
-                    <el-tag v-for="code in invalidCodes" :key="code" type="danger" size="small">
-                      {{ code }}
-                    </el-tag>
-                  </div>
-                </el-alert>
+                  <div class="text-sm font-medium">{{ i }}级</div>
+                </button>
               </div>
             </div>
-          </el-card>
-        </el-col>
-      </el-row>
 
-      <!-- 分析配置区域 -->
-      <el-row :gutter="24" style="margin-top: 24px;">
-        <!-- 左侧：分析配置 -->
-        <el-col :span="18">
-          <el-card class="config-card" shadow="hover">
-            <template #header>
-              <div class="card-header">
-                <h3>⚙️ 分析配置</h3>
-                <el-tag type="primary" size="small">批量设置</el-tag>
-              </div>
-            </template>
+            <!-- 市场类型 -->
+            <div>
+              <label class="block text-sm text-[var(--text-secondary)] mb-2">市场类型</label>
+              <select v-model="config.market" class="input">
+                <option value="A股">🇨🇳 A股市场</option>
+                <option value="美股">🇺🇸 美股市场</option>
+                <option value="港股">🇭🇰 港股市场</option>
+              </select>
+            </div>
 
-            <el-form :model="batchForm" label-width="100px" class="batch-form">
-              <!-- 基础信息 -->
-              <div class="form-section">
-                <h4 class="section-title">📋 基础信息</h4>
-                <el-form-item label="批次标题" required>
-                  <el-input
-                    v-model="batchForm.title"
-                    placeholder="如：银行板块分析"
-                    size="large"
+            <!-- 分析师选择 -->
+            <div>
+              <label class="block text-sm text-[var(--text-secondary)] mb-3">分析师团队</label>
+              <div class="space-y-2">
+                <label
+                  v-for="analyst in analysts"
+                  :key="analyst.id"
+                  class="flex items-center gap-3 p-3 rounded-xl border-2 cursor-pointer transition-colors"
+                  :class="config.analysts.includes(analyst.id)
+                    ? 'border-[#22C55E] bg-[#22C55E]/10'
+                    : 'border-white/10 bg-white/5 hover:border-white/20'"
+                >
+                  <input
+                    type="checkbox"
+                    :checked="config.analysts.includes(analyst.id)"
+                    @change="toggleAnalyst(analyst.id)"
+                    class="hidden"
                   />
-                </el-form-item>
-
-                <el-form-item label="批次描述">
-                  <el-input
-                    v-model="batchForm.description"
-                    type="textarea"
-                    :rows="2"
-                    placeholder="描述本次批量分析的目的和背景（可选）"
-                  />
-                </el-form-item>
-              </div>
-
-              <!-- 分析参数 -->
-              <div class="form-section">
-                <h4 class="section-title">⚙️ 分析参数</h4>
-                <el-form-item label="分析深度">
-                  <el-select v-model="batchForm.depth" placeholder="选择深度" size="large" style="width: 100%">
-                    <el-option label="⚡ 1级 - 快速分析 (2-4分钟/只)" value="1" />
-                    <el-option label="📈 2级 - 基础分析 (4-6分钟/只)" value="2" />
-                    <el-option label="🎯 3级 - 标准分析 (6-10分钟/只，推荐)" value="3" />
-                    <el-option label="🔍 4级 - 深度分析 (10-15分钟/只)" value="4" />
-                    <el-option label="🏆 5级 - 全面分析 (15-25分钟/只)" value="5" />
-                  </el-select>
-                </el-form-item>
-              </div>
-
-              <!-- 分析师选择 -->
-              <div class="form-section">
-                <h4 class="section-title">👥 分析师团队</h4>
-                <div class="analysts-selection">
-                  <el-checkbox-group v-model="batchForm.analysts" class="analysts-group">
-                    <div
-                      v-for="analyst in ANALYSTS"
-                      :key="analyst.id"
-                      class="analyst-option"
-                    >
-                      <el-checkbox :label="analyst.name" class="analyst-checkbox">
-                        <div class="analyst-info">
-                          <span class="analyst-name">{{ analyst.name }}</span>
-                          <span class="analyst-desc">{{ analyst.description }}</span>
-                        </div>
-                      </el-checkbox>
-                    </div>
-                  </el-checkbox-group>
-                </div>
-              </div>
-
-              <!-- 操作按钮 -->
-              <div class="form-section">
-                <div class="action-buttons" style="display: flex; justify-content: center; align-items: center; width: 100%; text-align: center;">
-                  <el-button
-                    type="primary"
-                    size="large"
-                    @click="submitBatchAnalysis"
-                    :loading="submitting"
-                    :disabled="stockCodes.length === 0"
-                    class="submit-btn large-batch-btn"
-                    style="width: 320px; height: 56px; font-size: 18px; font-weight: 700; border-radius: 16px;"
-                  >
-                    <el-icon><TrendCharts /></el-icon>
-                    开始批量分析 ({{ stockCodes.length }}只)
-                  </el-button>
-                </div>
-              </div>
-            </el-form>
-          </el-card>
-        </el-col>
-
-        <!-- 右侧：高级配置 -->
-        <el-col :span="6">
-          <el-card class="advanced-config-card" shadow="hover">
-            <template #header>
-              <div class="card-header">
-                <h3>🔧 高级配置</h3>
-              </div>
-            </template>
-
-            <div class="config-content">
-              <!-- AI模型配置组件 -->
-              <ModelConfig
-                v-model:quick-analysis-model="modelSettings.quickAnalysisModel"
-                v-model:deep-analysis-model="modelSettings.deepAnalysisModel"
-                :available-models="availableModels"
-                :analysis-depth="batchForm.depth"
-              />
-
-              <!-- 分析选项 -->
-              <div class="config-section">
-                <h4 class="config-title">⚙️ 分析选项</h4>
-                <div class="analysis-options">
-                  <div class="option-item">
-                    <el-switch v-model="batchForm.includeSentiment" />
-                    <div class="option-content">
-                      <div class="option-name">情绪分析</div>
-                      <div class="option-desc">分析市场情绪和投资者心理</div>
-                    </div>
+                  <div class="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                      <path stroke-linecap="round" stroke-linejoin="round" :d="analyst.icon" />
+                    </svg>
                   </div>
-
-                  <div class="option-item">
-                    <el-switch v-model="batchForm.includeRisk" />
-                    <div class="option-content">
-                      <div class="option-name">风险评估</div>
-                      <div class="option-desc">包含详细的风险因素分析</div>
-                    </div>
+                  <div class="flex-1">
+                    <div class="text-sm font-medium">{{ analyst.name }}</div>
+                    <div class="text-xs text-[var(--text-muted)]">{{ analyst.desc }}</div>
                   </div>
-
-                  <div class="option-item">
-                    <el-select v-model="batchForm.language" size="small" style="width: 100%">
-                      <el-option label="中文" value="zh-CN" />
-                      <el-option label="English" value="en-US" />
-                    </el-select>
-                    <div class="option-content">
-                      <div class="option-name">语言偏好</div>
-                    </div>
-                  </div>
-                </div>
+                  <svg v-if="config.analysts.includes(analyst.id)" class="w-5 h-5 text-[#22C55E]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                  </svg>
+                </label>
               </div>
             </div>
-          </el-card>
-        </el-col>
-      </el-row>
+
+            <!-- 提交按钮 -->
+            <button
+              @click="submitBatch"
+              :disabled="stockCodes.length === 0 || submitting"
+              class="btn-primary w-full py-3 text-lg font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <svg v-if="submitting" class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+              </svg>
+              <svg v-else class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.347a1.125 1.125 0 0 1 0 1.972l-11.54 6.347a1.125 1.125 0 0 1-1.667-.986V5.653Z" />
+              </svg>
+              {{ submitting ? '提交中...' : `开始批量分析 (${stockCodes.length}只)` }}
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
-
-    <!-- 股票预览 -->
-    <el-card v-if="stockCodes.length > 0" class="stock-preview-card" shadow="never">
-      <template #header>
-        <div class="card-header">
-          <h3>股票预览 ({{ stockCodes.length }}只)</h3>
-          <el-button type="text" @click="validateStocks">
-            <el-icon><Check /></el-icon>
-            验证股票代码
-          </el-button>
-        </div>
-      </template>
-
-      <div class="stock-grid">
-        <div
-          v-for="(code, index) in stockCodes"
-          :key="index"
-          class="stock-item"
-          :class="{ invalid: invalidCodes.includes(code) }"
-        >
-          <span class="stock-code">{{ code }}</span>
-          <el-button
-            type="text"
-            size="small"
-            @click="removeStock(index)"
-            class="remove-btn"
-          >
-            <el-icon><Close /></el-icon>
-          </el-button>
-        </div>
-      </div>
-
-      <div v-if="invalidCodes.length > 0" class="invalid-notice">
-        <el-alert
-          title="发现无效股票代码"
-          type="warning"
-          :description="`以下股票代码可能无效：${invalidCodes.join(', ')}`"
-          show-icon
-          :closable="false"
-        />
-      </div>
-    </el-card>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted, watch } from 'vue'
-import { ElMessage, ElMessageBox } from 'element-plus'
-import { Files, TrendCharts, Check, Close } from '@element-plus/icons-vue'
-import { ANALYSTS, DEFAULT_ANALYSTS, convertAnalystNamesToIds } from '@/constants/analysts'
-import { configApi } from '@/api/config'
-import { useRouter, useRoute } from 'vue-router'
+import { ref, reactive } from 'vue'
+import { useRouter } from 'vue-router'
+import { ElMessage } from 'element-plus'
 import { useAuthStore } from '@/stores/auth'
-import ModelConfig from '@/components/ModelConfig.vue'
-import { getMarketByStockCode } from '@/utils/market'
-import { validateStockCode } from '@/utils/stockValidator'
+import { analysisApi } from '@/api/analysis'
 
-// 路由实例（必须在顶层调用）
 const router = useRouter()
-const route = useRoute()
+const authStore = useAuthStore()
 
-const submitting = ref(false)
 const stockInput = ref('')
-const stockCodes = ref<string[]>([])  // 保留用于表单绑定
-const symbols = ref<string[]>([])     // 标准化后的代码列表
-const invalidCodes = ref<string[]>([])
+const stockCodes = ref<string[]>([])
+const submitting = ref(false)
 
-// 模型设置
-const modelSettings = ref({
-  quickAnalysisModel: 'qwen-turbo',
-  deepAnalysisModel: 'qwen-max'
+const config = reactive({
+  depth: 3,
+  market: 'A股',
+  analysts: ['market', 'fundamental']
 })
 
-// 可用的模型列表（从配置中获取）
-const availableModels = ref<any[]>([])
-
-const batchForm = reactive({
-  title: '',
-  description: '',
-  depth: '3',  // 默认3级标准分析，将在 onMounted 中从用户偏好加载
-  analysts: [...DEFAULT_ANALYSTS],  // 将在 onMounted 中从用户偏好加载
-  includeSentiment: true,
-  includeRisk: true,
-  language: 'zh-CN'
-})
-
-// 使用通用校验器规范化代码，自动识别市场
-const normalizeCodeSmart = (raw: string): { symbol?: string; error?: string } => {
-  const code = String(raw || '').trim()
-  if (!code) return { error: '空代码' }
-
-  // 自动识别市场
-  const v = validateStockCode(code)
-  if (v.valid && v.normalizedCode) return { symbol: v.normalizedCode }
-
-  return { error: v.message || '代码格式无效' }
-}
+const analysts = [
+  { id: 'market', name: '市场分析师', desc: '技术指标分析', icon: 'M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625ZM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z' },
+  { id: 'fundamental', name: '基本面分析师', desc: '财务数据分析', icon: 'M2.25 18.75a60.07 60.07 0 0 1 15.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 0 1 3 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 0 0-.75-.75H5.25A.75.75 0 0 0 4.5 18v.75c0 .414.336.75.75.75h.75m-1.5-1.5h14.5' },
+  { id: 'news', name: '新闻分析师', desc: '新闻事件分析', icon: 'M12 7.5h1.5m-1.5 3h1.5m-7.5 3h7.5m-7.5 3h7.5m3-9h3.375c.621 0 1.125.504 1.125 1.125V18a2.25 2.25 0 0 1-2.25 2.25M16.5 7.5V18a2.25 2.25 0 0 0 2.25 2.25M16.5 7.5V4.875c0-.621-.504-1.125-1.125-1.125H4.125C3.504 3.75 3 4.254 3 4.875V18a2.25 2.25 0 0 0 2.25 2.25h13.5M6 7.5h3v3H6v-3Z' },
+  { id: 'sentiment', name: '情绪分析师', desc: '市场情绪分析', icon: 'M15.182 15.182a4.5 4.5 0 0 1-6.364 0M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0ZM9.75 9.75c0 .414-.168.75-.375.75S9 10.164 9 9.75 9.168 9 9.375 9s.375.336.375.75Zm-.375 0h.008v.015h-.008V9.75Zm5.625 0c0 .414-.168.75-.375.75s-.375-.336-.375-.75.168-.75.375-.75.375.336.375.75Zm-.375 0h.008v.015h-.008V9.75Z' },
+]
 
 const parseStockCodes = () => {
-  const codes = stockInput.value
-    .split('\n')
-    .map(code => code.trim())
-    .filter(code => code.length > 0)
-    .filter((code, index, arr) => arr.indexOf(code) === index) // 去重
-
-  const normalized: string[] = []
-  const invalid: string[] = []
-  for (const c of codes) {
-    const { symbol, error } = normalizeCodeSmart(c)
-    if (symbol) normalized.push(symbol)
-    else invalid.push(c)
-  }
-
-  stockCodes.value = normalized
-  symbols.value = [...normalized]
-  invalidCodes.value = invalid
+  const lines = stockInput.value.split('\n')
+  stockCodes.value = lines
+    .map(line => line.trim())
+    .filter(line => line.length > 0)
+    .map(code => {
+      // 标准化股票代码
+      return code.toUpperCase()
+    })
 }
 
 const clearStocks = () => {
   stockInput.value = ''
   stockCodes.value = []
-  symbols.value = []
-  invalidCodes.value = []
 }
-
-// 初始化模型设置
-const initializeModelSettings = async () => {
-  try {
-    // 获取默认模型
-    const defaultModels = await configApi.getDefaultModels()
-    modelSettings.value.quickAnalysisModel = defaultModels.quick_analysis_model
-    modelSettings.value.deepAnalysisModel = defaultModels.deep_analysis_model
-
-    // 获取所有可用的模型列表
-    const llmConfigs = await configApi.getLLMConfigs()
-    availableModels.value = llmConfigs.filter((config: any) => config.enabled)
-
-    console.log('✅ 加载模型配置成功:', {
-      quick: modelSettings.value.quickAnalysisModel,
-      deep: modelSettings.value.deepAnalysisModel,
-      available: availableModels.value.length
-    })
-  } catch (error) {
-    console.error('加载默认模型配置失败:', error)
-    // 使用硬编码的默认值
-    modelSettings.value.quickAnalysisModel = 'qwen-turbo'
-    modelSettings.value.deepAnalysisModel = 'qwen-max'
-  }
-}
-
-// 页面初始化
-onMounted(async () => {
-  await initializeModelSettings()
-
-  // 🆕 从用户偏好加载默认设置
-  const authStore = useAuthStore()
-  const userPrefs = authStore.user?.preferences
-
-  if (userPrefs) {
-    // 加载默认分析深度
-    if (userPrefs.default_depth) {
-      batchForm.depth = userPrefs.default_depth
-    }
-
-    // 加载默认分析师
-    if (userPrefs.default_analysts && userPrefs.default_analysts.length > 0) {
-      batchForm.analysts = [...userPrefs.default_analysts]
-    }
-
-    console.log('✅ 批量分析已加载用户偏好设置:', {
-      depth: batchForm.depth,
-      analysts: batchForm.analysts
-    })
-  }
-
-  // 读取路由查询参数以便从筛选页预填充（路由参数优先级最高）
-  const q = route.query as any
-  if (q?.stocks) {
-    const parts = String(q.stocks).split(',').map((s) => s.trim()).filter(Boolean)
-    stockCodes.value = parts
-    stockInput.value = parts.join('\n')
-    // 触发解析以更新 symbols
-    parseStockCodes()
-  }
-})
 
 const removeStock = (index: number) => {
-  const removedCode = stockCodes.value[index]
   stockCodes.value.splice(index, 1)
-  
-  // 更新输入框
-  stockInput.value = stockCodes.value.join('\n')
-  
-  // 从无效列表中移除
-  const invalidIndex = invalidCodes.value.indexOf(removedCode)
-  if (invalidIndex > -1) {
-    invalidCodes.value.splice(invalidIndex, 1)
-  }
 }
 
-const validateStocks = async () => {
-  // 按当前市场重新规范化并验证
-  const invalid: string[] = []
-  const valid: string[] = []
-  for (const c of stockCodes.value) {
-    const { symbol } = normalizeCodeSmart(c)
-    if (symbol) valid.push(symbol)
-    else invalid.push(c)
-  }
-  stockCodes.value = valid
-  symbols.value = [...valid]
-  invalidCodes.value = invalid
-
-  if (invalid.length === 0) {
-    ElMessage.success('所有股票代码验证通过')
+const toggleAnalyst = (id: string) => {
+  const index = config.analysts.indexOf(id)
+  if (index > -1) {
+    config.analysts.splice(index, 1)
   } else {
-    ElMessage.warning(`发现 ${invalid.length} 个无效股票代码`)
+    config.analysts.push(id)
   }
 }
 
-const submitBatchAnalysis = async () => {
-  if (!batchForm.title) {
-    ElMessage.warning('请输入批次标题')
-    return
-  }
-
+const submitBatch = async () => {
   if (stockCodes.value.length === 0) {
-    ElMessage.warning('请输入股票代码')
+    ElMessage.warning('请输入至少一只股票代码')
     return
   }
 
-  if (stockCodes.value.length > 10) {
-    ElMessage.warning('单次批量分析最多支持10只股票，请减少股票数量')
-    return
-  }
+  submitting.value = true
 
   try {
-    await ElMessageBox.confirm(
-      `确定要提交批量分析任务吗？\n批次：${batchForm.title}\n股票数量：${stockCodes.value.length}只`,
-      '确认提交',
-      {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'info'
-      }
-    )
-
-    submitting.value = true
-
-    // 准备批量分析请求参数（真实API调用）
-    const batchRequest = {
-      title: batchForm.title,
-      description: batchForm.description,
-      symbols: symbols.value,
-      stock_codes: symbols.value,  // 兼容字段
+    // 调用批量分析 API
+    const response = await analysisApi.startBatchAnalysis({
+      symbols: stockCodes.value,
       parameters: {
-        // 若全部代码可识别为同一市场则携带；否则省略让后端自行判断
-        market_type: (() => {
-          const markets = new Set(symbols.value.map(s => getMarketByStockCode(s)))
-          return markets.size === 1 ? Array.from(markets)[0] : undefined
-        })(),
-        research_depth: batchForm.depth,
-        selected_analysts: convertAnalystNamesToIds(batchForm.analysts),
-        include_sentiment: batchForm.includeSentiment,
-        include_risk: batchForm.includeRisk,
-        language: batchForm.language,
-        quick_analysis_model: modelSettings.value.quickAnalysisModel,
-        deep_analysis_model: modelSettings.value.deepAnalysisModel
-      }
-    }
-
-    // 调用真实的批量分析API
-    const { analysisApi } = await import('@/api/analysis')
-    const response = await analysisApi.startBatchAnalysis(batchRequest)
-
-    if (!response?.success) {
-      throw new Error(response?.message || '批量分析提交失败')
-    }
-
-    const { batch_id, total_tasks } = response.data
-
-    // 显示成功提示并引导用户去任务中心
-    ElMessageBox.confirm(
-      `✅ 批量分析任务已成功提交！\n\n📊 股票数量：${total_tasks}只\n📋 批次ID：${batch_id}\n\n任务正在后台执行中，最多同时执行3个任务，其他任务会自动排队等待。\n\n是否前往任务中心查看进度？`,
-      '提交成功',
-      {
-        confirmButtonText: '前往任务中心',
-        cancelButtonText: '留在当前页面',
-        type: 'success',
-        distinguishCancelAndClose: true,
-        closeOnClickModal: false
-      }
-    ).then(() => {
-      // 用户点击"前往任务中心"
-      router.push({ path: '/tasks', query: { batch_id } })
-    }).catch((action) => {
-      // 用户点击"留在当前页面"或关闭对话框
-      if (action === 'cancel') {
-        ElMessage.info('任务正在后台执行，您可以随时前往任务中心查看进度')
+        market_type: config.market,
+        research_depth: String(config.depth),
+        selected_analysts: config.analysts
       }
     })
 
-  } catch (error: any) {
-    // 处理错误
-    if (error !== 'cancel') {
-      ElMessage.error(error.message || '批量分析提交失败')
+    if (response.success) {
+      ElMessage.success(`已提交 ${stockCodes.value.length} 只股票的批量分析任务`)
+      router.push('/tasks')
+    } else {
+      ElMessage.error(response.message || '提交失败')
     }
+  } catch (error: any) {
+    console.error('批量分析失败:', error)
+    ElMessage.error(error.message || '提交失败，请稍后重试')
   } finally {
     submitting.value = false
   }
 }
-
-const resetForm = () => {
-  // 从用户偏好加载默认值
-  const authStore = useAuthStore()
-  const userPrefs = authStore.user?.preferences
-
-  Object.assign(batchForm, {
-    title: '',
-    description: '',
-    depth: userPrefs?.default_depth || '3',
-    analysts: userPrefs?.default_analysts ? [...userPrefs.default_analysts] : [...DEFAULT_ANALYSTS]
-  })
-  clearStocks()
-}
-
 </script>
-
-<style lang="scss" scoped>
-.batch-analysis {
-  min-height: 100vh;
-  background: var(--el-bg-color-page);
-  padding: 24px;
-
-  .page-header {
-    margin-bottom: 32px;
-
-    .header-content {
-      background: var(--el-bg-color);
-      padding: 32px;
-      border-radius: 16px;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-    }
-
-    .title-section {
-      .page-title {
-        display: flex;
-        align-items: center;
-        font-size: 32px;
-        font-weight: 700;
-        color: #1a202c;
-        margin: 0 0 8px 0;
-
-        .title-icon {
-          margin-right: 12px;
-          color: #3b82f6;
-        }
-      }
-
-      .page-description {
-        font-size: 16px;
-        color: #64748b;
-        margin: 0;
-      }
-    }
-  }
-
-  .analysis-container {
-    .stock-list-card, .config-card {
-      border-radius: 16px;
-      border: none;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-
-      :deep(.el-card__header) {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        border-radius: 16px 16px 0 0;
-        padding: 20px 24px;
-
-        .card-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-
-          h3 {
-            margin: 0;
-            font-size: 18px;
-            font-weight: 600;
-          }
-        }
-      }
-
-      :deep(.el-card__body) {
-        padding: 24px;
-      }
-    }
-
-    // 右侧高级配置卡片样式
-    .advanced-config-card {
-      border-radius: 16px;
-      border: none;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-
-      :deep(.el-card__header) {
-        background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-        color: white;
-        border-radius: 16px 16px 0 0;
-        padding: 20px 24px;
-
-        .card-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-
-          h3 {
-            margin: 0;
-            font-size: 18px;
-            font-weight: 600;
-          }
-        }
-      }
-
-      :deep(.el-card__body) {
-        padding: 24px;
-      }
-
-      .config-content {
-        .config-section {
-          margin-bottom: 24px;
-
-          &:last-child {
-            margin-bottom: 0;
-          }
-
-          .analysis-options {
-            .option-item {
-              display: flex;
-              align-items: flex-start;
-              gap: 12px;
-              padding: 12px 0;
-              border-bottom: 1px solid #f3f4f6;
-
-              &:last-child {
-                border-bottom: none;
-                padding-bottom: 0;
-              }
-
-              .option-content {
-                flex: 1;
-
-                .option-name {
-                  font-size: 14px;
-                  font-weight: 500;
-                  color: #374151;
-                  margin-bottom: 2px;
-                }
-
-                .option-desc {
-                  font-size: 12px;
-                  color: #6b7280;
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-
-    .stock-input-section {
-      .input-area {
-        margin-bottom: 24px;
-
-        .stock-textarea {
-          :deep(.el-textarea__inner) {
-            border-radius: 12px;
-            border: 2px solid #e2e8f0;
-            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-            font-size: 14px;
-            line-height: 1.6;
-
-            &:focus {
-              border-color: #3b82f6;
-              box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-            }
-          }
-        }
-
-        .input-actions {
-          margin-top: 12px;
-          display: flex;
-          gap: 12px;
-        }
-      }
-
-      .stock-preview {
-        h4 {
-          font-size: 16px;
-          font-weight: 600;
-          color: #1a202c;
-          margin: 0 0 12px 0;
-        }
-
-        .stock-tags {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 8px;
-
-          .stock-tag {
-            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-            font-weight: 600;
-          }
-        }
-      }
-
-      .invalid-codes {
-        margin-top: 16px;
-
-        .invalid-list {
-          margin-top: 8px;
-          display: flex;
-          flex-wrap: wrap;
-          gap: 6px;
-        }
-      }
-    }
-
-    .batch-form {
-      .form-section {
-        margin-bottom: 32px;
-
-        .section-title {
-          font-size: 16px;
-          font-weight: 600;
-          color: #1a202c;
-          margin: 0 0 16px 0;
-          padding-bottom: 8px;
-          border-bottom: 2px solid #e2e8f0;
-        }
-      }
-
-      .analysts-selection {
-        .analysts-group {
-          display: flex;
-          flex-direction: column;
-          gap: 12px;
-
-          .analyst-option {
-            .analyst-checkbox {
-              width: 100%;
-
-              :deep(.el-checkbox__label) {
-                width: 100%;
-              }
-
-              :deep(.el-checkbox__input.is-checked .el-checkbox__inner) {
-                background-color: #3b82f6;
-                border-color: #3b82f6;
-              }
-
-              :deep(.el-checkbox__input.is-checked + .el-checkbox__label) {
-                color: #3b82f6;
-              }
-
-              .analyst-info {
-                display: flex;
-                flex-direction: column;
-                gap: 4px;
-
-                .analyst-name {
-                  font-weight: 500;
-                  color: #374151;
-                }
-
-                .analyst-desc {
-                  font-size: 12px;
-                  color: #6b7280;
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-
-    .action-section {
-      margin-top: 24px !important;
-      display: flex !important;
-      justify-content: center !important;
-      align-items: center !important;
-      width: 100% !important;
-      text-align: center !important;
-
-      .submit-btn.el-button {
-        width: 320px !important;
-        height: 56px !important;
-        font-size: 18px !important;
-        font-weight: 700 !important;
-        background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%) !important;
-        border: none !important;
-        border-radius: 16px !important;
-        transition: all 0.3s ease !important;
-        box-shadow: 0 4px 15px rgba(59, 130, 246, 0.2) !important;
-        min-width: 320px !important;
-        max-width: 320px !important;
-
-        &:hover {
-          transform: translateY(-3px) !important;
-          box-shadow: 0 12px 30px rgba(59, 130, 246, 0.4) !important;
-          background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%) !important;
-        }
-
-        &:disabled {
-          opacity: 0.6 !important;
-          transform: none !important;
-          box-shadow: 0 4px 15px rgba(59, 130, 246, 0.1) !important;
-        }
-
-        .el-icon {
-          margin-right: 8px !important;
-          font-size: 20px !important;
-        }
-
-        span {
-          font-size: 18px !important;
-          font-weight: 700 !important;
-        }
-      }
-    }
-  }
-}
-</style>
-
-<style>
-/* 全局样式确保按钮样式生效 */
-.action-section {
-  display: flex !important;
-  justify-content: center !important;
-  align-items: center !important;
-  width: 100% !important;
-  text-align: center !important;
-}
-
-.large-batch-btn.el-button {
-  width: 320px !important;
-  height: 56px !important;
-  font-size: 18px !important;
-  font-weight: 700 !important;
-  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%) !important;
-  border: none !important;
-  border-radius: 16px !important;
-  transition: all 0.3s ease !important;
-  box-shadow: 0 4px 15px rgba(59, 130, 246, 0.2) !important;
-  min-width: 320px !important;
-  max-width: 320px !important;
-}
-
-.large-batch-btn.el-button:hover {
-  transform: translateY(-3px) !important;
-  box-shadow: 0 12px 30px rgba(59, 130, 246, 0.4) !important;
-  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%) !important;
-}
-
-.large-batch-btn.el-button:disabled {
-  opacity: 0.6 !important;
-  transform: none !important;
-  box-shadow: 0 4px 15px rgba(59, 130, 246, 0.1) !important;
-}
-
-.large-batch-btn.el-button .el-icon {
-  margin-right: 8px !important;
-  font-size: 20px !important;
-}
-
-.large-batch-btn.el-button span {
-  font-size: 18px !important;
-  font-weight: 700 !important;
-}
-</style>
