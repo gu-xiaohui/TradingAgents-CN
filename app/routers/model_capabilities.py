@@ -18,6 +18,7 @@ from app.constants.model_capabilities import (
     get_feature_badge
 )
 from app.core.unified_config import unified_config
+from app.services.config_service import config_service
 from app.core.response import ok, fail
 import logging
 
@@ -290,7 +291,10 @@ async def batch_init_capabilities(request: BatchInitRequest):
                 config.performance_metrics = default_config.get("performance_metrics")
 
                 # 保存到数据库
-                # TODO: 实现保存逻辑
+                try:
+                    await config_service.update_llm_config(config)
+                except Exception as save_err:
+                    logger.warning(f"保存模型 {model_name} 能力参数到数据库失败: {save_err}")
                 updated_count += 1
                 logger.info(f"已初始化模型 {model_name} 的能力参数")
             else:
