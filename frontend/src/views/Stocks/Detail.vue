@@ -1,12 +1,7 @@
 <template>
   <div class="stock-detail-page relative overflow-hidden text-[var(--text-primary)]" :class="{ 'is-dark': isDarkTheme }">
-    <div class="pointer-events-none absolute inset-0 opacity-90">
-      <div class="hero-glow hero-glow-left"></div>
-      <div class="hero-glow hero-glow-right"></div>
-      <div class="hero-grid"></div>
-    </div>
 
-    <div class="detail-shell relative z-10 space-y-5 px-3 py-4 md:px-4 md:py-5 xl:px-5">
+    <div class="detail-shell relative ">
       <div v-if="pageLoading" class="grid gap-6 lg:grid-cols-[1.45fr_0.95fr]">
         <div class="panel min-h-[320px] animate-pulse"></div>
         <div class="panel min-h-[320px] animate-pulse"></div>
@@ -1650,10 +1645,4 @@ onBeforeUnmount(() => {
   }
 }
 
-@media (max-width: 1023px) {
-  .detail-shell {
-    padding-left: 12px;
-    padding-right: 12px;
-  }
-}
 </style>
