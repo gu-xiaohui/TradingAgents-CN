@@ -247,6 +247,12 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
+import {
+  getSyncStatus,
+  getDataSourcesStatus,
+  runStockBasicsSync,
+  getSyncHistory as fetchSyncHistory
+} from '@/api/sync'
 
 // 同步选项
 const syncOptions = ref({
@@ -279,61 +285,67 @@ const progressStyle = computed(() => {
 
 // 数据统计
 const stats = ref({
-  totalStocks: 10999,
-  quotesCount: 5816,
+  totalStocks: 0,
+  quotesCount: 0,
   financialCount: 0,
-  latestDate: '2026-03-11'
+  latestDate: '-'
 })
 
 // 数据源状态
 const dataSources = ref([
-  { name: 'AKShare', status: 'healthy', statusText: '正常' },
-  { name: 'BaoStock', status: 'healthy', statusText: '正常' },
+  { name: 'AKShare', status: 'warning', statusText: '检查中...' },
+  { name: 'BaoStock', status: 'warning', statusText: '检查中...' },
   { name: 'Tushare', status: 'warning', statusText: '检查中...' }
 ])
 
-// 检查数据源状态
-const checkDataSources = async () => {
+// 从后端加载数据源状态
+const loadDataSourcesStatus = async () => {
+  try {
+    const res = await getDataSourcesStatus()
+    if (res.success && Array.isArray(res.data)) {
+      dataSources.value = res.data.map((ds: any) => ({
+        name: ds.name || ds.source || '',
+        status: ds.available ? 'healthy' : 'error',
+        statusText: ds.available ? '正常' : '不可用'
+      }))
+    }
+  } catch {
+    // 回退：通过配置接口检查
+    await checkDataSourcesFallback()
+  }
+}
+
+// 回退方案：检查数据源配置
+const checkDataSourcesFallback = async () => {
   try {
     const response = await fetch('/api/config/datasource', {
       headers: { 'Authorization': `Bearer ${localStorage.getItem('auth-token')}` }
     })
     if (response.ok) {
       const configs = await response.json()
-      console.log('数据源配置:', configs)
-      
-      // 查找 tushare 配置（可能是 type='tushare' 或 name='Tushare'）
       const tushareConfig = configs.find((c: any) => 
         c.type === 'tushare' || 
-        c.name?.toLowerCase() === 'tushare' ||
-        c.api_key // 如果有 api_key 字段且是 tushare 类型的
+        c.name?.toLowerCase() === 'tushare'
       )
       
-      if (tushareConfig && tushareConfig.api_key) {
-        const tushareSource = dataSources.value.find(s => s.name === 'Tushare')
-        if (tushareSource) {
+      // AKShare and BaoStock are always available (free, no token)
+      const akSource = dataSources.value.find(s => s.name === 'AKShare')
+      if (akSource) { akSource.status = 'healthy'; akSource.statusText = '正常' }
+      const bsSource = dataSources.value.find(s => s.name === 'BaoStock')
+      if (bsSource) { bsSource.status = 'healthy'; bsSource.statusText = '正常' }
+      
+      const tushareSource = dataSources.value.find(s => s.name === 'Tushare')
+      if (tushareSource) {
+        if (tushareConfig && tushareConfig.api_key) {
           tushareSource.status = 'healthy'
           tushareSource.statusText = '已配置'
-        }
-      } else {
-        // 后端没有返回 tushare 配置，可能是数据库没有这个配置
-        // 检查是否有任何数据源有 api_key
-        const hasTushareKey = configs.some((c: any) => c.api_key && c.type === 'tushare')
-        const tushareSource = dataSources.value.find(s => s.name === 'Tushare')
-        if (tushareSource) {
-          if (hasTushareKey) {
-            tushareSource.status = 'healthy'
-            tushareSource.statusText = '已配置'
-          } else {
-            tushareSource.status = 'warning'
-            tushareSource.statusText = '未配置Token'
-          }
+        } else {
+          tushareSource.status = 'warning'
+          tushareSource.statusText = '未配置Token'
         }
       }
     }
-  } catch (error) {
-    console.error('检查数据源状态失败:', error)
-    // 如果 API 调用失败，保持默认状态
+  } catch {
     const tushareSource = dataSources.value.find(s => s.name === 'Tushare')
     if (tushareSource) {
       tushareSource.status = 'warning'
@@ -342,9 +354,31 @@ const checkDataSources = async () => {
   }
 }
 
+// 从后端加载同步状态和统计数据
+const loadSyncStatus = async () => {
+  try {
+    const res = await getSyncStatus()
+    if (res.success && res.data) {
+      const data = res.data
+      stats.value = {
+        totalStocks: data.total || stats.value.totalStocks,
+        quotesCount: data.inserted || data.updated || stats.value.quotesCount,
+        financialCount: stats.value.financialCount,
+        latestDate: data.last_trade_date || data.finished_at?.substring(0, 10) || stats.value.latestDate
+      }
+    }
+  } catch {
+    // 保持默认状态
+  }
+}
+
 // 页面加载时检查数据源状态
-onMounted(() => {
-  checkDataSources()
+onMounted(async () => {
+  await Promise.all([
+    loadDataSourcesStatus(),
+    loadSyncStatus(),
+    loadSyncHistory()
+  ])
 })
 
 // 同步历史
@@ -356,6 +390,23 @@ const syncHistory = ref<Array<{
   time: string
 }>>([])
 
+// 加载同步历史
+const loadSyncHistory = async () => {
+  try {
+    const res = await fetchSyncHistory({ page: 1, page_size: 10 })
+    if (res.success && res.data?.records) {
+      syncHistory.value = res.data.records.map((r: any) => ({
+        type: r.job || '数据同步',
+        message: r.message || (r.status === 'success' ? '同步完成' : r.status),
+        count: r.total || r.inserted || 0,
+        status: r.status === 'success' || r.status === 'success_with_errors' ? 'success' : r.status === 'failed' ? 'failed' : 'pending',
+        time: r.finished_at ? new Date(r.finished_at).toLocaleString('zh-CN') : r.started_at ? new Date(r.started_at).toLocaleString('zh-CN') : '-'
+      }))
+    }
+  } catch {
+    // 保持空列表
+  }
+}
 // 辅助函数
 const formatNumber = (num: number) => num.toLocaleString()
 
@@ -388,34 +439,45 @@ const startSync = async () => {
   syncProgress.value = { percent: 0, message: '正在初始化...' }
 
   try {
-    const tasks: string[] = []
-    if (syncOptions.value.syncStockList) tasks.push('股票列表')
-    if (syncOptions.value.syncRealtime) tasks.push('实时行情')
-    if (syncOptions.value.syncHistorical) tasks.push('历史数据')
-    if (syncOptions.value.syncFinancial) tasks.push('财务数据')
+    // 调用后端同步API
+    syncProgress.value = { percent: 10, message: '正在连接数据源...' }
 
-    for (let i = 0; i < tasks.length; i++) {
-      syncProgress.value.message = `正在同步${tasks[i]}...`
-      for (let j = 0; j <= 100; j += 10) {
-        syncProgress.value.percent = Math.round((i * 100 + j) / tasks.length)
-        await new Promise(resolve => setTimeout(resolve, 100))
+    const preferredSource = syncOptions.value.dataSource || 'akshare'
+    const res = await runStockBasicsSync({
+      force: false,
+      preferred_sources: preferredSource
+    })
+
+    if (res.success && res.data) {
+      const result = res.data
+      syncProgress.value = { percent: 100, message: '同步完成！' }
+
+      // 更新统计数据
+      if (result.total) {
+        stats.value.totalStocks = result.total
       }
-      
+      if (result.last_trade_date) {
+        stats.value.latestDate = result.last_trade_date
+      }
+
+      // 添加同步历史
       syncHistory.value.unshift({
-        type: tasks[i],
-        message: '同步完成',
-        count: Math.floor(Math.random() * 1000) + 5000,
-        status: 'success',
+        type: '股票基础信息',
+        message: result.message || '同步完成',
+        count: result.total || result.inserted || 0,
+        status: result.status === 'success' || result.status === 'success_with_errors' ? 'success' : 'failed',
         time: new Date().toLocaleString('zh-CN')
       })
-    }
 
-    syncProgress.value = { percent: 100, message: '同步完成！' }
-    ElMessage.success('数据同步完成')
+      ElMessage.success(result.message || '数据同步完成')
+    } else {
+      syncProgress.value = { percent: 0, message: '同步失败' }
+      ElMessage.error(res.message || '数据同步失败')
+    }
   } catch (error) {
     const err = error as Error
     syncProgress.value.message = `同步失败: ${err.message}`
-    ElMessage.error('数据同步失败')
+    ElMessage.error('数据同步失败，请检查后端服务')
   } finally {
     setTimeout(() => {
       isSyncing.value = false

@@ -100,8 +100,17 @@
             </div>
           </div>
 
+          <!-- 加载状态 -->
+          <div v-if="loading" class="text-center py-16">
+            <svg class="animate-spin w-8 h-8 mx-auto mb-4 text-[#22C55E]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+            </svg>
+            <p class="text-[var(--text-muted)]">正在加载股票数据...</p>
+          </div>
+
           <!-- 股票列表 -->
-          <div v-if="filteredStocks.length > 0" class="space-y-3">
+          <div v-else-if="filteredStocks.length > 0" class="space-y-3">
             <div
               v-for="stock in filteredStocks"
               :key="stock.code"
@@ -173,11 +182,15 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { ElMessage } from 'element-plus'
 import { getMarketByStockCode } from '@/utils/market'
+import { screeningApi } from '@/api/screening'
 
 const router = useRouter()
+
+const loading = ref(false)
 
 const filters = reactive({
   market: 'A股',
@@ -191,7 +204,7 @@ const filters = reactive({
 
 const sortBy = ref('change_desc')
 
-const industryOptions = [
+const industryOptions = ref([
   { value: 'technology', label: '科技' },
   { value: 'finance', label: '金融' },
   { value: 'healthcare', label: '医疗' },
@@ -200,59 +213,96 @@ const industryOptions = [
   { value: 'materials', label: '材料' },
   { value: 'industrial', label: '工业' },
   { value: 'realestate', label: '房地产' },
-]
-
-// 模拟数据
-const allStocks = ref([
-  { code: '000001', name: '平安银行', price: 12.34, change: 2.56, pe: 5.67, marketCap: 240000000000, industry: '金融' },
-  { code: '000002', name: '万科A', price: 8.90, change: -1.23, pe: 8.45, marketCap: 180000000000, industry: '房地产' },
-  { code: '000063', name: '中兴通讯', price: 28.50, change: 5.67, pe: 22.34, marketCap: 120000000000, industry: '科技' },
-  { code: '000333', name: '美的集团', price: 56.78, change: 1.89, pe: 12.56, marketCap: 380000000000, industry: '消费' },
-  { code: '000651', name: '格力电器', price: 35.20, change: -0.56, pe: 9.87, marketCap: 200000000000, industry: '消费' },
-  { code: '000858', name: '五粮液', price: 145.60, change: 3.45, pe: 25.67, marketCap: 560000000000, industry: '消费' },
 ])
+
+const allStocks = ref<Array<{ code: string; name: string; price: number; change: number; pe: number; marketCap: number; industry: string }>>([])
+
+// 从后端加载行业选项
+const loadIndustries = async () => {
+  try {
+    const res = await screeningApi.getIndustries()
+    if (res.success && res.data?.industries?.length) {
+      industryOptions.value = res.data.industries.map((item: any) => ({
+        value: item.value || item.label,
+        label: item.label
+      }))
+    }
+  } catch {
+    // 保持默认行业选项
+  }
+}
+
+// 构建筛选条件并调用后端 API
+const fetchStocks = async () => {
+  loading.value = true
+  try {
+    const conditions: Record<string, any> = {}
+
+    // 市值筛选条件（单位：万元，需要转换）
+    if (filters.marketCapRange === 'small') {
+      conditions.total_mv = { max: 1000000 } // < 100亿 = 1000000万元
+    } else if (filters.marketCapRange === 'medium') {
+      conditions.total_mv = { min: 1000000, max: 5000000 } // 100-500亿
+    } else if (filters.marketCapRange === 'large') {
+      conditions.total_mv = { min: 5000000 } // > 500亿
+    }
+
+    // PE 筛选
+    if (filters.peMin !== null || filters.peMax !== null) {
+      conditions.pe = {}
+      if (filters.peMin !== null) conditions.pe.min = filters.peMin
+      if (filters.peMax !== null) conditions.pe.max = filters.peMax
+    }
+
+    // 涨跌幅筛选
+    if (filters.changeMin !== null || filters.changeMax !== null) {
+      conditions.pct_chg = {}
+      if (filters.changeMin !== null) conditions.pct_chg.min = filters.changeMin
+      if (filters.changeMax !== null) conditions.pct_chg.max = filters.changeMax
+    }
+
+    // 排序映射
+    const orderByMap: Record<string, { field: string; direction: 'asc' | 'desc' }[]> = {
+      'change_desc': [{ field: 'pct_chg', direction: 'desc' }],
+      'change_asc': [{ field: 'pct_chg', direction: 'asc' }],
+      'market_cap_desc': [{ field: 'total_mv', direction: 'desc' }],
+      'pe_asc': [{ field: 'pe', direction: 'asc' }],
+    }
+
+    const res = await screeningApi.run({
+      market: 'CN',
+      conditions,
+      order_by: orderByMap[sortBy.value] || [{ field: 'pct_chg', direction: 'desc' }],
+      limit: 50,
+      offset: 0,
+    })
+
+    if (res.success && res.data) {
+      allStocks.value = (res.data.items || []).map((item: any) => ({
+        code: item.code || '',
+        name: item.name || '',
+        price: item.close ?? 0,
+        change: item.pct_chg ?? 0,
+        pe: item.pe ?? 0,
+        marketCap: (item.total_mv ?? 0) * 10000, // 万元转元
+        industry: item.industry || '-',
+      }))
+    }
+  } catch {
+    ElMessage.error('加载股票数据失败，请检查后端服务是否正常')
+  } finally {
+    loading.value = false
+  }
+}
 
 const filteredStocks = computed(() => {
   let result = [...allStocks.value]
-  
-  // 市值筛选
-  if (filters.marketCapRange) {
-    if (filters.marketCapRange === 'small') {
-      result = result.filter(s => s.marketCap < 10000000000)
-    } else if (filters.marketCapRange === 'medium') {
-      result = result.filter(s => s.marketCap >= 10000000000 && s.marketCap <= 50000000000)
-    } else if (filters.marketCapRange === 'large') {
-      result = result.filter(s => s.marketCap > 50000000000)
-    }
+
+  // 行业筛选（前端过滤，因为后端可能不支持行业条件）
+  if (filters.industries.length > 0) {
+    result = result.filter(s => filters.industries.some(ind => s.industry.includes(ind)))
   }
-  
-  // PE 筛选
-  if (filters.peMin !== null) {
-    result = result.filter(s => s.pe >= filters.peMin!)
-  }
-  if (filters.peMax !== null) {
-    result = result.filter(s => s.pe <= filters.peMax!)
-  }
-  
-  // 涨跌幅筛选
-  if (filters.changeMin !== null) {
-    result = result.filter(s => s.change >= filters.changeMin!)
-  }
-  if (filters.changeMax !== null) {
-    result = result.filter(s => s.change <= filters.changeMax!)
-  }
-  
-  // 排序
-  if (sortBy.value === 'change_desc') {
-    result.sort((a, b) => b.change - a.change)
-  } else if (sortBy.value === 'change_asc') {
-    result.sort((a, b) => a.change - b.change)
-  } else if (sortBy.value === 'market_cap_desc') {
-    result.sort((a, b) => b.marketCap - a.marketCap)
-  } else if (sortBy.value === 'pe_asc') {
-    result.sort((a, b) => a.pe - b.pe)
-  }
-  
+
   return result
 })
 
@@ -263,11 +313,17 @@ const resetFilters = () => {
   filters.peMax = null
   filters.changeMin = null
   filters.changeMax = null
+  fetchStocks()
 }
 
 const applyFilters = () => {
-  // 筛选逻辑已在 computed 中实现
+  fetchStocks()
 }
+
+onMounted(() => {
+  loadIndustries()
+  fetchStocks()
+})
 
 const formatMarketCap = (cap: number) => {
   if (cap >= 1000000000000) {
