@@ -106,7 +106,7 @@
               v-for="stock in filteredStocks"
               :key="stock.code"
               class="flex items-center justify-between p-4 rounded-xl bg-white/5 hover:bg-white/10 cursor-pointer transition-colors"
-              @click="goToAnalysis(stock.code)"
+              @click="goToDetail(stock.code)"
             >
               <div class="flex items-center gap-4">
                 <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-[#22C55E]/20 to-[#8B5CF6]/20 flex items-center justify-center">
@@ -140,9 +140,20 @@
                   <div class="text-sm text-[var(--text-muted)]">市值</div>
                   <div class="text-lg font-semibold text-[var(--text-primary)]">{{ formatMarketCap(stock.marketCap) }}</div>
                 </div>
-                <svg class="w-5 h-5 text-[var(--text-muted)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
-                </svg>
+                <div class="flex items-center gap-3">
+                  <button
+                    class="text-sm text-blue-400 hover:text-blue-300"
+                    @click.stop="goToDetail(stock.code)"
+                  >
+                    详情
+                  </button>
+                  <button
+                    class="text-sm text-emerald-400 hover:text-emerald-300"
+                    @click.stop="goToAnalysis(stock.code)"
+                  >
+                    分析
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -164,6 +175,7 @@
 <script setup lang="ts">
 import { ref, reactive, computed } from 'vue'
 import { useRouter } from 'vue-router'
+import { getMarketByStockCode } from '@/utils/market'
 
 const router = useRouter()
 
@@ -266,7 +278,15 @@ const formatMarketCap = (cap: number) => {
   return (cap / 10000).toFixed(2) + '万'
 }
 
+const goToDetail = (code: string) => {
+  router.push({
+    name: 'StockDetail',
+    params: { code: String(code).trim() },
+    query: { market: getMarketByStockCode(code) }
+  })
+}
+
 const goToAnalysis = (code: string) => {
-  router.push(`/analysis/single?stock=${code}`)
+  router.push(`/analysis?stock_code=${String(code).trim()}`)
 }
 </script>

@@ -280,6 +280,8 @@ import { analysisApi } from '@/api/analysis'
 import { newsApi } from '@/api/news'
 import { paperApi, type PaperAccountSummary } from '@/api/paper'
 import { formatDateTime } from '@/utils/datetime'
+import { extractSymbol } from '@/utils/stock'
+import { getMarketByStockCode } from '@/utils/market'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -329,7 +331,14 @@ const viewAnalysis = (analysis: AnalysisTask) => {
 }
 
 const viewStockDetail = (stock: any) => {
-  router.push(`/analysis/single?stock_code=${stock.stock_code}`)
+  const rawCode = String(stock?.stock_code || stock?.symbol || stock?.code || '').trim()
+  const code = extractSymbol(rawCode)
+  if (!code) {
+    ElMessage.warning('股票代码缺失，无法打开详情')
+    return
+  }
+
+  router.push({ name: 'StockDetail', params: { code }, query: { market: getMarketByStockCode(rawCode) } })
 }
 
 const openNewsUrl = (url?: string) => {

@@ -182,6 +182,8 @@
               <div>
                 <label class="block text-xs text-[var(--text-muted)] mb-1">快速分析模型</label>
                 <select v-model="form.quickModel" class="input text-sm">
+                  <option value="GLM-5">GLM-5 (智谱)</option>
+                  <option value="GLM-4.5">GLM-4.5 (智谱)</option>
                   <option value="qwen-turbo">Qwen Turbo</option>
                   <option value="gpt-4o-mini">GPT-4o Mini</option>
                   <option value="claude-3-haiku">Claude 3 Haiku</option>
@@ -190,6 +192,8 @@
               <div>
                 <label class="block text-xs text-[var(--text-muted)] mb-1">深度决策模型</label>
                 <select v-model="form.deepModel" class="input text-sm">
+                  <option value="GLM-4.7">GLM-4.7 (智谱)</option>
+                  <option value="GLM-4.6">GLM-4.6 (智谱)</option>
                   <option value="qwen-max">Qwen Max</option>
                   <option value="gpt-4o">GPT-4o</option>
                   <option value="claude-3-sonnet">Claude 3 Sonnet</option>
@@ -238,8 +242,8 @@ const form = reactive({
   market: 'A股',
   researchDepth: 3,
   selectedAnalysts: ['市场分析师', '基本面分析师'],
-  quickModel: 'qwen-turbo',
-  deepModel: 'qwen-max',
+  quickModel: 'GLM-5',
+  deepModel: 'GLM-4.7',
   includeSentiment: true,
   includeRisk: true,
 })
@@ -287,7 +291,15 @@ const submitAnalysis = async () => {
       parameters: {
         market_type: form.market,
         research_depth: String(form.researchDepth),
-        selected_analysts: form.selectedAnalysts,
+        selected_analysts: form.selectedAnalysts.map((name: string) => {
+          const mapping: Record<string, string> = {
+            '市场分析师': 'market',
+            '基本面分析师': 'fundamentals',
+            '新闻分析师': 'news',
+            '情绪分析师': 'social'
+          }
+          return mapping[name] || name
+        }),
         include_sentiment: form.includeSentiment,
         include_risk: form.includeRisk,
         quick_analysis_model: form.quickModel,

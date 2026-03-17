@@ -226,12 +226,12 @@ class TradingAgentsGraph:
         # 读取快速模型参数
         quick_max_tokens = quick_config.get("max_tokens", 4000)
         quick_temperature = quick_config.get("temperature", 0.7)
-        quick_timeout = quick_config.get("timeout", 180)
+        quick_timeout = quick_config.get("timeout", 600)  # 增加到 10 分钟
 
         # 读取深度模型参数
         deep_max_tokens = deep_config.get("max_tokens", 4000)
         deep_temperature = deep_config.get("temperature", 0.7)
-        deep_timeout = deep_config.get("timeout", 180)
+        deep_timeout = deep_config.get("timeout", 600)  # 增加到 10 分钟
 
         # 🔧 检查是否为混合模式（快速模型和深度模型来自不同厂家）
         quick_provider = self.config.get("quick_provider")

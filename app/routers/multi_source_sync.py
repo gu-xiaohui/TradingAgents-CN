@@ -271,7 +271,7 @@ async def _test_single_adapter(adapter) -> dict:
 
 class TestSourceRequest(BaseModel):
     """测试数据源请求"""
-    source_name: str | None = None
+    source_name: Optional[str] = None
 
 
 @router.post("/test-sources")

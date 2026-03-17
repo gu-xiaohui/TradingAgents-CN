@@ -27,7 +27,7 @@ def _check_mongodump_available() -> bool:
     return shutil.which("mongodump") is not None
 
 
-async def create_backup_native(name: str, backup_dir: str, collections: Optional[List[str]] = None, user_id: str | None = None) -> Dict[str, Any]:
+async def create_backup_native(name: str, backup_dir: str, collections: Optional[List[str]] = None, user_id: Optional[str] = None) -> Dict[str, Any]:
     """
     使用 MongoDB 原生 mongodump 命令创建备份（推荐，速度快）
 
@@ -134,7 +134,7 @@ async def create_backup_native(name: str, backup_dir: str, collections: Optional
     }
 
 
-async def create_backup(name: str, backup_dir: str, collections: Optional[List[str]] = None, user_id: str | None = None) -> Dict[str, Any]:
+async def create_backup(name: str, backup_dir: str, collections: Optional[List[str]] = None, user_id: Optional[str] = None) -> Dict[str, Any]:
     """
     创建数据库备份（Python 实现，兼容性好但速度较慢）
 
@@ -262,7 +262,7 @@ def _convert_date_fields(doc: dict) -> dict:
     return doc
 
 
-async def import_data(content: bytes, collection: str, *, format: str = "json", overwrite: bool = False, filename: str | None = None) -> Dict[str, Any]:
+async def import_data(content: bytes, collection: str, *, format: str = "json", overwrite: bool = False, filename: Optional[str] = None) -> Dict[str, Any]:
     """
     导入数据到数据库
 

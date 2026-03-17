@@ -1,6 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import type { RouteRecordRaw } from 'vue-router'
-import { nextTick } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { useAppStore } from '@/stores/app'
 import { ElMessage } from 'element-plus'
@@ -23,8 +22,10 @@ const routes: RouteRecordRaw[] = [
     children: [
       { path: 'dashboard', name: 'Dashboard', component: () => import('@/views/Dashboard/index.vue'), meta: { title: '仪表板' } },
       { path: 'analysis', name: 'Analysis', component: () => import('@/views/Analysis/SingleAnalysis.vue'), meta: { title: '单股分析' } },
+      { path: 'stocks/:code', name: 'StockDetail', component: () => import('@/views/Stocks/Detail.vue'), meta: { title: '个股详情' } },
       { path: 'screening', name: 'Screening', component: () => import('@/views/Screening/index.vue'), meta: { title: '股票筛选' } },
       { path: 'tasks', name: 'Tasks', component: () => import('@/views/Tasks/TaskCenter.vue'), meta: { title: '任务中心' } },
+      { path: 'tasks/:id', name: 'TaskDetail', component: () => import('@/views/Tasks/TaskDetail.vue'), meta: { title: '任务详情' } },
       { path: 'settings', name: 'Settings', component: () => import('@/views/Settings/index.vue'), meta: { title: '设置' } },
       { path: 'settings/config', name: 'ConfigManagement', component: () => import('@/views/Settings/ConfigManagement.vue'), meta: { title: '配置管理' } },
       { path: 'learning', name: 'Learning', component: () => import('@/views/Learning/index.vue'), meta: { title: '学习中心', requiresAuth: false } },
@@ -33,6 +34,8 @@ const routes: RouteRecordRaw[] = [
       { path: 'paper', name: 'Paper', component: () => import('@/views/PaperTrading/index.vue'), meta: { title: '模拟交易' } },
       { path: 'reports', name: 'Reports', component: () => import('@/views/Reports/index.vue'), meta: { title: '分析报告' } },
       { path: 'reports/:id', name: 'ReportDetail', component: () => import('@/views/Reports/ReportDetail.vue'), meta: { title: '报告详情' } },
+      { path: 'sync', name: 'Sync', component: () => import('@/views/Sync/index.vue'), meta: { title: '数据同步' } },
+      { path: 'rankings', name: 'Rankings', component: () => import('@/views/Rankings/index.vue'), meta: { title: '实时行情榜' } },
     ]
   },
   // 登录页（独立）
@@ -65,13 +68,13 @@ const routes: RouteRecordRaw[] = [
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes,
-  scrollBehavior(to, from, savedPosition) {
+  scrollBehavior(_, __, savedPosition) {
     return savedPosition || { top: 0 }
   }
 })
 
 // 全局前置守卫
-router.beforeEach(async (to, from, next) => {
+router.beforeEach(async (to, _, next) => {
   NProgress.start()
   const authStore = useAuthStore()
   const appStore = useAppStore()

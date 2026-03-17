@@ -109,7 +109,13 @@ class FinancialSituationMemory:
         # 初始化降级选项标志
         self.fallback_available = False
         
-        if self.llm_provider == "dashscope" or self.llm_provider == "alibaba":
+        if self.llm_provider == "zhipu":
+            # 智谱AI 暂不支持 embedding，禁用记忆功能的向量化
+            self.embedding = None
+            self.client = "DISABLED"
+            logger.warning(f"⚠️ 智谱AI 暂不支持 embedding，记忆功能向量缓存已禁用")
+            logger.info(f"💡 系统将继续运行，使用 ChromaDB 的默认存储（无向量检索）")
+        elif self.llm_provider == "dashscope" or self.llm_provider == "alibaba":
             self.embedding = "text-embedding-v3"
             self.client = None  # DashScope不需要OpenAI客户端
 

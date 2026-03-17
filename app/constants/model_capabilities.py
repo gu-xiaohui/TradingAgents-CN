@@ -245,6 +245,70 @@ DEFAULT_MODEL_CAPABILITIES: Dict[str, Dict[str, Any]] = {
         "performance_metrics": {"speed": 3, "cost": 2, "quality": 5},
         "description": "智谱GLM-4 Plus，旗舰版本"
     },
+    "glm-5": {
+        "capability_level": 5,
+        "suitable_roles": [ModelRole.QUICK_ANALYSIS],
+        "features": [ModelFeature.TOOL_CALLING, ModelFeature.FAST_RESPONSE, ModelFeature.REASONING],
+        "recommended_depths": ["快速", "基础", "标准"],
+        "performance_metrics": {"speed": 5, "cost": 4, "quality": 5},
+        "description": "智谱GLM-5，最新快速版本"
+    },
+    "GLM-5": {
+        "capability_level": 5,
+        "suitable_roles": [ModelRole.QUICK_ANALYSIS],
+        "features": [ModelFeature.TOOL_CALLING, ModelFeature.FAST_RESPONSE, ModelFeature.REASONING],
+        "recommended_depths": ["快速", "基础", "标准"],
+        "performance_metrics": {"speed": 5, "cost": 4, "quality": 5},
+        "description": "智谱GLM-5，最新快速版本"
+    },
+    "glm-4.7": {
+        "capability_level": 5,
+        "suitable_roles": [ModelRole.BOTH],
+        "features": [ModelFeature.TOOL_CALLING, ModelFeature.LONG_CONTEXT, ModelFeature.REASONING],
+        "recommended_depths": ["标准", "深度", "全面"],
+        "performance_metrics": {"speed": 4, "cost": 3, "quality": 5},
+        "description": "智谱GLM-4.7，旗舰版本"
+    },
+    "GLM-4.7": {
+        "capability_level": 5,
+        "suitable_roles": [ModelRole.BOTH],
+        "features": [ModelFeature.TOOL_CALLING, ModelFeature.LONG_CONTEXT, ModelFeature.REASONING],
+        "recommended_depths": ["标准", "深度", "全面"],
+        "performance_metrics": {"speed": 4, "cost": 3, "quality": 5},
+        "description": "智谱GLM-4.7，旗舰版本"
+    },
+    "glm-4.6": {
+        "capability_level": 4,
+        "suitable_roles": [ModelRole.BOTH],
+        "features": [ModelFeature.TOOL_CALLING, ModelFeature.LONG_CONTEXT, ModelFeature.REASONING],
+        "recommended_depths": ["标准", "深度", "全面"],
+        "performance_metrics": {"speed": 4, "cost": 3, "quality": 4},
+        "description": "智谱GLM-4.6"
+    },
+    "GLM-4.6": {
+        "capability_level": 4,
+        "suitable_roles": [ModelRole.BOTH],
+        "features": [ModelFeature.TOOL_CALLING, ModelFeature.LONG_CONTEXT, ModelFeature.REASONING],
+        "recommended_depths": ["标准", "深度", "全面"],
+        "performance_metrics": {"speed": 4, "cost": 3, "quality": 4},
+        "description": "智谱GLM-4.6"
+    },
+    "glm-4.5": {
+        "capability_level": 3,
+        "suitable_roles": [ModelRole.QUICK_ANALYSIS],
+        "features": [ModelFeature.TOOL_CALLING, ModelFeature.FAST_RESPONSE],
+        "recommended_depths": ["快速", "基础", "标准"],
+        "performance_metrics": {"speed": 5, "cost": 4, "quality": 3},
+        "description": "智谱GLM-4.5"
+    },
+    "GLM-4.5": {
+        "capability_level": 3,
+        "suitable_roles": [ModelRole.QUICK_ANALYSIS],
+        "features": [ModelFeature.TOOL_CALLING, ModelFeature.FAST_RESPONSE],
+        "recommended_depths": ["快速", "基础", "标准"],
+        "performance_metrics": {"speed": 5, "cost": 4, "quality": 3},
+        "description": "智谱GLM-4.5"
+    },
     
     # ==================== Anthropic Claude ====================
     "claude-3-haiku": {

@@ -55,32 +55,32 @@ export const LogsApi = {
   /**
    * 获取日志文件列表
    */
-  listLogFiles(): Promise<LogFileInfo[]> {
-    return ApiClient.get('/api/system/system-logs/files')
+  async listLogFiles(): Promise<LogFileInfo[]> {
+    const response = await ApiClient.get<LogFileInfo[]>('/api/system/system-logs/files')
+    return response.data
   },
 
   /**
    * 读取日志文件内容
    */
-  readLogFile(request: LogReadRequest): Promise<LogContentResponse> {
-    return ApiClient.post('/api/system/system-logs/read', request)
+  async readLogFile(request: LogReadRequest): Promise<LogContentResponse> {
+    const response = await ApiClient.post<LogContentResponse>('/api/system/system-logs/read', request)
+    return response.data
   },
 
   /**
    * 导出日志文件
    */
   async exportLogs(request: LogExportRequest): Promise<Blob> {
-    const response = await ApiClient.post('/api/system/system-logs/export', request, {
-      responseType: 'blob'
-    })
-    return response as unknown as Blob
+    return ApiClient.downloadBlob('/api/system/system-logs/export', request)
   },
 
   /**
    * 获取日志统计信息
    */
-  getStatistics(days: number = 7): Promise<LogStatistics> {
-    return ApiClient.get('/api/system/system-logs/statistics', { params: { days } })
+  async getStatistics(days: number = 7): Promise<LogStatistics> {
+    const response = await ApiClient.get<LogStatistics>('/api/system/system-logs/statistics', { days })
+    return response.data
   },
 
   /**

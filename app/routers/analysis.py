@@ -1099,14 +1099,35 @@ async def websocket_task_progress(websocket: WebSocket, task_id: str):
 @router.get("/tasks/{task_id}/details")
 async def get_task_details(
     task_id: str,
-    user: dict = Depends(get_current_user),
-    svc: QueueService = Depends(get_queue_service)
+    user: dict = Depends(get_current_user)
 ):
-    """获取任务详情（使用不同的路径避免冲突）"""
-    t = await svc.get_task(task_id)
-    if not t or t.get("user") != user["id"]:
+    """获取任务详情（从 MongoDB 获取）"""
+    from app.core.database import get_mongo_db_sync
+    
+    db = get_mongo_db_sync()
+    task = db.analysis_tasks.find_one({"task_id": task_id})
+    
+    if not task:
         raise HTTPException(status_code=404, detail="任务不存在")
-    return t
+    
+    # 兼容旧数据：user 字段为空时允许访问
+    task_user = task.get("user")
+    if task_user and task_user != user["id"]:
+        raise HTTPException(status_code=404, detail="任务不存在")
+    
+    # 格式化返回数据
+    return {
+        "task_id": task.get("task_id"),
+        "stock_code": task.get("stock_code"),
+        "stock_name": task.get("stock_name"),
+        "status": task.get("status"),
+        "created_at": task.get("created_at"),
+        "completed_at": task.get("completed_at"),
+        "analysis_depth": task.get("analysis_depth"),
+        "analysts": task.get("analysts", []),
+        "error": task.get("error"),
+        "result": task.get("result")
+    }
 
 
 # ==================== 僵尸任务管理 ====================

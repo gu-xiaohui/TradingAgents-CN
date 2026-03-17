@@ -1,315 +1,466 @@
 <template>
-  <div class="min-h-screen bg-[var(--bg-primary)] text-[var(--text-primary)]">
+  <div class="min-h-screen bg-[var(--bg-primary)] text-[var(--text-primary)] p-6">
     <!-- 加载状态 -->
-    <div v-if="loading" class="flex items-center justify-center py-20">
-      <svg class="w-10 h-10 animate-spin text-[#22C55E]" fill="none" viewBox="0 0 24 24">
-        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
-        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-      </svg>
+    <div v-if="loading" class="space-y-6">
+      <div class="card p-6 animate-pulse">
+        <div class="h-8 bg-white/10 rounded w-1/3 mb-4"></div>
+        <div class="h-4 bg-white/10 rounded w-1/2 mb-2"></div>
+        <div class="h-4 bg-white/10 rounded w-2/3"></div>
+      </div>
+      <div class="grid grid-cols-3 gap-4">
+        <div class="card p-6 animate-pulse">
+          <div class="h-20 bg-white/10 rounded"></div>
+        </div>
+        <div class="card p-6 animate-pulse">
+          <div class="h-20 bg-white/10 rounded"></div>
+        </div>
+        <div class="card p-6 animate-pulse">
+          <div class="h-20 bg-white/10 rounded"></div>
+        </div>
+      </div>
     </div>
 
     <!-- 报告内容 -->
-    <div v-else-if="report" class="p-6 space-y-6">
-      <!-- 头部 -->
-      <div class="card">
-        <div class="flex items-center justify-between">
-          <div>
-            <div class="flex items-center gap-3 mb-2">
-              <h1 class="text-2xl font-bold">{{ report.stock_name || report.stock_symbol }} 分析报告</h1>
-              <span class="badge-success">已完成</span>
+    <div v-else-if="report" class="space-y-6">
+      <!-- 报告头部 -->
+      <div class="card p-6">
+        <div class="flex items-start justify-between gap-6">
+          <div class="flex-1">
+            <div class="flex items-center gap-3 mb-4">
+              <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-[#3B82F6] to-[#8B5CF6] flex items-center justify-center">
+                <svg class="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+              </div>
+              <div>
+                <h1 class="text-2xl font-bold">{{ report.stock_name || report.stock_symbol }} 分析报告</h1>
+                <div class="flex items-center gap-3 mt-1 text-sm text-[var(--text-secondary)]">
+                  <span class="px-2 py-0.5 rounded-lg bg-[#3B82F6]/20 text-[#3B82F6] font-mono">{{ report.stock_symbol }}</span>
+                  <span v-if="report.stock_name && report.stock_name !== report.stock_symbol" class="px-2 py-0.5 rounded-lg bg-white/10">{{ report.stock_name }}</span>
+                  <span class="px-2 py-0.5 rounded-lg bg-[#22C55E]/20 text-[#22C55E]">{{ getStatusText(report.status) }}</span>
+                </div>
+              </div>
             </div>
-            <div class="flex items-center gap-4 text-sm text-[var(--text-muted)]">
-              <span class="flex items-center gap-1">
-                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 0 0 2.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 0 0-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-.1-.664m-5.8 0A2.251 2.251 0 0 1 13.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25ZM6.75 12h.008v.008H6.75V12Zm0 3h.008v.008H6.75V15Zm0 3h.008v.008H6.75V18Z" />
+            
+            <div class="flex flex-wrap items-center gap-4 text-sm text-[var(--text-secondary)]">
+              <div class="flex items-center gap-2">
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                 </svg>
-                {{ report.stock_symbol }}
-              </span>
-              <span class="flex items-center gap-1">
-                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
+                <span>{{ formatTime(report.created_at) }}</span>
+              </div>
+              <div v-if="report.analysts && report.analysts.length" class="flex items-center gap-2">
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                 </svg>
-                {{ formatTime(report.created_at || report.start_time) }}
-              </span>
-              <span v-if="report.model_info" class="flex items-center gap-1">
-                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 3v1.5M4.5 8.25H3m18 0h-1.5M4.5 12H3m18 0h-1.5m-15 3.75H3m18 0h-1.5M8.25 19.5V21M12 3v1.5m0 15V21m3.75-18v1.5m0 15V21m-9-1.5h10.5a2.25 2.25 0 0 0 2.25-2.25V6.75a2.25 2.25 0 0 0-2.25-2.25H6.75A2.25 2.25 0 0 0 4.5 6.75v10.5a2.25 2.25 0 0 0 2.25 2.25Zm.75-12h9v9h-9v-9Z" />
+                <span>{{ formatAnalysts(report.analysts) }}</span>
+              </div>
+              <div v-if="report.model_info && report.model_info !== 'Unknown'" class="flex items-center gap-2">
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                 </svg>
-                {{ report.model_info }}
-              </span>
+                <span class="px-2 py-0.5 rounded-lg bg-[#8B5CF6]/20 text-[#8B5CF6]">{{ report.model_info }}</span>
+              </div>
             </div>
           </div>
           
-          <div class="flex items-center gap-3">
-            <button @click="goBack" class="btn-secondary">
-              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M9 15 3 9m0 0 6-6M3 9h12a6 6 0 0 1 0 12h-3" />
+          <div class="flex items-center gap-2">
+            <button
+              v-if="canApplyToTrading"
+              @click="applyToTrading"
+              class="btn-primary flex items-center gap-2"
+            >
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+              </svg>
+              应用到交易
+            </button>
+            <div class="relative">
+              <button @click="showDownloadMenu = !showDownloadMenu" class="btn-secondary flex items-center gap-2">
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                </svg>
+                下载报告
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+              <div v-if="showDownloadMenu" class="absolute right-0 mt-2 w-48 bg-[var(--bg-secondary)] rounded-xl shadow-xl border border-white/10 overflow-hidden z-10">
+                <button @click="downloadReport('markdown')" class="w-full px-4 py-2 text-left text-sm hover:bg-white/5 flex items-center gap-2">
+                  <svg class="w-4 h-4 text-[var(--text-muted)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                  Markdown
+                </button>
+                <button @click="downloadReport('pdf')" class="w-full px-4 py-2 text-left text-sm hover:bg-white/5 flex items-center gap-2">
+                  <svg class="w-4 h-4 text-[var(--text-muted)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                  </svg>
+                  PDF
+                </button>
+                <button @click="downloadReport('json')" class="w-full px-4 py-2 text-left text-sm hover:bg-white/5 flex items-center gap-2">
+                  <svg class="w-4 h-4 text-[var(--text-muted)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+                  </svg>
+                  JSON
+                </button>
+              </div>
+            </div>
+            <button @click="goBack" class="btn-ghost flex items-center gap-2">
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
               </svg>
               返回
-            </button>
-            <button @click="downloadReport('markdown')" class="btn-primary">
-              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
-              </svg>
-              下载报告
             </button>
           </div>
         </div>
       </div>
 
       <!-- 风险提示 -->
-      <div class="p-4 rounded-xl bg-[#F59E0B]/10 border border-[#F59E0B]/20">
-        <div class="flex gap-3">
-          <svg class="w-5 h-5 text-[#F59E0B] flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
-          </svg>
+      <div class="bg-gradient-to-r from-[#F59E0B]/10 to-[#EF4444]/10 rounded-xl p-4 border border-[#F59E0B]/30">
+        <div class="flex items-start gap-3">
+          <div class="w-8 h-8 rounded-lg bg-[#F59E0B]/20 flex items-center justify-center flex-shrink-0">
+            <svg class="w-5 h-5 text-[#F59E0B]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+          </div>
           <div class="text-sm">
-            <p class="font-medium text-[#F59E0B] mb-1">⚠️ 重要风险提示</p>
-            <p class="text-[var(--text-secondary)]">本报告仅为 AI 分析参考，不构成投资建议。投资有风险，决策需谨慎。</p>
+            <p class="font-semibold text-[#F59E0B] mb-2">⚠️ 重要风险提示</p>
+            <ul class="text-[var(--text-secondary)] space-y-1 list-disc list-inside">
+              <li>本系统为股票分析辅助工具，所有分析结果仅供参考，不构成投资建议</li>
+              <li>股票投资存在风险，可能导致本金损失</li>
+              <li>请基于自身风险承受能力独立做出投资决策</li>
+            </ul>
           </div>
         </div>
       </div>
 
-      <!-- 报告主体 -->
-      <div class="grid grid-cols-12 gap-6">
-        <!-- 左侧：报告内容 -->
-        <div class="col-span-8">
-          <div class="card prose prose-invert max-w-none">
-            <div v-html="renderedContent" class="report-markdown"></div>
+      <!-- 关键指标 -->
+      <div class="grid grid-cols-3 gap-4">
+        <!-- 分析建议 -->
+        <div class="card p-6">
+          <div class="flex items-center gap-2 mb-4">
+            <div class="w-8 h-8 rounded-lg bg-[#3B82F6]/20 flex items-center justify-center">
+              <svg class="w-4 h-4 text-[#3B82F6]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+              </svg>
+            </div>
+            <span class="font-medium">分析参考</span>
+          </div>
+          <div class="text-lg font-medium text-[var(--text-primary)]" v-html="renderMarkdown(report.recommendation || '暂无')"></div>
+          <span class="inline-block mt-3 text-xs px-2 py-1 rounded-lg bg-white/10 text-[var(--text-muted)]">仅供参考</span>
+        </div>
+
+        <!-- 风险评估 -->
+        <div class="card p-6">
+          <div class="flex items-center gap-2 mb-4">
+            <div class="w-8 h-8 rounded-lg bg-[#EF4444]/20 flex items-center justify-center">
+              <svg class="w-4 h-4 text-[#EF4444]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+            </div>
+            <span class="font-medium">风险评估</span>
+          </div>
+          <div class="flex items-center gap-2 mb-2">
+            <svg v-for="star in 5" :key="star" class="w-5 h-5" :class="star <= getRiskStars(report.risk_level || '中等') ? 'text-[#F59E0B]' : 'text-white/20'" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+            </svg>
+          </div>
+          <div class="text-lg font-bold" :style="{ color: getRiskColor(report.risk_level || '中等') }">
+            {{ report.risk_level || '中等' }}风险
           </div>
         </div>
 
-        <!-- 右侧：摘要和评分 -->
-        <div class="col-span-4 space-y-6">
-          <!-- 投资评分 -->
-          <div v-if="report.rating" class="card">
-            <h3 class="text-lg font-semibold mb-4">投资评分</h3>
-            <div class="flex items-center justify-center py-4">
-              <div 
-                class="w-24 h-24 rounded-full flex items-center justify-center text-3xl font-bold"
-                :class="getRatingClass(report.rating)"
-              >
-                {{ report.rating }}
+        <!-- 模型置信度 -->
+        <div class="card p-6">
+          <div class="flex items-center gap-2 mb-4">
+            <div class="w-8 h-8 rounded-lg bg-[#8B5CF6]/20 flex items-center justify-center">
+              <svg class="w-4 h-4 text-[#8B5CF6]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+              </svg>
+            </div>
+            <span class="font-medium">模型置信度</span>
+          </div>
+          <div class="flex items-center gap-4">
+            <div class="relative w-20 h-20">
+              <svg class="w-20 h-20 transform -rotate-90" viewBox="0 0 36 36">
+                <path class="text-white/10" stroke="currentColor" stroke-width="3" fill="none" d="M18 2.0845a 15.9155 15.9155 0 0 1 0 31.831a 15.9155 15.9155 0 0 1 0 -31.831" />
+                <path 
+                  :stroke="getConfidenceColor(normalizeConfidenceScore(report.confidence_score || 0))" 
+                  stroke-width="3" 
+                  stroke-linecap="round"
+                  fill="none"
+                  :stroke-dasharray="`${normalizeConfidenceScore(report.confidence_score || 0)}, 100`"
+                  d="M18 2.0845a 15.9155 15.9155 0 0 1 0 31.831a 15.9155 15.9155 0 0 1 0 -31.831" 
+                />
+              </svg>
+              <div class="absolute inset-0 flex items-center justify-center">
+                <span class="text-xl font-bold">{{ normalizeConfidenceScore(report.confidence_score || 0) }}</span>
               </div>
             </div>
-            <div class="text-center text-sm text-[var(--text-muted)]">
-              {{ getRatingText(report.rating) }}
+            <div class="text-sm text-[var(--text-secondary)]">
+              {{ getConfidenceLabel(normalizeConfidenceScore(report.confidence_score || 0)) }}
             </div>
           </div>
+        </div>
+      </div>
 
-          <!-- 报告摘要 -->
-          <div class="card">
-            <h3 class="text-lg font-semibold mb-4">报告摘要</h3>
-            <div class="space-y-3 text-sm">
-              <div class="flex justify-between">
-                <span class="text-[var(--text-muted)]">股票代码</span>
-                <span class="font-mono">{{ report.stock_symbol }}</span>
-              </div>
-              <div class="flex justify-between">
-                <span class="text-[var(--text-muted)]">股票名称</span>
-                <span>{{ report.stock_name || '-' }}</span>
-              </div>
-              <div class="flex justify-between">
-                <span class="text-[var(--text-muted)]">分析深度</span>
-                <span>{{ report.research_depth || '标准' }}</span>
-              </div>
-              <div class="flex justify-between">
-                <span class="text-[var(--text-muted)]">分析时间</span>
-                <span>{{ formatTime(report.start_time) }}</span>
-              </div>
-              <div v-if="report.analysts" class="flex justify-between">
-                <span class="text-[var(--text-muted)]">参与分析师</span>
-                <span>{{ formatAnalysts(report.analysts) }}</span>
-              </div>
-            </div>
+      <!-- 报告摘要 -->
+      <div v-if="report.summary" class="card p-6">
+        <div class="flex items-center gap-2 mb-4">
+          <div class="w-8 h-8 rounded-lg bg-[#22C55E]/20 flex items-center justify-center">
+            <svg class="w-4 h-4 text-[#22C55E]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
           </div>
+          <span class="font-medium">执行摘要</span>
+        </div>
+        <div class="prose prose-invert max-w-none text-[var(--text-secondary)]" v-html="renderMarkdown(report.summary)"></div>
+      </div>
 
-          <!-- 快速导航 -->
-          <div v-if="tocItems.length > 0" class="card">
-            <h3 class="text-lg font-semibold mb-4">目录</h3>
-            <nav class="space-y-2">
-              <a
-                v-for="item in tocItems"
-                :key="item.id"
-                :href="'#' + item.id"
-                class="block text-sm text-[var(--text-secondary)] hover:text-[#22C55E] transition-colors"
-                :class="{ 'pl-4': item.level > 1 }"
-              >
-                {{ item.text }}
-              </a>
-            </nav>
+      <!-- 分析报告模块 -->
+      <div class="card">
+        <div class="flex items-center gap-2 p-6 border-b border-white/10">
+          <div class="w-8 h-8 rounded-lg bg-[#3B82F6]/20 flex items-center justify-center">
+            <svg class="w-4 h-4 text-[#3B82F6]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+            </svg>
+          </div>
+          <span class="font-medium">分析报告</span>
+        </div>
+        
+        <!-- 标签页 -->
+        <div class="flex items-center gap-1 px-6 pt-4 border-b border-white/10 overflow-x-auto">
+          <button
+            v-for="(content, moduleName) in report.reports"
+            :key="moduleName"
+            @click="activeModule = moduleName"
+            class="px-4 py-2 text-sm font-medium whitespace-nowrap transition-colors border-b-2 -mb-px"
+            :class="activeModule === moduleName 
+              ? 'text-[#22C55E] border-[#22C55E]' 
+              : 'text-[var(--text-secondary)] border-transparent hover:text-[var(--text-primary)]'"
+          >
+            {{ getModuleDisplayName(moduleName) }}
+          </button>
+        </div>
+
+        <!-- 报告内容 -->
+        <div class="p-6">
+          <div v-if="report.reports && report.reports[activeModule]" class="prose prose-invert max-w-none text-[var(--text-secondary)]">
+            <div v-if="typeof report.reports[activeModule] === 'string'" v-html="renderMarkdown(report.reports[activeModule])"></div>
+            <pre v-else class="bg-white/5 p-4 rounded-xl overflow-x-auto text-sm">{{ JSON.stringify(report.reports[activeModule], null, 2) }}</pre>
+          </div>
+          <div v-else class="text-center py-12 text-[var(--text-muted)]">
+            暂无报告内容
           </div>
         </div>
       </div>
     </div>
 
     <!-- 错误状态 -->
-    <div v-else class="flex flex-col items-center justify-center py-20">
-      <svg class="w-16 h-16 text-[var(--text-muted)] opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
-      </svg>
-      <p class="text-[var(--text-muted)] mt-4">报告加载失败或不存在</p>
-      <button @click="goBack" class="btn-secondary mt-4">返回列表</button>
+    <div v-else class="card p-12 text-center">
+      <div class="w-16 h-16 rounded-full bg-[#EF4444]/20 flex items-center justify-center mx-auto mb-4">
+        <svg class="w-8 h-8 text-[#EF4444]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </div>
+      <h2 class="text-xl font-bold mb-2">报告加载失败</h2>
+      <p class="text-[var(--text-secondary)] mb-6">请检查报告ID是否正确或稍后重试</p>
+      <button @click="goBack" class="btn-primary">返回列表</button>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, onMounted, computed, reactive } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { ElMessage } from 'element-plus'
 import { useAuthStore } from '@/stores/auth'
+import { marked } from 'marked'
+
+// 配置 marked
+marked.setOptions({ breaks: true, gfm: true })
 
 const route = useRoute()
 const router = useRouter()
 const authStore = useAuthStore()
 
+// 状态
 const loading = ref(true)
 const report = ref<any>(null)
+const activeModule = ref('')
+const showDownloadMenu = ref(false)
 
-const reportId = computed(() => route.params.id as string)
-
-// 渲染 Markdown 内容
-const renderedContent = computed(() => {
-  if (!report.value?.content) return ''
-  // 简单的 Markdown 渲染（实际项目中应使用 marked 或 markdown-it）
-  let content = report.value.content
-  // 标题
-  content = content.replace(/^### (.*$)/gm, '<h3 class="text-lg font-semibold mt-6 mb-3">$1</h3>')
-  content = content.replace(/^## (.*$)/gm, '<h2 class="text-xl font-semibold mt-8 mb-4">$1</h2>')
-  content = content.replace(/^# (.*$)/gm, '<h1 class="text-2xl font-bold mt-8 mb-4">$1</h1>')
-  // 粗体
-  content = content.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-  // 斜体
-  content = content.replace(/\*(.*?)\*/g, '<em>$1</em>')
-  // 列表
-  content = content.replace(/^- (.*$)/gm, '<li class="ml-4">$1</li>')
-  // 段落
-  content = content.replace(/\n\n/g, '</p><p class="my-3">')
-  content = `<p class="my-3">${content}</p>`
-  return content
-})
-
-// 目录
-const tocItems = computed(() => {
-  if (!report.value?.content) return []
-  const items: { id: string; text: string; level: number }[] = []
-  const regex = /^(#{1,3})\s+(.+)$/gm
-  let match
-  while ((match = regex.exec(report.value.content)) !== null) {
-    items.push({
-      id: match[2].toLowerCase().replace(/\s+/g, '-'),
-      text: match[2],
-      level: match[1].length
-    })
-  }
-  return items
-})
-
-const formatTime = (time: string) => {
-  if (!time) return '-'
-  return new Date(time).toLocaleString('zh-CN')
-}
-
-const formatAnalysts = (analysts: string | string[]) => {
-  if (!analysts) return '-'
-  if (Array.isArray(analysts)) return analysts.join(', ')
-  return analysts
-}
-
-const getRatingClass = (rating: number) => {
-  if (rating >= 8) return 'bg-[#22C55E]/20 text-[#22C55E]'
-  if (rating >= 6) return 'bg-[#F59E0B]/20 text-[#F59E0B]'
-  return 'bg-[#EF4444]/20 text-[#EF4444]'
-}
-
-const getRatingText = (rating: number) => {
-  if (rating >= 9) return '强烈推荐'
-  if (rating >= 8) return '推荐买入'
-  if (rating >= 6) return '中性观望'
-  if (rating >= 4) return '谨慎关注'
-  return '风险较高'
-}
-
-const goBack = () => {
-  router.push('/reports')
-}
-
-const downloadReport = async (format: string) => {
-  try {
-    const res = await fetch(`/api/reports/${reportId.value}/download?format=${format}`, {
-      headers: { 'Authorization': `Bearer ${authStore.token}` }
-    })
-    if (!res.ok) {
-      ElMessage.error('下载失败')
-      return
-    }
-    const blob = await res.blob()
-    const url = window.URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `${report.value?.stock_symbol || 'report'}_分析报告.${format === 'markdown' ? 'md' : format}`
-    document.body.appendChild(a)
-    a.click()
-    window.URL.revokeObjectURL(url)
-    document.body.removeChild(a)
-    ElMessage.success('报告已下载')
-  } catch (error) {
-    ElMessage.error('下载失败')
-  }
-}
-
-const loadReport = async () => {
+// 获取报告详情
+const fetchReportDetail = async () => {
   loading.value = true
   try {
-    const res = await fetch(`/api/reports/${reportId.value}`, {
-      headers: { 'Authorization': `Bearer ${authStore.token}` }
+    const reportId = route.params.id as string
+    const response = await fetch(`/api/reports/${reportId}/detail`, {
+      headers: {
+        'Authorization': `Bearer ${authStore.token}`,
+        'Content-Type': 'application/json'
+      }
     })
-    if (res.ok) {
-      const data = await res.json()
-      report.value = data.data || data
+
+    if (!response.ok) throw new Error(`HTTP ${response.status}`)
+
+    const result = await response.json()
+    if (result.success) {
+      report.value = result.data
+      // 设置默认激活的模块
+      const reports = result.data.reports || {}
+      const moduleNames = Object.keys(reports)
+      if (moduleNames.length > 0) {
+        activeModule.value = moduleNames[0]
+      }
     } else {
-      ElMessage.error('加载报告失败')
+      throw new Error(result.message || '获取报告详情失败')
     }
   } catch (error) {
-    console.error('加载报告失败:', error)
-    ElMessage.error('加载报告失败')
+    console.error('获取报告详情失败:', error)
   } finally {
     loading.value = false
   }
 }
 
+// 下载报告
+const downloadReport = async (format: string) => {
+  showDownloadMenu.value = false
+  try {
+    // 使用 task_id 作为报告标识符（更稳定）
+    const reportId = report.value.task_id || report.value.id
+    
+    // 所有格式都直接下载
+    const response = await fetch(`/api/reports/${reportId}/download?format=${format}`, {
+      headers: { 'Authorization': `Bearer ${authStore.token}` }
+    })
+
+    if (!response.ok) throw new Error(`HTTP ${response.status}`)
+
+    const blob = await response.blob()
+    const url = window.URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    const ext = { markdown: 'md', pdf: 'pdf', json: 'json' }[format] || 'txt'
+    a.download = `${report.value.stock_symbol || report.value.stock_code || 'report'}_分析报告.${ext}`
+    document.body.appendChild(a)
+    a.click()
+    window.URL.revokeObjectURL(url)
+    document.body.removeChild(a)
+  } catch (error) {
+    console.error('下载报告失败:', error)
+  }
+}
+
+// 判断是否可以应用到交易
+const canApplyToTrading = computed(() => {
+  if (!report.value) return false
+  const rec = report.value.recommendation || ''
+  return rec.includes('买入') || rec.includes('卖出') || rec.toLowerCase().includes('buy') || rec.toLowerCase().includes('sell')
+})
+
+// 应用到交易
+const applyToTrading = () => {
+  // TODO: 实现交易逻辑
+  alert('功能开发中...')
+}
+
+// 返回
+const goBack = () => {
+  router.push('/reports')
+}
+
+// 工具函数
+const getStatusText = (status: string) => {
+  const map: Record<string, string> = { completed: '已完成', processing: '生成中', failed: '失败' }
+  return map[status] || status
+}
+
+const formatTime = (time: string) => {
+  return new Date(time).toLocaleString('zh-CN')
+}
+
+const formatAnalysts = (analysts: string[]) => {
+  const map: Record<string, string> = {
+    market: '市场分析师', fundamentals: '基本面分析师', news: '新闻分析师',
+    social: '社媒分析师', sentiment: '情绪分析师', technical: '技术分析师'
+  }
+  return analysts.map(a => map[a] || a).join('、')
+}
+
+const getModuleDisplayName = (name: string) => {
+  const map: Record<string, string> = {
+    market_report: '📈 市场技术分析', sentiment_report: '💭 市场情绪分析',
+    news_report: '📰 新闻事件分析', fundamentals_report: '💰 基本面分析',
+    bull_researcher: '🐂 多头研究员', bear_researcher: '🐻 空头研究员',
+    research_team_decision: '🔬 研究经理决策', trader_investment_plan: '💼 交易员计划',
+    risky_analyst: '⚡ 激进分析师', safe_analyst: '🛡️ 保守分析师',
+    neutral_analyst: '⚖️ 中性分析师', risk_management_decision: '👔 投资组合经理',
+    final_trade_decision: '🎯 最终交易决策'
+  }
+  return map[name] || name.replace(/_/g, ' ')
+}
+
+const renderMarkdown = (content: string) => {
+  if (!content) return ''
+  try {
+    return marked.parse(content) as string
+  } catch {
+    return `<pre style="white-space: pre-wrap;">${content}</pre>`
+  }
+}
+
+const normalizeConfidenceScore = (score: number) => score > 1 ? Math.round(score) : Math.round(score * 100)
+
+const getConfidenceColor = (score: number) => {
+  if (score >= 80) return '#22C55E'
+  if (score >= 60) return '#3B82F6'
+  if (score >= 40) return '#F59E0B'
+  return '#EF4444'
+}
+
+const getConfidenceLabel = (score: number) => {
+  if (score >= 80) return '较高'
+  if (score >= 60) return '中上'
+  if (score >= 40) return '中等'
+  return '较低'
+}
+
+const getRiskStars = (level: string) => {
+  const map: Record<string, number> = { '低': 1, '中低': 2, '中等': 3, '中高': 4, '高': 5 }
+  return map[level] || 3
+}
+
+const getRiskColor = (level: string) => {
+  const map: Record<string, string> = { '低': '#22C55E', '中低': '#84CC16', '中等': '#F59E0B', '中高': '#F97316', '高': '#EF4444' }
+  return map[level] || '#F59E0B'
+}
+
+// 点击外部关闭下载菜单
+const handleClickOutside = (e: MouseEvent) => {
+  const target = e.target as HTMLElement
+  if (!target.closest('.relative')) {
+    showDownloadMenu.value = false
+  }
+}
+
 onMounted(() => {
-  loadReport()
+  fetchReportDetail()
+  document.addEventListener('click', handleClickOutside)
 })
 </script>
 
 <style scoped>
-.report-markdown :deep(h1) {
-  @apply text-2xl font-bold mt-8 mb-4;
-}
-.report-markdown :deep(h2) {
-  @apply text-xl font-semibold mt-6 mb-3;
-}
-.report-markdown :deep(h3) {
-  @apply text-lg font-semibold mt-4 mb-2;
-}
-.report-markdown :deep(p) {
-  @apply my-3 leading-relaxed;
-}
-.report-markdown :deep(ul) {
-  @apply list-disc list-inside my-3;
-}
-.report-markdown :deep(li) {
-  @apply my-1;
-}
-.report-markdown :deep(strong) {
-  @apply font-semibold text-[var(--text-primary)];
-}
-.report-markdown :deep(code) {
-  @apply bg-white/10 px-1 py-0.5 rounded text-sm;
-}
-.report-markdown :deep(blockquote) {
-  @apply border-l-4 border-[#22C55E] pl-4 my-4 text-[var(--text-secondary)];
-}
+.prose :deep(h1) { font-size: 1.5rem; font-weight: 700; margin: 1.5rem 0 1rem; }
+.prose :deep(h2) { font-size: 1.25rem; font-weight: 600; margin: 1.25rem 0 0.75rem; }
+.prose :deep(h3) { font-size: 1.125rem; font-weight: 600; margin: 1rem 0 0.5rem; }
+.prose :deep(p) { margin: 0.5rem 0; line-height: 1.7; }
+.prose :deep(ul), .prose :deep(ol) { margin: 0.5rem 0; padding-left: 1.5rem; }
+.prose :deep(li) { margin: 0.25rem 0; }
+.prose :deep(code) { background: rgba(255,255,255,0.1); padding: 0.125rem 0.375rem; border-radius: 0.25rem; font-size: 0.875rem; }
+.prose :deep(pre) { background: rgba(255,255,255,0.05); padding: 1rem; border-radius: 0.75rem; overflow-x: auto; }
+.prose :deep(blockquote) { border-left: 3px solid rgba(255,255,255,0.2); padding-left: 1rem; margin: 1rem 0; color: var(--text-secondary); }
+.prose :deep(table) { width: 100%; border-collapse: collapse; margin: 1rem 0; }
+.prose :deep(th), .prose :deep(td) { border: 1px solid rgba(255,255,255,0.1); padding: 0.5rem; text-align: left; }
+.prose :deep(th) { background: rgba(255,255,255,0.05); }
 </style>

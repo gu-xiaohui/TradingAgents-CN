@@ -358,7 +358,17 @@ def _get_default_provider_by_model(model_name: str) -> str:
         'deepseek-chat': 'deepseek',
         'deepseek-coder': 'deepseek',
 
-        # 智谱AI
+        # 智谱AI (大写模型名)
+        'GLM-5': 'zhipu',
+        'GLM-4.7': 'zhipu',
+        'GLM-4.6': 'zhipu',
+        'GLM-4.5': 'zhipu',
+        'glm-5': 'zhipu',
+        'glm-4.7': 'zhipu',
+        'glm-4.6': 'zhipu',
+        'glm-4.5': 'zhipu',
+        'glm-4-plus': 'zhipu',
+        'glm-4-flash': 'zhipu',
         'glm-4': 'zhipu',
         'glm-3-turbo': 'zhipu',
         'chatglm3-6b': 'zhipu'
@@ -1499,8 +1509,10 @@ class SimpleAnalysisService:
             logger.info(f"🚀 准备调用 trading_graph.propagate，progress_callback={graph_progress_callback}")
 
             # 执行实际分析，传递进度回调和task_id
+            # 🔧 修复：使用 request.symbol 而不是 request.stock_code（stock_code 可能为 None）
+            stock_code_for_analysis = request.stock_code or request.symbol
             state, decision = trading_graph.propagate(
-                request.stock_code,
+                stock_code_for_analysis,
                 analysis_date,
                 progress_callback=graph_progress_callback,
                 task_id=task_id

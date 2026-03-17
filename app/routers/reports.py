@@ -7,7 +7,7 @@ from datetime import datetime, timedelta
 from typing import List, Optional, Dict, Any
 from pathlib import Path
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Response
+from fastapi import APIRouter, Depends, HTTPException, Query, Response, Header
 from fastapi.responses import FileResponse, StreamingResponse
 from pydantic import BaseModel
 
@@ -273,7 +273,8 @@ async def get_report_detail(
                     return x.isoformat()
                 return x or ""
 
-            stock_symbol = r.get("stock_symbol", r.get("stock_code", tasks_doc.get("stock_code", "")))
+            # 优先级：result.stock_symbol > result.stock_code > tasks_doc.stock_code
+            stock_symbol = r.get("stock_symbol") or r.get("stock_code") or tasks_doc.get("stock_code", "")
             stock_name = r.get("stock_name")
             if not stock_name:
                 stock_name = get_stock_name(stock_symbol)
@@ -538,27 +539,68 @@ async def download_report(
                 raise HTTPException(status_code=500, detail=f"Word 文档生成失败: {str(e)}")
 
         elif format == "pdf":
-            # PDF 格式下载
-            from app.utils.report_exporter import report_exporter
-
-            if not report_exporter.pandoc_available:
-                raise HTTPException(
-                    status_code=400,
-                    detail="PDF 导出功能不可用。请安装 pandoc 和 PDF 引擎（wkhtmltopdf 或 LaTeX）"
-                )
-
+            # PDF 格式下载 - 生成真正的 PDF 文件
             try:
-                # 生成 PDF 文档
-                pdf_content = report_exporter.generate_pdf_report(doc)
+                from app.utils.pdf_exporter import pdf_exporter
+                import tempfile
+                import asyncio
+                from playwright.async_api import async_playwright
+                
+                # 生成美观的 HTML 文档
+                html_content = pdf_exporter.generate_html(doc)
+                
+                # 创建临时 HTML 文件
+                with tempfile.NamedTemporaryFile(mode='w', suffix='.html', delete=False, encoding='utf-8') as f:
+                    f.write(html_content)
+                    html_path = f.name
+                
+                # 创建临时 PDF 文件
+                pdf_path = html_path.replace('.html', '.pdf')
+                
+                async def generate_pdf():
+                    async with async_playwright() as p:
+                        browser = await p.chromium.launch()
+                        page = await browser.new_page()
+                        await page.goto(f'file://{html_path}')
+                        # 等待页面加载完成
+                        await page.wait_for_load_state('networkidle')
+                        # 生成 PDF
+                        await page.pdf(path=pdf_path, format='A4', print_background=True)
+                        await browser.close()
+                
+                # 运行 PDF 生成
+                asyncio.run(generate_pdf())
+                
+                # 读取 PDF 文件
+                with open(pdf_path, 'rb') as f:
+                    pdf_content = f.read()
+                
+                # 清理临时文件
+                os.unlink(html_path)
+                os.unlink(pdf_path)
+                
                 filename = f"{stock_symbol}_{analysis_date}_report.pdf"
-
-                # 返回文件流
+                
+                # 返回 PDF 文件
                 def generate():
                     yield pdf_content
-
+                
                 return StreamingResponse(
                     generate(),
                     media_type="application/pdf",
+                    headers={"Content-Disposition": f"attachment; filename={filename}"}
+                )
+            except ImportError:
+                # Playwright 未安装，回退到 HTML 方式
+                logger.warning("Playwright 未安装，使用 HTML 方式下载")
+                from app.utils.pdf_exporter import pdf_exporter
+                from fastapi.responses import HTMLResponse
+                
+                html_content = pdf_exporter.generate_html(doc)
+                filename = f"{stock_symbol}_{analysis_date}_report.html"
+                
+                return HTMLResponse(
+                    content=html_content,
                     headers={"Content-Disposition": f"attachment; filename={filename}"}
                 )
             except Exception as e:
@@ -572,4 +614,109 @@ async def download_report(
         raise
     except Exception as e:
         logger.error(f"❌ 下载报告失败: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/{report_id}/preview")
+async def preview_report(
+    report_id: str,
+    token: Optional[str] = None,
+    authorization: Optional[str] = Header(default=None)
+):
+    """预览美观的 HTML 报告（可用于浏览器打印 PDF）
+    
+    支持两种认证方式：
+    1. Header Authorization: Bearer {token}
+    2. URL 参数: ?token={token}
+    """
+    try:
+        logger.info(f"👁️ 预览报告: {report_id}")
+
+        # 验证认证
+        user = None
+        from .auth_db import AuthService
+        
+        # 方式1: 从 Header 获取 token
+        if authorization and authorization.startswith("Bearer "):
+            token_from_header = authorization.replace("Bearer ", "")
+            try:
+                token_data = AuthService.verify_token(token_from_header)
+                if token_data and token_data.sub:
+                    user = {"id": token_data.sub, "username": token_data.sub}
+            except Exception as e:
+                logger.warning(f"Token 验证失败: {e}")
+        
+        # 方式2: 从 URL 参数获取 token
+        if not user and token:
+            try:
+                token_data = AuthService.verify_token(token)
+                if token_data and token_data.sub:
+                    user = {"id": token_data.sub, "username": token_data.sub}
+            except Exception as e:
+                logger.warning(f"Token 验证失败: {e}")
+        
+        if not user:
+            raise HTTPException(status_code=401, detail="需要登录才能预览报告")
+
+        db = get_mongo_db()
+
+        # 先尝试从 analysis_tasks 查询（包含 stock_code）
+        tasks_doc = await db.analysis_tasks.find_one(
+            {"$or": [{"task_id": report_id}, {"result.analysis_id": report_id}]},
+            {"result": 1, "task_id": 1, "stock_code": 1, "created_at": 1, "completed_at": 1, "status": 1}
+        )
+        
+        doc = None
+        stock_code = None
+        
+        if tasks_doc:
+            stock_code = tasks_doc.get("stock_code")
+            if tasks_doc.get("result"):
+                doc = tasks_doc["result"]
+                doc["task_id"] = tasks_doc.get("task_id")
+                doc["stock_code"] = stock_code
+                doc["status"] = tasks_doc.get("status")
+
+        # 如果 tasks 中没有完整数据，尝试从 analysis_reports 查询
+        if not doc or not doc.get("reports"):
+            query = _build_report_query(report_id)
+            report_doc = await db.analysis_reports.find_one(query)
+            
+            if report_doc:
+                doc = report_doc
+                # 从 tasks 补充 stock_code
+                if not doc.get("stock_symbol") and stock_code:
+                    doc["stock_symbol"] = stock_code
+
+        if not doc:
+            raise HTTPException(status_code=404, detail="报告不存在")
+
+        # 确保有股票代码和名称
+        if not doc.get("stock_symbol"):
+            doc["stock_symbol"] = doc.get("stock_code") or stock_code or "N/A"
+        
+        if not doc.get("stock_name"):
+            # 尝试从股票基本信息表获取
+            if doc.get("stock_symbol"):
+                stock_info = await db.stock_basic_info.find_one({
+                    "$or": [
+                        {"symbol": doc["stock_symbol"]}, 
+                        {"code": doc["stock_symbol"]}
+                    ]
+                })
+                if stock_info:
+                    doc["stock_name"] = stock_info.get("name")
+
+        # 生成美观的 HTML
+        from app.utils.pdf_exporter import pdf_exporter
+        from fastapi.responses import HTMLResponse
+        
+        html_content = pdf_exporter.generate_html(doc)
+        
+        return HTMLResponse(content=html_content)
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"❌ 预览报告失败: {e}")
         raise HTTPException(status_code=500, detail=str(e))

@@ -172,6 +172,12 @@
           <!-- 操作按钮 -->
           <div class="flex items-center gap-2">
             <button
+              @click="viewTaskDetail(task)"
+              class="px-3 py-1.5 rounded-lg text-sm bg-[#3B82F6]/10 text-[#3B82F6] hover:bg-[#3B82F6]/20 transition-colors"
+            >
+              查看详情
+            </button>
+            <button
               v-if="task.status === 'completed'"
               @click="viewReport(task)"
               class="px-3 py-1.5 rounded-lg text-sm bg-[#22C55E]/10 text-[#22C55E] hover:bg-[#22C55E]/20 transition-colors"
@@ -338,6 +344,10 @@ const refreshList = async () => {
   }
 }
 
+const viewTaskDetail = (task: any) => {
+  router.push(`/tasks/${task.task_id}`)
+}
+
 const viewReport = (task: any) => {
   router.push(`/reports/${task.task_id}`)
 }
@@ -349,12 +359,29 @@ const retryTask = (task: any) => {
 const deleteTask = async (task: any) => {
   try {
     await ElMessageBox.confirm('确定删除该任务？', '确认删除', { type: 'warning' })
-    const index = tasks.value.findIndex(t => t.task_id === task.task_id)
-    if (index > -1) {
-      tasks.value.splice(index, 1)
+
+    // 调用后端 API 删除任务
+    const response = await analysisApi.deleteTask(task.task_id)
+
+    if (response.success || response.data?.success) {
+      // 从本地数组中移除
+      const index = tasks.value.findIndex(t => t.task_id === task.task_id)
+      if (index > -1) {
+        tasks.value.splice(index, 1)
+        // 更新统计
+        stats.total = tasks.value.length
+        stats.failed = tasks.value.filter((t: any) => t.status === 'failed').length
+        const uniqueStocks = new Set(tasks.value.map((t: any) => t.stock_code))
+        stats.uniqueStocks = uniqueStocks.size
+      }
       ElMessage.success('已删除')
+    } else {
+      ElMessage.error(response.message || '删除失败')
     }
-  } catch {}
+  } catch (error: any) {
+    console.error('删除任务失败:', error)
+    ElMessage.error(error.message || '删除失败')
+  }
 }
 
 onMounted(async () => {

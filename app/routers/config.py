@@ -1060,8 +1060,41 @@ async def get_data_source_configs(
     """获取所有数据源配置"""
     try:
         config = await config_service.get_system_config()
-        if not config:
-            return []
+        if not config or not config.data_source_configs:
+            # 如果数据库没有配置，返回默认的数据源配置（从环境变量读取）
+            import os
+            from app.utils.api_key_utils import truncate_api_key
+            
+            default_configs = [
+                DataSourceConfig(
+                    name="AKShare",
+                    type="akshare",
+                    api_key=None,
+                    api_secret=None,
+                    enabled=True,
+                    priority=1,
+                    description="免费A股数据源"
+                ),
+                DataSourceConfig(
+                    name="BaoStock",
+                    type="baostock",
+                    api_key=None,
+                    api_secret=None,
+                    enabled=True,
+                    priority=2,
+                    description="免费A股数据源"
+                ),
+                DataSourceConfig(
+                    name="Tushare",
+                    type="tushare",
+                    api_key=truncate_api_key(os.getenv("TUSHARE_TOKEN", "")) if os.getenv("TUSHARE_TOKEN") else None,
+                    api_secret=None,
+                    enabled=True,
+                    priority=3,
+                    description="专业金融数据接口（需Token）"
+                )
+            ]
+            return default_configs
         return _sanitize_datasource_configs(config.data_source_configs)
     except Exception as e:
         raise HTTPException(

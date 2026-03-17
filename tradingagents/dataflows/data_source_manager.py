@@ -6,7 +6,7 @@
 
 import os
 import time
-from typing import Dict, List, Optional, Any
+from typing import Dict, List, Optional, Any, Tuple
 from enum import Enum
 import warnings
 import pandas as pd
@@ -1158,12 +1158,12 @@ class DataSourceManager:
                         }, exc_info=True)
             return self._try_fallback_sources(symbol, start_date, end_date)
 
-    def _get_mongodb_data(self, symbol: str, start_date: str, end_date: str, period: str = "daily") -> tuple[str, str | None]:
+    def _get_mongodb_data(self, symbol: str, start_date: str, end_date: str, period: str = "daily") -> Tuple[str, Optional[str]]:
         """
         从MongoDB获取多周期数据 - 包含技术指标计算
 
         Returns:
-            tuple[str, str | None]: (结果字符串, 实际使用的数据源名称)
+            Tuple[str, Optional[str]]: (结果字符串, 实际使用的数据源名称)
         """
         logger.debug(f"📊 [MongoDB] 调用参数: symbol={symbol}, start_date={start_date}, end_date={end_date}, period={period}")
 
@@ -1351,12 +1351,12 @@ class DataSourceManager:
             logger.error(f"❌ 获取成交量失败: {e}")
             return 0
 
-    def _try_fallback_sources(self, symbol: str, start_date: str, end_date: str, period: str = "daily") -> tuple[str, str | None]:
+    def _try_fallback_sources(self, symbol: str, start_date: str, end_date: str, period: str = "daily") -> Tuple[str, Optional[str]]:
         """
         尝试备用数据源 - 避免递归调用
 
         Returns:
-            tuple[str, str | None]: (结果字符串, 实际使用的数据源名称)
+            Tuple[str, Optional[str]]: (结果字符串, 实际使用的数据源名称)
         """
         logger.info(f"🔄 [{self.current_source.value}] 失败，尝试备用数据源获取{period}数据: {symbol}")
 

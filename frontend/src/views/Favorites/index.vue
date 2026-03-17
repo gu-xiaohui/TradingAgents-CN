@@ -91,7 +91,7 @@
           v-for="stock in filteredStocks"
           :key="stock.stock_code"
           class="flex items-center justify-between p-4 rounded-xl bg-white/5 hover:bg-white/10 cursor-pointer transition-colors"
-          @click="goToAnalysis(stock)"
+          @click="goToDetail(stock)"
         >
           <div class="flex items-center gap-4">
             <div 
@@ -134,6 +134,18 @@
                 {{ stock.change_amount >= 0 ? '+' : '' }}{{ (stock.change_amount || 0).toFixed(2) }}
               </div>
             </div>
+            <button 
+              @click.stop="goToAnalysis(stock)" 
+              class="p-2 rounded-lg text-emerald-400 hover:text-emerald-300 hover:bg-emerald-500/10 transition-colors text-sm"
+            >
+              分析
+            </button>
+            <button 
+              @click.stop="goToDetail(stock)" 
+              class="p-2 rounded-lg text-blue-400 hover:text-blue-300 hover:bg-blue-500/10 transition-colors text-sm"
+            >
+              详情
+            </button>
             <button 
               @click.stop="removeStock(stock)" 
               class="p-2 rounded-lg text-[var(--text-muted)] hover:text-[#EF4444] hover:bg-[#EF4444]/10 transition-colors"
@@ -187,6 +199,8 @@ import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useAuthStore } from '@/stores/auth'
 import { favoritesApi } from '@/api/favorites'
+import { extractSymbol } from '@/utils/stock'
+import { getMarketByStockCode } from '@/utils/market'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -298,8 +312,30 @@ const removeStock = async (stock: any) => {
   } catch {}
 }
 
+const goToDetail = (stock: any) => {
+  const rawCode = String(stock?.stock_code || stock?.symbol || stock?.code || '').trim()
+  const code = extractSymbol(rawCode)
+  if (!code) {
+    ElMessage.warning('股票代码缺失，无法打开详情')
+    return
+  }
+
+  router.push({
+    name: 'StockDetail',
+    params: { code },
+    query: { market: getMarketByStockCode(rawCode) }
+  })
+}
+
 const goToAnalysis = (stock: any) => {
-  router.push(`/analysis?stock_code=${stock.stock_code}`)
+  const rawCode = String(stock?.stock_code || stock?.symbol || stock?.code || '').trim()
+  const code = extractSymbol(rawCode)
+  if (!code) {
+    ElMessage.warning('股票代码缺失，无法发起分析')
+    return
+  }
+
+  router.push(`/analysis?stock_code=${code}`)
 }
 
 onMounted(() => {
