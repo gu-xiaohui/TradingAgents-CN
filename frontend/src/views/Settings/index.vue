@@ -184,37 +184,136 @@
         </div>
 
         <!-- 配置管理 -->
-        <div v-show="activeTab === 'config'" class="card">
-          <h2 class="text-lg font-semibold mb-6">配置管理</h2>
-          
-          <div class="space-y-4">
-            <div class="p-4 rounded-xl bg-white/5 border border-white/10">
-              <div class="flex items-center justify-between">
-                <div>
-                  <div class="text-sm font-medium text-[var(--text-primary)]">API 密钥配置</div>
-                  <div class="text-xs text-[var(--text-muted)] mt-1">管理 LLM API 密钥和数据源配置</div>
+        <div v-show="activeTab === 'config'" class="space-y-6">
+          <!-- 配置子标签 -->
+          <div class="flex gap-2 flex-wrap">
+            <button
+              v-for="tab in configTabs"
+              :key="tab.id"
+              @click="configSubTab = tab.id"
+              class="px-3 py-1.5 rounded-lg text-sm transition-colors"
+              :class="configSubTab === tab.id
+                ? 'bg-[#22C55E]/10 text-[#22C55E]'
+                : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-white/5'"
+            >
+              {{ tab.label }}
+            </button>
+          </div>
+
+          <!-- 配置验证 -->
+          <div v-show="configSubTab === 'validation'">
+            <ConfigValidation />
+          </div>
+
+          <!-- 大模型配置 -->
+          <div v-show="configSubTab === 'llm'" class="card">
+            <div class="flex items-center justify-between mb-6">
+              <h2 class="text-lg font-semibold">大模型配置</h2>
+              <button @click="refreshModels" class="btn-secondary text-sm" :disabled="configLoading">
+                <svg class="w-4 h-4" :class="{ 'animate-spin': configLoading }" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
+                </svg>
+                刷新
+              </button>
+            </div>
+            <div v-if="configLoading" class="text-center py-12">
+              <svg class="w-8 h-8 mx-auto animate-spin text-[#22C55E]" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+              </svg>
+              <p class="text-[var(--text-muted)] mt-2">加载中...</p>
+            </div>
+            <div v-else class="space-y-3">
+              <div
+                v-for="model in models"
+                :key="model.model_name"
+                class="flex items-center justify-between p-4 rounded-xl bg-white/5 hover:bg-white/10 transition-colors"
+              >
+                <div class="flex items-center gap-4">
+                  <div class="w-10 h-10 rounded-lg flex items-center justify-center"
+                    :class="model.enabled ? 'bg-[#22C55E]/20' : 'bg-white/10'">
+                    <svg class="w-5 h-5" :class="model.enabled ? 'text-[#22C55E]' : 'text-[var(--text-muted)]'" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09Z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <div class="flex items-center gap-2">
+                      <span class="font-medium">{{ model.model_name }}</span>
+                      <span v-if="model.enabled" class="badge-success">已启用</span>
+                      <span v-else class="badge-info">已禁用</span>
+                    </div>
+                    <div class="text-sm text-[var(--text-muted)]">{{ model.provider }}</div>
+                  </div>
                 </div>
-                <button class="btn-secondary text-sm">管理</button>
+                <div class="flex items-center gap-3">
+                  <span class="text-sm text-[var(--text-muted)]">优先级: {{ model.priority }}</span>
+                  <button
+                    @click="toggleModel(model)"
+                    class="px-3 py-1.5 rounded-lg text-sm transition-colors"
+                    :class="model.enabled
+                      ? 'bg-[#EF4444]/10 text-[#EF4444] hover:bg-[#EF4444]/20'
+                      : 'bg-[#22C55E]/10 text-[#22C55E] hover:bg-[#22C55E]/20'"
+                  >
+                    {{ model.enabled ? '禁用' : '启用' }}
+                  </button>
+                </div>
               </div>
             </div>
-            
-            <div class="p-4 rounded-xl bg-white/5 border border-white/10">
-              <div class="flex items-center justify-between">
-                <div>
-                  <div class="text-sm font-medium text-[var(--text-primary)]">数据源配置</div>
-                  <div class="text-xs text-[var(--text-muted)] mt-1">配置股票数据源 (Tushare, AKShare 等)</div>
+          </div>
+
+          <!-- 数据源配置 -->
+          <div v-show="configSubTab === 'datasource'" class="card">
+            <div class="flex items-center justify-between mb-6">
+              <h2 class="text-lg font-semibold">数据源配置</h2>
+              <button @click="refreshDataSources" class="btn-secondary text-sm">
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
+                </svg>
+                刷新
+              </button>
+            </div>
+            <div class="space-y-3">
+              <div
+                v-for="ds in dataSources"
+                :key="ds.name"
+                class="flex items-center justify-between p-4 rounded-xl bg-white/5 hover:bg-white/10 transition-colors"
+              >
+                <div class="flex items-center gap-4">
+                  <div class="w-10 h-10 rounded-lg flex items-center justify-center"
+                    :class="ds.enabled ? 'bg-[#22C55E]/20' : 'bg-white/10'">
+                    <svg class="w-5 h-5" :class="ds.enabled ? 'text-[#22C55E]' : 'text-[var(--text-muted)]'" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M20.25 6.375c0 2.278-3.694 4.125-8.25 4.125S3.75 8.653 3.75 6.375m16.5 0c0-2.278-3.694-4.125-8.25-4.125S3.75 4.097 3.75 6.375m16.5 0v11.25c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125V6.375m16.5 0v3.75m-16.5-3.75v3.75m16.5 0v3.75C20.25 16.153 16.556 18 12 18s-8.25-1.847-8.25-4.125v-3.75m16.5 0c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125" />
+                    </svg>
+                  </div>
+                  <div>
+                    <div class="font-medium">{{ ds.display_name || ds.name }}</div>
+                    <div class="text-sm text-[var(--text-muted)]">{{ ds.type || '数据源' }}</div>
+                  </div>
                 </div>
-                <button class="btn-secondary text-sm">配置</button>
+                <span :class="ds.enabled ? 'badge-success' : 'badge-info'">
+                  {{ ds.enabled ? '已启用' : '已禁用' }}
+                </span>
               </div>
             </div>
-            
-            <div class="p-4 rounded-xl bg-white/5 border border-white/10">
-              <div class="flex items-center justify-between">
+          </div>
+
+          <!-- 导入导出 -->
+          <div v-show="configSubTab === 'import-export'" class="card">
+            <h2 class="text-lg font-semibold mb-6">配置导入导出</h2>
+            <div class="space-y-4">
+              <div class="flex items-center justify-between p-4 rounded-xl bg-white/5">
                 <div>
-                  <div class="text-sm font-medium text-[var(--text-primary)]">模型配置</div>
-                  <div class="text-xs text-[var(--text-muted)] mt-1">配置 AI 模型参数和选项</div>
+                  <div class="font-medium">导出配置</div>
+                  <div class="text-sm text-[var(--text-muted)]">导出当前系统配置为 JSON 文件</div>
                 </div>
-                <button class="btn-secondary text-sm">配置</button>
+                <button @click="exportConfig" class="btn-primary text-sm">导出</button>
+              </div>
+              <div class="flex items-center justify-between p-4 rounded-xl bg-white/5">
+                <div>
+                  <div class="font-medium">导入配置</div>
+                  <div class="text-sm text-[var(--text-muted)]">从 JSON 文件导入系统配置</div>
+                </div>
+                <button @click="importConfig" class="btn-secondary text-sm">导入</button>
               </div>
             </div>
           </div>
@@ -262,10 +361,97 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, h } from 'vue'
+import { ref, reactive, onMounted, h } from 'vue'
 import { ElMessage } from 'element-plus'
+import { useAuthStore } from '@/stores/auth'
+import ConfigValidation from './components/ConfigValidation.vue'
 
+const authStore = useAuthStore()
 const activeTab = ref('general')
+const configSubTab = ref('validation')
+const configLoading = ref(false)
+
+const configTabs = [
+  { id: 'validation', label: '配置验证' },
+  { id: 'llm', label: '大模型配置' },
+  { id: 'datasource', label: '数据源配置' },
+  { id: 'import-export', label: '导入导出' },
+]
+
+// 配置管理数据
+const models = ref<any[]>([])
+const dataSources = ref<any[]>([])
+
+const getHeaders = () => ({
+  'Authorization': `Bearer ${authStore.token}`,
+  'Content-Type': 'application/json'
+})
+
+const refreshModels = async () => {
+  configLoading.value = true
+  try {
+    const res = await fetch('/api/config/llm', { headers: getHeaders() })
+    if (res.ok) {
+      models.value = await res.json()
+    }
+  } catch (error) {
+    console.error('加载模型失败:', error)
+    ElMessage.error('加载模型失败')
+  } finally {
+    configLoading.value = false
+  }
+}
+
+const refreshDataSources = async () => {
+  try {
+    const res = await fetch('/api/config/datasource', { headers: getHeaders() })
+    if (res.ok) {
+      dataSources.value = await res.json()
+    }
+  } catch (error) {
+    console.error('加载数据源失败:', error)
+  }
+}
+
+const toggleModel = async (model: any) => {
+  try {
+    const res = await fetch(`/api/config/llm/${model.provider}/${model.model_name}`, {
+      method: 'PUT',
+      headers: getHeaders(),
+      body: JSON.stringify({ enabled: !model.enabled })
+    })
+    if (res.ok) {
+      model.enabled = !model.enabled
+      ElMessage.success(model.enabled ? '已启用' : '已禁用')
+    }
+  } catch (error) {
+    ElMessage.error('操作失败')
+  }
+}
+
+const exportConfig = async () => {
+  try {
+    const res = await fetch('/api/config/export', { headers: getHeaders() })
+    if (res.ok) {
+      const blob = await res.blob()
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `config_${new Date().toISOString().slice(0, 10)}.json`
+      document.body.appendChild(a)
+      a.click()
+      window.URL.revokeObjectURL(url)
+      document.body.removeChild(a)
+      ElMessage.success('配置已导出')
+    }
+  } catch (error) {
+    ElMessage.error('导出失败')
+  }
+}
+
+const importConfig = () => {
+  ElMessage.info('请选择配置文件')
+}
 
 // SVG 图标组件
 const IconUser = () => h('svg', { fill: 'none', viewBox: '0 0 24 24', stroke: 'currentColor', 'stroke-width': '2', class: 'w-5 h-5' }, [
@@ -329,4 +515,8 @@ const saveSettings = () => {
 const clearCache = (type: string) => {
   ElMessage.success(`已清除${type === 'all' ? '全部' : type}缓存`)
 }
+
+onMounted(async () => {
+  await Promise.all([refreshModels(), refreshDataSources()])
+})
 </script>

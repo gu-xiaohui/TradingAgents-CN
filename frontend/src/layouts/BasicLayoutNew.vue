@@ -2,6 +2,7 @@
   <div class="min-h-screen bg-[var(--bg-primary)] text-[var(--text-primary)] transition-colors duration-300">
     <!-- 侧边栏 -->
     <aside
+      v-show="!isMobile || !collapsed"
       class="fixed top-0 left-0 h-full bg-[var(--bg-secondary)] border-r border-[var(--border-color)] transition-all duration-300 z-50 flex flex-col"
       :class="collapsed ? 'w-16' : 'w-64'"
     >
@@ -44,18 +45,18 @@
     />
 
     <!-- 主内容区 -->
-    <div class="transition-all duration-300" :class="collapsed ? 'ml-16' : 'ml-64'">
+    <div class="transition-all duration-300" :class="mainContentClass">
       <!-- 顶部栏 -->
-      <header class="h-16 bg-[var(--bg-secondary)] border-b border-[var(--border-color)] flex items-center justify-between px-6 sticky top-0 z-30">
+      <header class="h-14 sm:h-16 bg-[var(--bg-secondary)] border-b border-[var(--border-color)] flex items-center justify-between px-3 sm:px-6 sticky top-0 z-30">
         <div class="flex items-center gap-4">
           <button @click="appStore.toggleSidebar()" class="p-2 rounded-lg hover:bg-white/5 text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors">
-            <!-- 展开图标 - Heroicons outline -->
+            <!-- 展开图标 - 三横线 -->
             <svg v-if="collapsed" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
               <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
             </svg>
-            <!-- 收起图标 - Heroicons outline -->
+            <!-- 收起图标 - 左箭头面板 -->
             <svg v-else class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M9.75 9.75 4.5 4.5m0 0 5.25 5.25M4.5 4.5v6m0 0h6m4.5 4.5 5.25-5.25m0 0-5.25 5.25M19.5 19.5v-6m0 0h-6" />
+              <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
             </svg>
           </button>
           
@@ -92,7 +93,7 @@
       </header>
 
       <!-- 页面内容 -->
-      <main class="p-6">
+      <main class="p-3 sm:p-4 lg:p-6">
         <router-view v-slot="{ Component, route }">
           <transition name="fade" mode="out-in">
             <component :is="Component" :key="route.fullPath" />
@@ -112,7 +113,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAppStore } from '@/stores/app'
 import { useAuthStore } from '@/stores/auth'
@@ -127,7 +128,13 @@ const authStore = useAuthStore()
 const themeStore = useThemeStore()
 
 const collapsed = computed(() => appStore.sidebarCollapsed)
-const isMobile = computed(() => window.innerWidth < 768)
+const windowWidth = ref(window.innerWidth)
+const isMobile = computed(() => windowWidth.value < 768)
+
+const mainContentClass = computed(() => {
+  if (isMobile.value) return 'ml-0'
+  return collapsed.value ? 'ml-16' : 'ml-64'
+})
 
 const currentTitle = computed(() => {
   return (route.meta?.title as string) || ''
@@ -136,6 +143,22 @@ const currentTitle = computed(() => {
 const userInitial = computed(() => {
   const username = authStore.user?.username || 'U'
   return username.charAt(0).toUpperCase()
+})
+
+const handleResize = () => {
+  windowWidth.value = window.innerWidth
+  if (windowWidth.value < 768 && !appStore.sidebarCollapsed) {
+    appStore.setSidebarCollapsed(true)
+  }
+}
+
+onMounted(() => {
+  window.addEventListener('resize', handleResize)
+  handleResize()
+})
+
+onUnmounted(() => {
+  window.removeEventListener('resize', handleResize)
 })
 
 const handleLogout = async () => {

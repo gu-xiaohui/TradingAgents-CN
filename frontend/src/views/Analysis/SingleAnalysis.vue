@@ -1,8 +1,8 @@
 <template>
-  <div class="min-h-screen bg-[var(--bg-primary)] text-[var(--text-primary)] p-6">
+  <div class="min-h-screen bg-[var(--bg-primary)] text-[var(--text-primary)] p-3 sm:p-6">
     <!-- 页面头部 -->
-    <div class="mb-8">
-      <h1 class="text-3xl font-bold flex items-center gap-3">
+    <div class="mb-6 sm:mb-8">
+      <h1 class="text-xl sm:text-2xl lg:text-3xl font-bold flex items-center gap-3">
         <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-[#22C55E] to-[#8B5CF6] flex items-center justify-center">
           <svg class="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
             <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
@@ -13,9 +13,9 @@
       <p class="text-[var(--text-secondary)] mt-2 ml-13">AI 驱动的智能股票分析，多维度评估投资价值与风险</p>
     </div>
 
-    <div class="grid grid-cols-12 gap-6">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6">
       <!-- 左侧：主表单 -->
-      <div class="col-span-8">
+      <div class="lg:col-span-8">
         <div class="card">
           <div class="flex items-center justify-between mb-6">
             <h2 class="text-lg font-semibold">分析配置</h2>
@@ -59,7 +59,7 @@
               </svg>
               分析深度
             </h3>
-            <div class="grid grid-cols-5 gap-3">
+            <div class="grid grid-cols-3 sm:grid-cols-5 gap-2 sm:gap-3">
               <button
                 v-for="(depth, index) in depthOptions"
                 :key="index"
@@ -163,7 +163,7 @@
       </div>
 
       <!-- 右侧：高级配置 -->
-      <div class="col-span-4">
+      <div class="lg:col-span-4">
         <div class="card">
           <div class="flex items-center justify-between mb-6">
             <h2 class="text-lg font-semibold">高级配置</h2>
@@ -229,11 +229,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, reactive, onMounted } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { analysisApi } from '@/api/analysis'
 
+const route = useRoute()
 const router = useRouter()
 const submitting = ref(false)
 
@@ -271,6 +272,13 @@ const toggleAnalyst = (name: string) => {
     form.selectedAnalysts.push(name)
   }
 }
+
+onMounted(() => {
+  const stockCode = route.query.stock_code as string
+  if (stockCode) {
+    form.stockCode = stockCode
+  }
+})
 
 const submitAnalysis = async () => {
   if (!form.stockCode.trim()) {

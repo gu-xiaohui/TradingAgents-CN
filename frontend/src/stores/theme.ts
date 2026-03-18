@@ -26,10 +26,13 @@ export const useThemeStore = defineStore('theme', () => {
   // 应用主题
   function applyTheme() {
     const actualTheme = getActualTheme()
+    const html = document.documentElement
     if (actualTheme === 'dark') {
-      document.documentElement.classList.add('dark')
+      html.classList.add('dark')
+      html.style.colorScheme = 'dark'
     } else {
-      document.documentElement.classList.remove('dark')
+      html.classList.remove('dark')
+      html.style.colorScheme = 'light'
     }
   }
   

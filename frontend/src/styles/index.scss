@@ -11,9 +11,9 @@ html, body {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
-// 优化标题样式（浅色主题）
+// 优化标题样式
 h1, h2, h3, h4, h5, h6 {
-  color: #1a202c;
+  color: var(--text-primary, #1a202c);
   font-weight: 600;
 }
 

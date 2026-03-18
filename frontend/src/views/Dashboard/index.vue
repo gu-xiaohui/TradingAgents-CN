@@ -1,15 +1,15 @@
 <template>
-  <div class="min-h-screen bg-[var(--bg-primary)] text-[var(--text-primary)] p-6 space-y-6 transition-colors duration-300">
+  <div class="min-h-screen bg-[var(--bg-primary)] text-[var(--text-primary)] p-3 sm:p-6 space-y-4 sm:space-y-6 transition-colors duration-300">
     <!-- 欢迎区域 -->
-    <div class="relative overflow-hidden rounded-2xl bg-gradient-to-r from-[#22C55E]/20 via-[#8B5CF6]/20 to-[#22C55E]/20 p-8">
+    <div class="relative overflow-hidden rounded-2xl bg-gradient-to-r from-[#22C55E]/20 via-[#8B5CF6]/20 to-[#22C55E]/20 p-4 sm:p-8">
       <div class="absolute inset-0 bg-gradient-to-r from-[#22C55E]/10 to-[#8B5CF6]/10" />
-      <div class="relative flex items-center justify-between">
+      <div class="relative flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h1 class="text-3xl font-bold flex items-center gap-3">
+          <h1 class="text-xl sm:text-2xl lg:text-3xl font-bold flex items-center gap-2 sm:gap-3 flex-wrap">
             TradingAgents-CN
-            <span class="text-sm font-normal px-3 py-1 rounded-full bg-white/10 text-[var(--text-secondary)]">v1.0.0-preview</span>
+            <span class="text-xs sm:text-sm font-normal px-2 sm:px-3 py-1 rounded-full bg-white/10 text-[var(--text-secondary)]">v1.0.0-preview</span>
           </h1>
-          <p class="text-[var(--text-secondary)] mt-2 text-lg">AI 多智能体股票分析系统</p>
+          <p class="text-[var(--text-secondary)] mt-2 text-sm sm:text-lg">AI 多智能体股票分析系统</p>
         </div>
         <div class="flex gap-3">
           <button @click="quickAnalysis" class="btn-primary flex items-center gap-2">
@@ -57,9 +57,9 @@
     </div>
 
     <!-- 主内容区 -->
-    <div class="grid grid-cols-12 gap-6">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6">
       <!-- 左侧：快速操作 + 最近分析 -->
-      <div class="col-span-8 space-y-6">
+      <div class="lg:col-span-8 space-y-4 sm:space-y-6">
         <!-- 快速操作 -->
         <div class="card">
           <h3 class="text-lg font-semibold mb-4 flex items-center gap-2">
@@ -68,7 +68,7 @@
             </svg>
             快速操作
           </h3>
-          <div class="grid grid-cols-2 gap-4">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
             <div 
               v-for="action in quickActions" 
               :key="action.title"
@@ -175,7 +175,7 @@
       </div>
 
       <!-- 右侧：自选股 + 模拟账户 -->
-      <div class="col-span-4 space-y-6">
+      <div class="lg:col-span-4 space-y-4 sm:space-y-6">
         <!-- 我的自选股 -->
         <div class="card">
           <div class="flex items-center justify-between mb-4">

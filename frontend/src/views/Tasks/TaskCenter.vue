@@ -1,8 +1,8 @@
 <template>
-  <div class="min-h-screen bg-[var(--bg-primary)] text-[var(--text-primary)] p-6">
+  <div class="min-h-screen bg-[var(--bg-primary)] text-[var(--text-primary)] p-3 sm:p-6">
     <!-- 页面头部 -->
-    <div class="mb-8">
-      <h1 class="text-3xl font-bold flex items-center gap-3">
+    <div class="mb-6 sm:mb-8">
+      <h1 class="text-xl sm:text-2xl lg:text-3xl font-bold flex items-center gap-3">
         <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-[#22C55E] to-[#8B5CF6] flex items-center justify-center">
           <svg class="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
             <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
@@ -10,11 +10,11 @@
         </div>
         任务中心
       </h1>
-      <p class="text-[var(--text-secondary)] mt-2 ml-13">统一查看并管理分析任务：进行中 / 已完成 / 失败</p>
+      <p class="text-[var(--text-secondary)] mt-2 ml-13 text-sm">统一管理分析任务与报告：进行中 / 已完成 / 失败</p>
     </div>
 
     <!-- 统计卡片 -->
-    <div class="grid grid-cols-4 gap-4 mb-6">
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mb-6">
       <div class="card p-4 flex items-center gap-4">
         <div class="w-12 h-12 rounded-xl bg-[#3B82F6]/20 flex items-center justify-center">
           <svg class="w-6 h-6 text-[#3B82F6]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -82,12 +82,12 @@
       </div>
 
       <!-- 筛选表单 -->
-      <div class="flex items-center gap-4 mb-6">
+      <div class="flex flex-wrap items-center gap-3 sm:gap-4 mb-6">
         <input
           v-model="keyword"
           type="text"
           placeholder="搜索股票代码/名称..."
-          class="input flex-1 max-w-xs"
+          class="input flex-1 min-w-[160px] max-w-xs"
         />
         <select v-model="filters.market" class="input w-32">
           <option value="">全部市场</option>
@@ -104,11 +104,11 @@
       </div>
 
       <!-- 任务列表 -->
-      <div class="space-y-3">
+      <div class="space-y-3 overflow-x-auto">
         <div
           v-for="task in filteredTasks"
           :key="task.task_id"
-          class="flex items-center justify-between p-4 rounded-xl bg-white/5 hover:bg-white/10 transition-colors"
+          class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 sm:p-4 rounded-xl bg-white/5 hover:bg-white/10 transition-colors min-w-[480px]"
         >
           <div class="flex items-center gap-4">
             <!-- 状态图标 -->
@@ -170,30 +170,37 @@
           </div>
 
           <!-- 操作按钮 -->
-          <div class="flex items-center gap-2">
+          <div class="flex flex-wrap items-center gap-2">
             <button
               @click="viewTaskDetail(task)"
-              class="px-3 py-1.5 rounded-lg text-sm bg-[#3B82F6]/10 text-[#3B82F6] hover:bg-[#3B82F6]/20 transition-colors"
+              class="px-3 py-1.5 rounded-lg text-xs sm:text-sm bg-[#3B82F6]/10 text-[#3B82F6] hover:bg-[#3B82F6]/20 transition-colors"
             >
               查看详情
             </button>
             <button
               v-if="task.status === 'completed'"
               @click="viewReport(task)"
-              class="px-3 py-1.5 rounded-lg text-sm bg-[#22C55E]/10 text-[#22C55E] hover:bg-[#22C55E]/20 transition-colors"
+              class="px-3 py-1.5 rounded-lg text-xs sm:text-sm bg-[#22C55E]/10 text-[#22C55E] hover:bg-[#22C55E]/20 transition-colors"
             >
               查看报告
             </button>
             <button
+              v-if="task.status === 'completed'"
+              @click="downloadReport(task)"
+              class="px-3 py-1.5 rounded-lg text-xs sm:text-sm bg-[#8B5CF6]/10 text-[#8B5CF6] hover:bg-[#8B5CF6]/20 transition-colors"
+            >
+              下载报告
+            </button>
+            <button
               v-if="task.status === 'failed'"
               @click="retryTask(task)"
-              class="px-3 py-1.5 rounded-lg text-sm bg-[#F59E0B]/10 text-[#F59E0B] hover:bg-[#F59E0B]/20 transition-colors"
+              class="px-3 py-1.5 rounded-lg text-xs sm:text-sm bg-[#F59E0B]/10 text-[#F59E0B] hover:bg-[#F59E0B]/20 transition-colors"
             >
               重试
             </button>
             <button
               @click="deleteTask(task)"
-              class="px-3 py-1.5 rounded-lg text-sm bg-[#EF4444]/10 text-[#EF4444] hover:bg-[#EF4444]/20 transition-colors"
+              class="px-3 py-1.5 rounded-lg text-xs sm:text-sm bg-[#EF4444]/10 text-[#EF4444] hover:bg-[#EF4444]/20 transition-colors"
             >
               删除
             </button>
@@ -349,7 +356,26 @@ const viewTaskDetail = (task: any) => {
 }
 
 const viewReport = (task: any) => {
-  router.push(`/reports/${task.task_id}`)
+  router.push(`/tasks/${task.task_id}`)
+}
+
+const downloadReport = async (task: any) => {
+  try {
+    const response = await fetch(`/api/reports/${task.task_id}/download?format=markdown`, {
+      headers: { 'Authorization': `Bearer ${localStorage.getItem('auth_token')}` }
+    })
+    if (!response.ok) throw new Error('下载失败')
+    const blob = await response.blob()
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `${task.stock_code}_report.md`
+    a.click()
+    URL.revokeObjectURL(url)
+    ElMessage.success('报告已下载')
+  } catch {
+    ElMessage.error('下载报告失败')
+  }
 }
 
 const retryTask = (task: any) => {

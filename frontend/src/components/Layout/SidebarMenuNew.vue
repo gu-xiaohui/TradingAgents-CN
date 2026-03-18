@@ -130,27 +130,18 @@ const menuItems = [
     icon: IconChart,
     children: [
       { path: '/analysis', title: '单股分析' },
-      { path: '/reports', title: '分析报告' },
     ]
   },
-  { path: '/tasks', title: '任务中心', icon: IconList },
+  { path: '/tasks', title: '任务与报告', icon: IconList },
   { path: '/screening', title: '股票筛选', icon: IconSearch },
   { path: '/favorites', title: '我的自选股', icon: IconStar },
   { path: '/paper', title: '模拟交易', icon: IconWallet },
-  {
-    path: '/settings',
-    title: '设置',
-    icon: IconSettings,
-    children: [
-      { path: '/settings', title: '通用设置' },
-      { path: '/settings/config', title: '配置管理' },
-    ]
-  },
+  { path: '/settings', title: '设置', icon: IconSettings },
   { path: '/about', title: '关于', icon: IconInfo },
 ]
 
 // 展开的子菜单
-const openSubmenus = ref<string[]>(['/analysis', '/settings'])
+const openSubmenus = ref<string[]>(['/analysis'])
 
 const toggleSubmenu = (path: string) => {
   const index = openSubmenus.value.indexOf(path)

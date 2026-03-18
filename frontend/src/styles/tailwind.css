@@ -94,4 +94,22 @@
   .text-gradient {
     @apply bg-gradient-to-r from-[#22C55E] to-[#8B5CF6] bg-clip-text text-transparent;
   }
+
+  /* 表格横滑容器 */
+  .table-scroll {
+    @apply overflow-x-auto -mx-2 px-2;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* 全局 Element Plus 表格横滑 */
+.el-table {
+  overflow-x: auto;
+}
+
+/* 响应式字体缩放 */
+@media (max-width: 640px) {
+  .card {
+    padding: 1rem;
+  }
 }

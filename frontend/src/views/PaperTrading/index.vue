@@ -1,8 +1,8 @@
 <template>
-  <div class="min-h-screen bg-[var(--bg-primary)] text-[var(--text-primary)] p-6">
+  <div class="min-h-screen bg-[var(--bg-primary)] text-[var(--text-primary)] p-3 sm:p-6">
     <!-- 页面头部 -->
     <div class="mb-6">
-      <h1 class="text-2xl font-bold flex items-center gap-3">
+      <h1 class="text-xl sm:text-2xl font-bold flex items-center gap-3">
         <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-[#8B5CF6] to-[#EC4899] flex items-center justify-center">
           <svg class="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
             <path stroke-linecap="round" stroke-linejoin="round" d="M21 12a2.25 2.25 0 0 0-2.25-2.25H15a3 3 0 1 1-6 0H5.25A2.25 2.25 0 0 0 3 12m18 0v6a2.25 2.25 0 0 1-2.25 2.25H5.25A2.25 2.25 0 0 1 3 18v-6m18 0V9M3 12V9m18 0a2.25 2.25 0 0 0-2.25-2.25H5.25A2.25 2.25 0 0 0 3 9m18 0V6a2.25 2.25 0 0 0-2.25-2.25H5.25A2.25 2.25 0 0 0 3 6v3" />
@@ -14,7 +14,7 @@
     </div>
 
     <!-- 账户概览 -->
-    <div class="grid grid-cols-4 gap-4 mb-6">
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mb-6">
       <div class="card p-4">
         <div class="flex items-center gap-3">
           <div class="w-10 h-10 rounded-lg bg-[#22C55E]/20 flex items-center justify-center">
@@ -97,39 +97,39 @@
     <div class="card">
       <h2 class="text-lg font-semibold mb-4">我的持仓</h2>
       
-      <div v-if="positions.length > 0" class="space-y-3">
+      <div v-if="positions.length > 0" class="space-y-3 overflow-x-auto">
         <div
           v-for="pos in positions"
-          :key="pos.stock_code"
-          class="flex items-center justify-between p-4 rounded-xl bg-white/5"
+          :key="pos.code || pos.stock_code"
+          class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 sm:p-4 rounded-xl bg-white/5 min-w-[480px]"
         >
           <div class="flex items-center gap-4">
             <div class="w-10 h-10 rounded-lg bg-white/10 flex items-center justify-center">
-              <span class="font-bold text-sm">{{ pos.stock_code.slice(-2) }}</span>
+              <span class="font-bold text-sm">{{ (pos.code || pos.stock_code || '').slice(-2) }}</span>
             </div>
             <div>
-              <div class="font-mono font-medium">{{ pos.stock_code }}</div>
-              <div class="text-sm text-[var(--text-muted)]">{{ pos.stock_name }}</div>
+              <div class="font-mono font-medium">{{ pos.code || pos.stock_code }}</div>
+              <div class="text-sm text-[var(--text-muted)]">{{ pos.stock_name || '' }}</div>
             </div>
           </div>
           
-          <div class="flex items-center gap-8">
+          <div class="flex flex-wrap items-center gap-4 sm:gap-8">
             <div class="text-right">
-              <div class="text-sm text-[var(--text-muted)]">持仓数量</div>
+              <div class="text-xs text-[var(--text-muted)]">持仓</div>
               <div class="font-medium">{{ pos.quantity }} 股</div>
             </div>
             <div class="text-right">
-              <div class="text-sm text-[var(--text-muted)]">成本价</div>
-              <div class="font-medium">¥{{ pos.cost_price.toFixed(2) }}</div>
+              <div class="text-xs text-[var(--text-muted)]">成本价</div>
+              <div class="font-medium">¥{{ (pos.avg_cost || pos.cost_price || 0).toFixed(2) }}</div>
             </div>
             <div class="text-right">
-              <div class="text-sm text-[var(--text-muted)]">现价</div>
-              <div class="font-medium">¥{{ (pos.current_price || 0).toFixed(2) }}</div>
+              <div class="text-xs text-[var(--text-muted)]">现价</div>
+              <div class="font-medium">¥{{ (pos.last_price || pos.current_price || 0).toFixed(2) }}</div>
             </div>
             <div class="text-right min-w-[80px]">
-              <div class="text-sm text-[var(--text-muted)]">盈亏</div>
-              <div class="font-medium" :class="pos.profit >= 0 ? 'text-[#EF4444]' : 'text-[#22C55E]'">
-                {{ pos.profit >= 0 ? '+' : '' }}{{ formatMoney(pos.profit) }}
+              <div class="text-xs text-[var(--text-muted)]">盈亏</div>
+              <div class="font-medium" :class="(pos.unrealized_pnl || pos.profit || 0) >= 0 ? 'text-[#EF4444]' : 'text-[#22C55E]'">
+                {{ (pos.unrealized_pnl || pos.profit || 0) >= 0 ? '+' : '' }}{{ formatMoney(pos.unrealized_pnl || pos.profit || 0) }}
               </div>
             </div>
             <button @click="sellPosition(pos)" class="btn-secondary text-sm">卖出</button>
@@ -162,6 +162,30 @@
           <div class="flex justify-end gap-3 mt-6">
             <button @click="showBuyDialog = false" class="btn-secondary">取消</button>
             <button @click="executeBuy" class="btn-primary">确认买入</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- 卖出对话框 -->
+    <div v-if="showSellDialog" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50" @click.self="showSellDialog = false">
+      <div class="bg-[var(--bg-secondary)] rounded-2xl p-6 w-full max-w-md border border-[var(--border-color)]">
+        <h3 class="text-lg font-semibold mb-4">卖出股票</h3>
+        <div class="space-y-4">
+          <div>
+            <label class="block text-sm text-[var(--text-secondary)] mb-2">股票代码</label>
+            <input v-model="tradeForm.stockCode" type="text" disabled class="input opacity-60" />
+          </div>
+          <div>
+            <label class="block text-sm text-[var(--text-secondary)] mb-2">卖出价格</label>
+            <input v-model.number="tradeForm.price" type="number" step="0.01" placeholder="价格" class="input" />
+          </div>
+          <div>
+            <label class="block text-sm text-[var(--text-secondary)] mb-2">卖出数量</label>
+            <input v-model.number="tradeForm.quantity" type="number" placeholder="数量（股）" class="input" />
+          </div>
+          <div class="flex justify-end gap-3 mt-6">
+            <button @click="showSellDialog = false" class="btn-secondary">取消</button>
+            <button @click="executeSell" class="px-4 py-2 bg-[#EF4444] hover:bg-[#EF4444]/90 text-white rounded-lg font-medium transition-colors">确认卖出</button>
           </div>
         </div>
       </div>
@@ -209,6 +233,16 @@ const refreshAccount = async () => {
       account.totalReturn = data.total_return || 0
       positions.value = data.positions || []
     }
+    // 单独获取持仓列表
+    try {
+      const posResponse = await paperApi.getPositions()
+      if (posResponse.success && posResponse.data) {
+        const items = posResponse.data.items || posResponse.data.positions || []
+        if (items.length > 0) {
+          positions.value = items
+        }
+      }
+    } catch {}
     ElMessage.success('已刷新')
   } catch (error) {
     console.error('加载账户失败:', error)
@@ -222,9 +256,9 @@ const executeBuy = async () => {
   }
   
   try {
-    const response = await paperApi.buy({
-      symbol: tradeForm.stockCode,
-      price: tradeForm.price,
+    const response = await paperApi.placeOrder({
+      code: tradeForm.stockCode,
+      side: 'buy',
       quantity: tradeForm.quantity
     })
     
@@ -238,16 +272,44 @@ const executeBuy = async () => {
     } else {
       ElMessage.error(response.message || '买入失败')
     }
-  } catch (error) {
+  } catch {
     ElMessage.error('买入失败')
   }
 }
 
 const sellPosition = (pos: any) => {
-  tradeForm.stockCode = pos.stock_code
-  tradeForm.price = pos.current_price || pos.cost_price
+  tradeForm.stockCode = pos.code || pos.stock_code
+  tradeForm.price = pos.last_price || pos.current_price || pos.avg_cost || pos.cost_price
   tradeForm.quantity = pos.quantity
   showSellDialog.value = true
+}
+
+const executeSell = async () => {
+  if (!tradeForm.stockCode || !tradeForm.price || !tradeForm.quantity) {
+    ElMessage.warning('请填写完整信息')
+    return
+  }
+  
+  try {
+    const response = await paperApi.placeOrder({
+      code: tradeForm.stockCode,
+      side: 'sell',
+      quantity: tradeForm.quantity
+    })
+    
+    if (response.success) {
+      ElMessage.success('卖出成功')
+      showSellDialog.value = false
+      tradeForm.stockCode = ''
+      tradeForm.price = 0
+      tradeForm.quantity = 0
+      await refreshAccount()
+    } else {
+      ElMessage.error(response.message || '卖出失败')
+    }
+  } catch {
+    ElMessage.error('卖出失败')
+  }
 }
 
 onMounted(() => {
