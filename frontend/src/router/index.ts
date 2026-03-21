@@ -42,7 +42,7 @@ const routes: RouteRecordRaw[] = [
     path: '/login',
     name: 'Login',
     component: () => import('@/views/Auth/Login.vue'),
-    meta: { title: '登录', hideInMenu: true }
+    meta: { title: '登录', hideInMenu: true, requiresAuth: false }
   },
   // 兼容旧路由重定向
   { path: '/new/dashboard', redirect: '/dashboard' },
@@ -81,8 +81,20 @@ router.beforeEach(async (to, _, next) => {
   const title = to.meta.title as string
   if (title) document.title = `${title} - TradingAgents-CN`
 
+  // 登录页和其他显式公开页面直接放行，避免未登录状态下出现重定向循环
+  if (to.meta.requiresAuth === false) {
+    if (authStore.isAuthenticated && to.name === 'Login') {
+      next('/dashboard')
+      return
+    }
+
+    appStore.setCurrentRoute(to)
+    next()
+    return
+  }
+
   // 检查认证
-  if (to.meta.requiresAuth !== false && !authStore.isAuthenticated) {
+  if (!authStore.isAuthenticated) {
     authStore.setRedirectPath(to.fullPath)
     next('/login')
     return

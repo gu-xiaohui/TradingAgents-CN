@@ -29,71 +29,88 @@
       </div>
 
       <template v-else>
-        <section class="grid gap-4 xl:grid-cols-[minmax(0,1.45fr)_360px]">
-          <div class="hero-card">
-            <div class="hero-layout">
-              <div class="space-y-5 min-w-0">
-                <div class="flex flex-wrap items-center gap-3">
-                  <button class="ghost-link" @click="router.back()">
-                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.7">
-                      <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
-                    </svg>
-                    返回
-                  </button>
-                  <span class="market-pill" :class="marketPillClass">{{ marketLabel }}</span>
-                  <span v-if="displaySector" class="ghost-pill">{{ displaySector }}</span>
-                  <span v-if="displayExchange" class="ghost-pill">{{ displayExchange }}</span>
-                  <span v-if="displaySourceTag" class="ghost-pill ghost-pill-subtle">{{ displaySourceTag }}</span>
-                </div>
+        <section class="overview-grid">
+          <div class="hero-card hero-card-main">
+            <div class="hero-backdrop"></div>
 
-                <div class="space-y-2">
-                  <div class="flex flex-wrap items-end gap-x-4 gap-y-2">
-                    <h1 class="text-3xl font-semibold tracking-tight md:text-4xl">{{ stockName }}</h1>
-                    <span class="text-sm uppercase tracking-[0.28em] text-[var(--text-secondary)]">{{ normalizedCode }}</span>
-                  </div>
-                  <p class="mt-2 max-w-2xl text-sm leading-6 text-[var(--text-secondary)]">
-                    {{ companyNarrative }}
-                  </p>
-                </div>
+            <div class="hero-content">
+              <div class="flex flex-wrap items-center gap-3">
+                <button class="ghost-link" @click="router.back()">
+                  <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.7">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
+                  </svg>
+                  返回
+                </button>
+                <span class="market-pill" :class="marketPillClass">{{ marketLabel }}</span>
+                <span v-if="displaySector" class="ghost-pill">{{ displaySector }}</span>
+                <span v-if="displayExchange" class="ghost-pill">{{ displayExchange }}</span>
+                <span v-if="displaySourceTag" class="ghost-pill ghost-pill-subtle">{{ displaySourceTag }}</span>
+              </div>
 
-                <div class="hero-data-row">
-                  <div class="hero-price-block">
-                    <div class="price-value" :class="changeTextClass">{{ formatPrice(quote.price) }}</div>
-                    <div class="mt-2 flex flex-wrap items-center gap-3 text-sm">
-                      <span class="change-chip" :class="changeChipClass">{{ changeSummary }}</span>
-                      <span class="text-[var(--text-secondary)]">{{ updatedSummary }}</span>
+              <div class="hero-main-grid">
+                <div class="space-y-6 min-w-0">
+                  <div class="space-y-2">
+                    <div class="flex flex-wrap items-end gap-x-4 gap-y-2">
+                      <h1 class="text-3xl font-semibold tracking-tight md:text-4xl">{{ stockName }}</h1>
+                      <span class="text-sm uppercase tracking-[0.28em] text-[var(--text-secondary)]">{{ normalizedCode }}</span>
                     </div>
+                    <p class="max-w-3xl text-sm leading-6 text-[var(--text-secondary)]">
+                      {{ companyNarrative }}
+                    </p>
                   </div>
 
-                  <div class="hero-mini-grid">
-                    <div class="hero-mini-cell">
-                      <span>总市值</span>
-                      <strong>{{ formatLargeNumber(fundamentals.total_mv, true) }}</strong>
+                  <div class="hero-data-row">
+                    <div class="hero-price-block">
+                      <div class="price-caption">最新成交价</div>
+                      <div class="price-value" :class="changeTextClass">{{ formatPrice(quote.price) }}</div>
+                      <div class="mt-3 flex flex-wrap items-center gap-3 text-sm">
+                        <span class="change-chip" :class="changeChipClass">{{ changeSummary }}</span>
+                        <span class="text-[var(--text-secondary)]">{{ updatedSummary }}</span>
+                      </div>
                     </div>
-                    <div class="hero-mini-cell">
-                      <span>PE</span>
-                      <strong>{{ formatRatio(fundamentals.pe_ttm ?? fundamentals.pe) }}</strong>
-                    </div>
-                    <div class="hero-mini-cell">
-                      <span>PB</span>
-                      <strong>{{ formatRatio(fundamentals.pb_mrq ?? fundamentals.pb) }}</strong>
-                    </div>
-                    <div class="hero-mini-cell">
-                      <span>ROE</span>
-                      <strong>{{ formatPercentValue(fundamentals.roe) }}</strong>
+
+                    <div class="hero-mini-grid">
+                      <div class="hero-mini-cell">
+                        <span>总市值</span>
+                        <strong>{{ formatLargeNumber(fundamentals.total_mv, true) }}</strong>
+                      </div>
+                      <div class="hero-mini-cell">
+                        <span>PE</span>
+                        <strong>{{ formatRatio(fundamentals.pe_ttm ?? fundamentals.pe) }}</strong>
+                      </div>
+                      <div class="hero-mini-cell">
+                        <span>PB</span>
+                        <strong>{{ formatRatio(fundamentals.pb_mrq ?? fundamentals.pb) }}</strong>
+                      </div>
+                      <div class="hero-mini-cell">
+                        <span>ROE</span>
+                        <strong>{{ formatPercentValue(fundamentals.roe) }}</strong>
+                      </div>
                     </div>
                   </div>
                 </div>
 
-                <div class="stat-inline-grid">
-                  <div v-for="item in headlineFacts" :key="item.label" class="stat-inline-card">
-                    <span>{{ item.label }}</span>
-                    <strong>{{ item.value }}</strong>
+                <div class="hero-focus-panel">
+                  <div>
+                    <span class="section-kicker">盘面速览</span>
+                    <h2 class="hero-focus-title">把最常用的观察点放在首屏右侧</h2>
+                  </div>
+
+                  <div class="stat-inline-grid focus-grid">
+                    <div v-for="item in headlineFacts" :key="item.label" class="stat-inline-card focus-card">
+                      <span>{{ item.label }}</span>
+                      <strong>{{ item.value }}</strong>
+                    </div>
+                  </div>
+
+                  <div class="hero-focus-note">
+                    <span>当前视角</span>
+                    <p>先看价格与估值，再用量能和资讯确认驱动，避免单一指标下判断。</p>
                   </div>
                 </div>
               </div>
 
-              <div class="action-stack">
+              <div class="hero-action-row">
                 <button class="action-btn action-btn-primary" @click="goToAnalysis">
                   <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.7">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M7.5 3.75h9A2.25 2.25 0 0 1 18.75 6v12A2.25 2.25 0 0 1 16.5 20.25h-9A2.25 2.25 0 0 1 5.25 18V6A2.25 2.25 0 0 1 7.5 3.75Zm0 4.5h9m-9 4.5h6" />
@@ -119,214 +136,226 @@
                   刷新行情
                 </button>
               </div>
-            </div>
 
-            <div class="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-              <div v-for="item in statCards" :key="item.label" class="metric-card">
-                <span class="metric-label">{{ item.label }}</span>
-                <strong class="metric-value" :class="item.emphasis">{{ item.value }}</strong>
-                <span class="metric-note">{{ item.note }}</span>
+              <div class="metrics-band">
+                <div v-for="item in statCards" :key="item.label" class="metric-card">
+                  <span class="metric-label">{{ item.label }}</span>
+                  <strong class="metric-value" :class="item.emphasis">{{ item.value }}</strong>
+                  <span class="metric-note">{{ item.note }}</span>
+                </div>
               </div>
             </div>
           </div>
 
-          <aside class="panel sidebar-panel">
-            <div class="section-heading">
-              <div>
-                <h2>估值快照</h2>
-                <p>用当前可用的基本面数据快速判断位置与风格。</p>
+          <aside class="panel summary-rail">
+            <div>
+              <div class="section-heading">
+                <div>
+                  <h2>估值快照</h2>
+                  <p>把位置判断放进一个独立侧栏，减少首屏认知负担。</p>
+                </div>
               </div>
-            </div>
 
-            <div class="space-y-4">
-              <div v-for="item in valuationItems" :key="item.label" class="info-row">
-                <span>{{ item.label }}</span>
-                <strong>{{ item.value }}</strong>
+              <div class="space-y-4">
+                <div v-for="item in valuationItems" :key="item.label" class="info-row">
+                  <span>{{ item.label }}</span>
+                  <strong>{{ item.value }}</strong>
+                </div>
               </div>
             </div>
 
             <div class="divider"></div>
 
-            <div class="section-heading">
-              <div>
-                <h2>交易画像</h2>
-                <p>结合量价和换手率，帮助快速判断活跃度。</p>
+            <div>
+              <div class="section-heading">
+                <div>
+                  <h2>交易画像</h2>
+                  <p>结合量价、波动与成交规模快速判断当前活跃度。</p>
+                </div>
+              </div>
+
+              <div class="signal-grid">
+                <div class="signal-card">
+                  <span>换手率</span>
+                  <strong>{{ formatPercentValue(quote.turnover_rate) }}</strong>
+                  <p>{{ turnoverHint }}</p>
+                </div>
+                <div class="signal-card">
+                  <span>振幅</span>
+                  <strong>{{ formatPercentValue(quote.amplitude) }}</strong>
+                  <p>{{ amplitudeHint }}</p>
+                </div>
+                <div class="signal-card">
+                  <span>成交额</span>
+                  <strong>{{ formatLargeNumber(quote.amount) }}</strong>
+                  <p>反映当日资金参与规模。</p>
+                </div>
+                <div class="signal-card">
+                  <span>量比替代</span>
+                  <strong>{{ formatLargeNumber(quote.volume) }}</strong>
+                  <p>当前接口以成交量替代展示。</p>
+                </div>
               </div>
             </div>
 
-            <div class="signal-grid">
-              <div class="signal-card">
-                <span>换手率</span>
-                <strong>{{ formatPercentValue(quote.turnover_rate) }}</strong>
-                <p>{{ turnoverHint }}</p>
-              </div>
-              <div class="signal-card">
-                <span>振幅</span>
-                <strong>{{ formatPercentValue(quote.amplitude) }}</strong>
-                <p>{{ amplitudeHint }}</p>
-              </div>
-              <div class="signal-card">
-                <span>成交额</span>
-                <strong>{{ formatLargeNumber(quote.amount) }}</strong>
-                <p>反映当日资金参与规模。</p>
-              </div>
-              <div class="signal-card">
-                <span>量比替代</span>
-                <strong>{{ formatLargeNumber(quote.volume) }}</strong>
-                <p>当前接口以成交量替代展示。</p>
-              </div>
+            <div class="summary-note-box">
+              <span>阅读顺序</span>
+              <p>先看价格与估值，再看 K 线和资讯，最后决定是否进入分析或交易动作。</p>
             </div>
           </aside>
         </section>
 
-        <section class="grid gap-4 xl:grid-cols-[minmax(0,1.45fr)_340px]">
-          <div class="panel min-w-0">
-            <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-              <div class="section-heading m-0">
-                <div>
-                  <h2>K 线走势</h2>
-                  <p>支持日线、周线、月线切换，展示价格与成交量。</p>
+        <section class="detail-grid">
+          <div class="detail-main">
+            <div class="panel min-w-0 chart-panel">
+              <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                <div class="section-heading m-0">
+                  <div>
+                    <h2>K 线走势</h2>
+                    <p>图表作为主分析区的核心，保留日线、周线、月线切换。</p>
+                  </div>
+                </div>
+                <div class="tab-strip">
+                  <button
+                    v-for="period in periods"
+                    :key="period.value"
+                    class="tab-chip"
+                    :class="{ active: activePeriod === period.value }"
+                    @click="changePeriod(period.value)"
+                    :disabled="chartLoading"
+                  >
+                    {{ period.label }}
+                  </button>
                 </div>
               </div>
-              <div class="tab-strip">
-                <button
-                  v-for="period in periods"
-                  :key="period.value"
-                  class="tab-chip"
-                  :class="{ active: activePeriod === period.value }"
-                  @click="changePeriod(period.value)"
-                  :disabled="chartLoading"
-                >
-                  {{ period.label }}
+
+              <div class="chart-stage relative mt-4 h-[480px] overflow-hidden rounded-[24px]">
+                <div ref="chartRef" class="h-full w-full"></div>
+                <div v-if="chartLoading" class="chart-mask">图表加载中...</div>
+                <div v-else-if="!kline.items.length" class="chart-mask">暂无 K 线数据</div>
+              </div>
+            </div>
+
+            <div class="detail-pair-grid">
+              <div class="panel">
+                <div class="section-heading">
+                  <div>
+                    <h2>历史分析报告</h2>
+                    <p>保留最近分析记录，方便从走势直接跳回已有结论。</p>
+                  </div>
+                  <button v-if="analysisHistory.length" class="ghost-link" @click="goToAnalysis">
+                    发起新分析
+                  </button>
+                </div>
+
+                <div v-if="analysisLoading" class="empty-block">分析记录加载中...</div>
+                <div v-else-if="analysisHistory.length" class="space-y-3">
+                  <button
+                    v-for="item in analysisHistory"
+                    :key="item.task_id"
+                    class="launch-card"
+                    @click="openAnalysisReport(item.task_id)"
+                  >
+                    <div class="flex flex-wrap items-center justify-between gap-3">
+                      <strong>{{ formatAnalysisRecommendation(item.recommendation) }}</strong>
+                      <span class="ghost-pill">{{ formatDateTime(item.updated_at || item.completed_at || item.created_at) }}</span>
+                    </div>
+                    <span>{{ item.summary || item.message || '点击查看完整分析报告。' }}</span>
+                  </button>
+                </div>
+                <div v-else class="empty-block">暂无历史分析报告</div>
+
+                <div v-if="analysisError" class="mt-3 text-sm text-[#fca5a5]">{{ analysisError }}</div>
+              </div>
+
+              <div class="panel">
+                <div class="section-heading">
+                  <div>
+                    <h2>近期资讯</h2>
+                    <p>将新闻与报告并列，便于核对事件驱动和已有观点是否一致。</p>
+                  </div>
+                  <span class="ghost-pill">{{ newsSourceLabel }}</span>
+                </div>
+
+                <div v-if="news.items.length" class="space-y-3">
+                  <a
+                    v-for="item in news.items.slice(0, 6)"
+                    :key="`${item.time}-${item.title}`"
+                    class="news-card"
+                    :href="item.url || '#'"
+                    target="_blank"
+                    rel="noreferrer"
+                    @click.prevent="openNews(item.url)"
+                  >
+                    <div class="flex flex-wrap items-center gap-2 text-xs uppercase tracking-[0.22em] text-[var(--text-secondary)]">
+                      <span>{{ item.source || '资讯' }}</span>
+                      <span>{{ formatDateTime(item.time) }}</span>
+                    </div>
+                    <h3>{{ item.title }}</h3>
+                    <p>{{ item.summary || item.content || '暂无摘要，点击查看原文。' }}</p>
+                  </a>
+                </div>
+                <div v-else class="empty-block">暂无新闻数据</div>
+              </div>
+            </div>
+          </div>
+
+          <aside class="detail-side">
+            <div class="panel">
+              <div class="section-heading">
+                <div>
+                  <h2>操作建议入口</h2>
+                  <p>把后续动作固定在右侧，阅读和执行不会互相打断。</p>
+                </div>
+              </div>
+
+              <div class="space-y-3">
+                <button class="launch-card" @click="goToAnalysis">
+                  <strong>发起单股分析</strong>
+                  <span>带着当前股票代码跳转到分析页，直接开始生成报告。</span>
+                </button>
+                <button class="launch-card" @click="goPaperTrading">
+                  <strong>进入模拟交易</strong>
+                  <span>把当前股票带到模拟账户场景，便于练习买卖决策。</span>
+                </button>
+                <button class="launch-card" @click="toggleFavorite" :disabled="favoriteLoading">
+                  <strong>{{ isFavorite ? '从自选股移除' : '加入自选股' }}</strong>
+                  <span>自选股模块会同步展示价格和涨跌幅，便于后续跟踪。</span>
                 </button>
               </div>
             </div>
 
-            <div class="chart-stage relative mt-4 h-[440px] overflow-hidden rounded-[24px]">
-              <div ref="chartRef" class="h-full w-full"></div>
-              <div v-if="chartLoading" class="chart-mask">图表加载中...</div>
-              <div v-else-if="!kline.items.length" class="chart-mask">暂无 K 线数据</div>
-            </div>
-          </div>
+            <div class="panel">
+              <div class="section-heading">
+                <div>
+                  <h2>公司信息</h2>
+                  <p>将静态字段下沉到侧栏，避免与主分析区争抢注意力。</p>
+                </div>
+              </div>
 
-          <aside class="panel">
-            <div class="section-heading">
-              <div>
-                <h2>公司信息</h2>
-                <p>聚合交易所、行业、板块和基础财务字段。</p>
+              <div class="space-y-4">
+                <div v-for="item in companyInfoItems" :key="item.label" class="info-row align-start">
+                  <span>{{ item.label }}</span>
+                  <strong>{{ item.value }}</strong>
+                </div>
               </div>
             </div>
 
-            <div class="space-y-4">
-              <div v-for="item in companyInfoItems" :key="item.label" class="info-row align-start">
-                <span>{{ item.label }}</span>
-                <strong>{{ item.value }}</strong>
+            <div class="panel">
+              <div class="section-heading">
+                <div>
+                  <h2>数据说明</h2>
+                  <p>说明回退规则和字段来源，降低数据误读风险。</p>
+                </div>
               </div>
+
+              <ul class="detail-list">
+                <li>行情接口提供实时价格、涨跌幅、成交额、振幅和换手率。</li>
+                <li>基本面接口优先返回实时估值，缺失时回退到缓存快照。</li>
+                <li>新闻接口优先查库，缺失时会尝试即时同步后再次查询。</li>
+              </ul>
             </div>
-
-            <div class="divider"></div>
-
-            <div class="section-heading">
-              <div>
-                <h2>数据说明</h2>
-                <p>部分字段会随数据源能力回退，空值属于正常情况。</p>
-              </div>
-            </div>
-
-            <ul class="detail-list">
-              <li>行情接口提供实时价格、涨跌幅、成交额、振幅和换手率。</li>
-              <li>基本面接口优先返回实时估值，缺失时回退到缓存快照。</li>
-              <li>新闻接口优先查库，缺失时会尝试即时同步后再次查询。</li>
-            </ul>
           </aside>
-        </section>
-
-        <section class="grid gap-4 lg:grid-cols-[minmax(0,1.08fr)_minmax(0,0.92fr)] xl:grid-cols-[minmax(0,1.18fr)_minmax(0,0.82fr)]">
-          <div class="panel">
-            <div class="section-heading">
-              <div>
-                <h2>历史分析报告</h2>
-                <p>展示这个股票最近完成的分析任务，并支持查看完整报告。</p>
-              </div>
-              <button v-if="analysisHistory.length" class="ghost-link" @click="goToAnalysis">
-                发起新分析
-              </button>
-            </div>
-
-            <div v-if="analysisLoading" class="empty-block">分析记录加载中...</div>
-            <div v-else-if="analysisHistory.length" class="space-y-3">
-              <button
-                v-for="item in analysisHistory"
-                :key="item.task_id"
-                class="launch-card"
-                @click="openAnalysisReport(item.task_id)"
-              >
-                <div class="flex flex-wrap items-center justify-between gap-3">
-                  <strong>{{ formatAnalysisRecommendation(item.recommendation) }}</strong>
-                  <span class="ghost-pill">{{ formatDateTime(item.updated_at || item.completed_at || item.created_at) }}</span>
-                </div>
-                <span>{{ item.summary || item.message || '点击查看完整分析报告。' }}</span>
-              </button>
-            </div>
-            <div v-else class="empty-block">暂无历史分析报告</div>
-
-            <div v-if="analysisError" class="mt-3 text-sm text-[#fca5a5]">{{ analysisError }}</div>
-          </div>
-
-          <div class="panel">
-            <div class="section-heading">
-              <div>
-                <h2>近期资讯</h2>
-                <p>展示最新相关新闻与公告，便于快速建立事件上下文。</p>
-              </div>
-              <span class="ghost-pill">{{ newsSourceLabel }}</span>
-            </div>
-
-            <div v-if="news.items.length" class="space-y-3">
-              <a
-                v-for="item in news.items.slice(0, 8)"
-                :key="`${item.time}-${item.title}`"
-                class="news-card"
-                :href="item.url || '#'
-                "
-                target="_blank"
-                rel="noreferrer"
-                @click.prevent="openNews(item.url)"
-              >
-                <div class="flex flex-wrap items-center gap-2 text-xs uppercase tracking-[0.22em] text-[var(--text-secondary)]">
-                  <span>{{ item.source || '资讯' }}</span>
-                  <span>{{ formatDateTime(item.time) }}</span>
-                </div>
-                <h3>{{ item.title }}</h3>
-                <p>{{ item.summary || item.content || '暂无摘要，点击查看原文。' }}</p>
-              </a>
-            </div>
-            <div v-else class="empty-block">暂无新闻数据</div>
-          </div>
-
-          <div class="panel">
-            <div class="section-heading">
-              <div>
-                <h2>操作建议入口</h2>
-                <p>详情页不替代分析结果，这里保留后续动作入口。</p>
-              </div>
-            </div>
-
-            <div class="space-y-3">
-              <button class="launch-card" @click="goToAnalysis">
-                <strong>发起单股分析</strong>
-                <span>带着当前股票代码跳转到分析页，直接开始生成报告。</span>
-              </button>
-              <button class="launch-card" @click="goPaperTrading">
-                <strong>进入模拟交易</strong>
-                <span>把当前股票带到模拟账户场景，便于练习买卖决策。</span>
-              </button>
-              <button class="launch-card" @click="toggleFavorite" :disabled="favoriteLoading">
-                <strong>{{ isFavorite ? '从自选股移除' : '加入自选股' }}</strong>
-                <span>自选股模块会同步展示价格和涨跌幅，便于后续跟踪。</span>
-              </button>
-            </div>
-          </div>
         </section>
 
         <div v-if="reportDialogVisible" class="report-overlay" @click="closeReportDialog">
@@ -1092,6 +1121,7 @@ onBeforeUnmount(() => {
   margin: 0 auto;
   width: 100%;
   max-width: 1380px;
+  padding: 24px 20px 40px;
 }
 
 .hero-glow {
@@ -1144,11 +1174,10 @@ onBeforeUnmount(() => {
   overflow: hidden;
 }
 
-.hero-layout {
+.overview-grid {
   display: grid;
-  gap: 24px;
-  grid-template-columns: minmax(0, 1fr) 220px;
-  align-items: start;
+  gap: 16px;
+  grid-template-columns: minmax(0, 1.58fr) 340px;
 }
 
 .hero-card::after {
@@ -1159,6 +1188,89 @@ onBeforeUnmount(() => {
   height: 300px;
   border-radius: 9999px;
   background: radial-gradient(circle, rgba(34, 197, 94, 0.18), transparent 68%);
+}
+
+.hero-card-main {
+  min-width: 0;
+}
+
+.hero-backdrop {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at top left, rgba(14, 165, 164, 0.16), transparent 28%),
+    radial-gradient(circle at right center, rgba(37, 99, 235, 0.12), transparent 26%),
+    linear-gradient(180deg, transparent 0%, rgba(255, 255, 255, 0.02) 100%);
+  pointer-events: none;
+}
+
+.hero-content {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.hero-main-grid {
+  display: grid;
+  gap: 20px;
+  grid-template-columns: minmax(0, 1.2fr) minmax(280px, 0.8fr);
+  align-items: start;
+}
+
+.hero-focus-panel {
+  border: 1px solid var(--detail-card-border);
+  border-radius: 28px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.1) 0%, var(--detail-card-bg) 100%);
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.section-kicker,
+.price-caption {
+  display: inline-block;
+  color: var(--detail-subtle-text);
+  font-size: 0.76rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.hero-focus-title {
+  margin-top: 8px;
+  font-size: 1.15rem;
+  font-weight: 600;
+  line-height: 1.45;
+}
+
+.hero-focus-note,
+.summary-note-box {
+  border-radius: 22px;
+  border: 1px solid var(--detail-card-border);
+  background: var(--detail-card-bg);
+  padding: 16px;
+}
+
+.hero-focus-note span,
+.summary-note-box span {
+  display: block;
+  color: var(--detail-subtle-text);
+  font-size: 0.78rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.hero-focus-note p,
+.summary-note-box p {
+  margin-top: 10px;
+  color: var(--text-secondary);
+  font-size: 0.92rem;
+  line-height: 1.6;
+}
+
+.focus-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .section-heading {
@@ -1351,15 +1463,19 @@ onBeforeUnmount(() => {
   font-weight: 600;
 }
 
-.action-stack {
+.hero-action-row {
   display: flex;
-  flex-direction: column;
+  flex-wrap: wrap;
   gap: 12px;
-  min-width: 220px;
+}
+
+.hero-action-row .action-btn {
+  width: auto;
+  min-width: 156px;
+  flex: 1 1 180px;
 }
 
 .action-btn {
-  width: 100%;
   border-radius: 18px;
   padding: 12px 16px;
   font-size: 0.95rem;
@@ -1389,6 +1505,12 @@ onBeforeUnmount(() => {
 .metric-card {
   border-radius: 24px;
   padding: 18px;
+}
+
+.metrics-band {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
 .metric-value {
@@ -1422,6 +1544,34 @@ onBeforeUnmount(() => {
 .signal-card {
   border-radius: 22px;
   padding: 16px;
+}
+
+.summary-rail {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.detail-grid {
+  display: grid;
+  gap: 16px;
+  margin-top: 16px;
+  grid-template-columns: minmax(0, 1.58fr) 340px;
+  align-items: start;
+}
+
+.detail-main,
+.detail-side {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+
+.detail-pair-grid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .info-row {
@@ -1489,6 +1639,10 @@ onBeforeUnmount(() => {
 .chart-stage {
   border: 1px solid var(--detail-panel-border);
   background: var(--detail-chart-bg);
+}
+
+.chart-panel {
+  overflow: hidden;
 }
 
 .empty-block {
@@ -1591,7 +1745,9 @@ onBeforeUnmount(() => {
     max-width: 1180px;
   }
 
-  .hero-layout {
+  .overview-grid,
+  .detail-grid,
+  .hero-main-grid {
     grid-template-columns: 1fr;
   }
 
@@ -1599,14 +1755,9 @@ onBeforeUnmount(() => {
     grid-template-columns: 1fr;
   }
 
-  .action-stack {
-    flex-direction: row;
-    flex-wrap: wrap;
-    min-width: 0;
-  }
-
-  .action-btn {
-    width: calc(50% - 6px);
+  .metrics-band,
+  .detail-pair-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
@@ -1619,7 +1770,10 @@ onBeforeUnmount(() => {
 
   .hero-mini-grid,
   .signal-grid,
-  .stat-inline-grid {
+  .stat-inline-grid,
+  .metrics-band,
+  .detail-pair-grid,
+  .focus-grid {
     grid-template-columns: 1fr;
   }
 
@@ -1632,16 +1786,17 @@ onBeforeUnmount(() => {
     text-align: left;
   }
 
-  .action-stack {
+  .hero-action-row {
     flex-direction: column;
   }
 
-  .action-btn {
+  .hero-action-row .action-btn {
     width: 100%;
   }
 
   .detail-shell {
     max-width: 100%;
+    padding-inline: 14px;
   }
 }
 
