@@ -538,3 +538,60 @@ def get_progress_by_id(task_id: str) -> Optional[Dict[str, Any]]:
     except Exception as e:
         logger.error(f"📊 [Redis进度] 获取进度失败: {task_id} - {e}")
         return None
+
+
+def clear_progress_by_id(task_id: str) -> bool:
+    """根据任务ID清理进度缓存（Redis/文件）。"""
+    cleared = False
+
+    try:
+        redis_enabled = os.getenv('REDIS_ENABLED', 'false').lower() == 'true'
+        if redis_enabled:
+            try:
+                import redis
+
+                redis_host = os.getenv('REDIS_HOST', 'localhost')
+                redis_port = int(os.getenv('REDIS_PORT', 6379))
+                redis_password = os.getenv('REDIS_PASSWORD', None)
+                redis_db = int(os.getenv('REDIS_DB', 0))
+
+                if redis_password:
+                    redis_client = redis.Redis(
+                        host=redis_host,
+                        port=redis_port,
+                        password=redis_password,
+                        db=redis_db,
+                        decode_responses=True
+                    )
+                else:
+                    redis_client = redis.Redis(
+                        host=redis_host,
+                        port=redis_port,
+                        db=redis_db,
+                        decode_responses=True
+                    )
+
+                key = f"progress:{task_id}"
+                if redis_client.delete(key):
+                    cleared = True
+                    logger.info(f"🧹 [Redis进度] 已删除 Redis 进度键: {key}")
+            except Exception as e:
+                logger.warning(f"⚠️ [Redis进度] 删除 Redis 进度失败: {task_id} - {e}")
+
+        file_candidates = [
+            f"./data/progress/{task_id}.json",
+            f"./data/progress_{task_id}.json",
+        ]
+        for file_path in file_candidates:
+            try:
+                if os.path.exists(file_path):
+                    os.remove(file_path)
+                    cleared = True
+                    logger.info(f"🧹 [Redis进度] 已删除进度文件: {file_path}")
+            except Exception as e:
+                logger.warning(f"⚠️ [Redis进度] 删除进度文件失败: {file_path} - {e}")
+
+        return cleared
+    except Exception as e:
+        logger.error(f"📊 [Redis进度] 清理进度失败: {task_id} - {e}")
+        return False

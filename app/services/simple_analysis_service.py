@@ -282,19 +282,21 @@ def _get_env_api_key_for_provider(provider: str) -> str:
     import os
 
     env_key_map = {
-        "google": "GOOGLE_API_KEY",
-        "dashscope": "DASHSCOPE_API_KEY",
-        "openai": "OPENAI_API_KEY",
-        "deepseek": "DEEPSEEK_API_KEY",
-        "anthropic": "ANTHROPIC_API_KEY",
-        "openrouter": "OPENROUTER_API_KEY",
-        "siliconflow": "SILICONFLOW_API_KEY",
-        "qianfan": "QIANFAN_API_KEY",
-        "302ai": "AI302_API_KEY",
+        "google": ["GOOGLE_API_KEY"],
+        "dashscope": ["DASHSCOPE_API_KEY"],
+        "openai": ["OPENAI_API_KEY"],
+        "deepseek": ["DEEPSEEK_API_KEY"],
+        "anthropic": ["ANTHROPIC_API_KEY"],
+        "openrouter": ["OPENROUTER_API_KEY"],
+        "siliconflow": ["SILICONFLOW_API_KEY"],
+        "qianfan": ["QIANFAN_API_KEY"],
+        "302ai": ["AI302_API_KEY"],
+        # 智谱兼容多种配置方式：优先读专用变量，也兼容 OpenAI 兼容模式变量
+        "zhipu": ["ZHIPU_API_KEY", "OPENAI_COMPATIBLE_API_KEY", "OPENAI_API_KEY"],
     }
 
-    env_key_name = env_key_map.get(provider.lower())
-    if env_key_name:
+    env_key_names = env_key_map.get(provider.lower(), [])
+    for env_key_name in env_key_names:
         api_key = os.getenv(env_key_name)
         if api_key and api_key.strip() and api_key != "your-api-key":
             return api_key
@@ -312,6 +314,15 @@ def _get_default_backend_url(provider: str) -> str:
     Returns:
         str: 默认的 backend_url
     """
+    import os
+
+    if provider == "zhipu":
+        for env_var in ["ZHIPU_BASE_URL", "OPENAI_COMPATIBLE_BASE_URL"]:
+            env_base_url = os.getenv(env_var)
+            if env_base_url and env_base_url.strip() and not env_base_url.startswith("your_") and not env_base_url.startswith("your-"):
+                logger.info(f"🔧 [默认URL] zhipu -> {env_base_url} (from {env_var})")
+                return env_base_url
+
     default_urls = {
         "google": "https://generativelanguage.googleapis.com/v1beta",
         "dashscope": "https://dashscope.aliyuncs.com/api/v1",
@@ -321,6 +332,7 @@ def _get_default_backend_url(provider: str) -> str:
         "openrouter": "https://openrouter.ai/api/v1",
         "qianfan": "https://qianfan.baidubce.com/v2",
         "302ai": "https://api.302.ai/v1",
+        "zhipu": "https://open.bigmodel.cn/api/paas/v4",
     }
 
     url = default_urls.get(provider, "https://dashscope.aliyuncs.com/compatible-mode/v1")
@@ -713,6 +725,124 @@ class SimpleAnalysisService:
             new_object_id = ObjectId()
             logger.warning(f"⚠️ 生成新的用户ID: {new_object_id}")
             return PyObjectId(new_object_id)
+
+    def _get_enabled_models_with_api_key(self) -> List[str]:
+        """获取当前已启用且具备有效 API Key 的模型列表（同步）。"""
+        try:
+            from pymongo import MongoClient
+            from app.core.config import settings
+
+            client = MongoClient(settings.MONGO_URI)
+            db = client[settings.MONGO_DB]
+            doc = db.system_configs.find_one({"is_active": True}, sort=[("version", -1)])
+
+            available_models: List[str] = []
+            if doc and "llm_configs" in doc:
+                for config in doc.get("llm_configs", []):
+                    model_name = config.get("model_name")
+                    if not config.get("enabled") or not model_name:
+                        continue
+
+                    provider_info = get_provider_and_url_by_model_sync(model_name)
+                    api_key = provider_info.get("api_key")
+                    if api_key and api_key != "your-api-key":
+                        available_models.append(model_name)
+
+            client.close()
+            logger.info(f"🔍 [模型可用性] 已启用且有 API Key 的模型: {available_models}")
+            return available_models
+        except Exception as e:
+            logger.warning(f"⚠️ 获取可用模型列表失败: {e}")
+            return []
+
+    def _is_model_runnable(self, model_name: Optional[str]) -> bool:
+        """判断模型是否可运行：允许数据库配置或 .env 中的 provider 级配置生效。"""
+        if not model_name:
+            return False
+
+        try:
+            provider_info = get_provider_and_url_by_model_sync(model_name)
+            api_key = provider_info.get("api_key")
+            backend_url = provider_info.get("backend_url")
+            runnable = bool(api_key and api_key != "your-api-key" and backend_url)
+            logger.info(
+                f"🔍 [模型可运行性] model={model_name}, provider={provider_info.get('provider')}, "
+                f"has_api_key={bool(api_key)}, backend_url={backend_url}, runnable={runnable}"
+            )
+            return runnable
+        except Exception as e:
+            logger.warning(f"⚠️ 判断模型 {model_name} 是否可运行失败: {e}")
+            return False
+
+    def _resolve_analysis_models(
+        self,
+        requested_quick_model: Optional[str],
+        requested_deep_model: Optional[str],
+        research_depth: str,
+        capability_service
+    ) -> tuple[str, str]:
+        """解析最终用于分析的模型，必要时自动回退到可用模型。"""
+        available_models = self._get_enabled_models_with_api_key()
+
+        available_lookup = {name.lower(): name for name in available_models}
+
+        def resolve_model_name(model_name: Optional[str]) -> Optional[str]:
+            if not model_name:
+                return None
+            if model_name.lower() in available_lookup:
+                return available_lookup[model_name.lower()]
+            if self._is_model_runnable(model_name):
+                return model_name
+            return None
+
+        def is_available(model_name: Optional[str]) -> bool:
+            return bool(resolve_model_name(model_name))
+
+        quick_model = requested_quick_model
+        deep_model = requested_deep_model
+
+        if quick_model and deep_model:
+            validation = capability_service.validate_model_pair(quick_model, deep_model, research_depth)
+            resolved_quick = resolve_model_name(quick_model)
+            resolved_deep = resolve_model_name(deep_model)
+            if resolved_quick and resolved_deep and validation["valid"]:
+                logger.info(f"✅ 使用用户指定且可运行的模型: quick={resolved_quick}, deep={resolved_deep}")
+                return resolved_quick, resolved_deep
+
+            logger.warning(
+                f"⚠️ 用户指定模型不可用或不满足要求，将自动回退。"
+                f" quick={quick_model} (available={is_available(quick_model)}),"
+                f" deep={deep_model} (available={is_available(deep_model)}),"
+                f" validation_valid={validation['valid']}"
+            )
+            for warning in validation.get("warnings", []):
+                logger.warning(warning)
+
+        recommended_quick, recommended_deep = capability_service.recommend_models_for_depth(research_depth)
+
+        resolved_quick = resolve_model_name(recommended_quick)
+        resolved_deep = resolve_model_name(recommended_deep)
+
+        if resolved_quick and resolved_deep:
+            logger.info(f"🤖 使用系统推荐可用模型: quick={resolved_quick}, deep={resolved_deep}")
+            return resolved_quick, resolved_deep
+
+        fallback_candidates: List[str] = list(available_models)
+        for candidate in [requested_quick_model, requested_deep_model, recommended_quick, recommended_deep]:
+            resolved_candidate = resolve_model_name(candidate)
+            if resolved_candidate and resolved_candidate not in fallback_candidates:
+                fallback_candidates.append(resolved_candidate)
+
+        if not fallback_candidates:
+            raise RuntimeError(
+                "当前没有可运行的大模型：数据库配置和 .env 环境变量中都未找到有效的模型/API Key，请先检查“系统设置 → 大模型配置”或 .env 中的模型密钥配置。"
+            )
+
+        fallback_model = fallback_candidates[0]
+        logger.warning(
+            f"⚠️ 推荐模型不可用，降级为当前首个可用模型: {fallback_model}"
+        )
+        return fallback_model, fallback_model
 
     def _get_trading_graph(self, config: Dict[str, Any]) -> TradingAgentsGraph:
         """获取或创建TradingAgents实例
@@ -1176,47 +1306,18 @@ class SimpleAnalysisService:
 
             research_depth = request.parameters.research_depth if request.parameters else "标准"
 
-            # 1. 检查前端是否指定了模型
-            if (request.parameters and
-                hasattr(request.parameters, 'quick_analysis_model') and
-                hasattr(request.parameters, 'deep_analysis_model') and
-                request.parameters.quick_analysis_model and
-                request.parameters.deep_analysis_model):
+            requested_quick_model = None
+            requested_deep_model = None
+            if request.parameters:
+                requested_quick_model = getattr(request.parameters, 'quick_analysis_model', None)
+                requested_deep_model = getattr(request.parameters, 'deep_analysis_model', None)
 
-                # 使用前端指定的模型
-                quick_model = request.parameters.quick_analysis_model
-                deep_model = request.parameters.deep_analysis_model
-
-                logger.info(f"📝 [分析服务] 用户指定模型: quick={quick_model}, deep={deep_model}")
-
-                # 验证模型是否合适
-                validation = capability_service.validate_model_pair(
-                    quick_model, deep_model, research_depth
-                )
-
-                if not validation["valid"]:
-                    # 记录警告
-                    for warning in validation["warnings"]:
-                        logger.warning(warning)
-
-                    # 如果模型不合适，自动切换到推荐模型
-                    logger.info(f"🔄 自动切换到推荐模型...")
-                    quick_model, deep_model = capability_service.recommend_models_for_depth(
-                        research_depth
-                    )
-                    logger.info(f"✅ 已切换: quick={quick_model}, deep={deep_model}")
-                else:
-                    # 即使验证通过，也记录警告信息
-                    for warning in validation["warnings"]:
-                        logger.info(warning)
-                    logger.info(f"✅ 用户选择的模型验证通过: quick={quick_model}, deep={deep_model}")
-
-            else:
-                # 2. 自动推荐模型
-                quick_model, deep_model = capability_service.recommend_models_for_depth(
-                    research_depth
-                )
-                logger.info(f"🤖 自动推荐模型: quick={quick_model}, deep={deep_model}")
+            quick_model, deep_model = self._resolve_analysis_models(
+                requested_quick_model=requested_quick_model,
+                requested_deep_model=requested_deep_model,
+                research_depth=research_depth,
+                capability_service=capability_service,
+            )
 
             # 🔧 根据快速模型和深度模型分别查找对应的供应商和 API URL
             quick_provider_info = get_provider_and_url_by_model_sync(quick_model)

@@ -242,15 +242,15 @@
               <div class="space-y-2">
                 <div class="flex justify-between text-sm">
                   <span class="text-[var(--text-secondary)]">现金</span>
-                  <span class="text-[var(--text-primary)]">¥{{ formatMoney(paperAccount.cash?.CNY || paperAccount.cash) }}</span>
+                  <span class="text-[var(--text-primary)]">¥{{ formatMoney(paperAccount.cash) }}</span>
                 </div>
                 <div class="flex justify-between text-sm">
                   <span class="text-[var(--text-secondary)]">持仓市值</span>
-                  <span class="text-[var(--text-primary)]">¥{{ formatMoney(paperAccount.positions_value?.CNY || paperAccount.positions_value) }}</span>
+                  <span class="text-[var(--text-primary)]">¥{{ formatMoney(paperAccount.positions_value) }}</span>
                 </div>
                 <div class="flex justify-between text-sm pt-2 border-t border-white/10">
                   <span class="text-[var(--text-secondary)]">总资产</span>
-                  <span class="text-[#22C55E] font-semibold">¥{{ formatMoney(paperAccount.equity?.CNY || paperAccount.equity) }}</span>
+                  <span class="text-[#22C55E] font-semibold">¥{{ formatMoney(paperAccount.equity) }}</span>
                 </div>
               </div>
             </div>
@@ -376,8 +376,35 @@ const downloadReport = async (analysis: AnalysisTask) => {
 // 工具方法
 const formatTime = (time: string) => formatDateTime(time)
 
-const formatMoney = (value: number) => {
-  return value?.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',') || '0.00'
+const normalizeMoneyValue = (value: unknown): number => {
+  if (value == null) return 0
+
+  if (typeof value === 'number') {
+    return Number.isFinite(value) ? value : 0
+  }
+
+  if (typeof value === 'string') {
+    const parsed = Number(value.replace(/,/g, '').trim())
+    return Number.isFinite(parsed) ? parsed : 0
+  }
+
+  if (typeof value === 'object') {
+    const record = value as Record<string, unknown>
+    const candidates = [record.CNY, record.cny, record.amount, record.value, record.total]
+
+    for (const candidate of candidates) {
+      const normalized = normalizeMoneyValue(candidate)
+      if (normalized !== 0 || candidate === 0 || candidate === '0') {
+        return normalized
+      }
+    }
+  }
+
+  return 0
+}
+
+const formatMoney = (value: unknown) => {
+  return normalizeMoneyValue(value).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')
 }
 
 const getStatusText = (status: string | AnalysisStatus) => {

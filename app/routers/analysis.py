@@ -1257,6 +1257,24 @@ async def delete_task(
         # 从内存中删除任务
         await svc.memory_manager.remove_task(task_id)
 
+        # 清理服务内缓存的进度跟踪器
+        if hasattr(svc, "_progress_trackers") and task_id in svc._progress_trackers:
+            svc._progress_trackers.pop(task_id, None)
+
+        # 清理日志监控注册
+        try:
+            from app.services.progress_log_handler import unregister_analysis_tracker
+            unregister_analysis_tracker(task_id)
+        except Exception as tracker_err:
+            logger.warning(f"⚠️ 清理日志跟踪器失败: {task_id} - {tracker_err}")
+
+        # 清理 Redis / 文件进度缓存
+        try:
+            from app.services.redis_progress_tracker import clear_progress_by_id
+            clear_progress_by_id(task_id)
+        except Exception as progress_err:
+            logger.warning(f"⚠️ 清理进度缓存失败: {task_id} - {progress_err}")
+
         # 从 MongoDB 中删除任务
         from app.core.database import get_mongo_db
         db = get_mongo_db()

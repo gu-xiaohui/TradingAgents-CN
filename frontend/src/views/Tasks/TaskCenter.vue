@@ -400,6 +400,9 @@ const deleteTask = async (task: any) => {
         const uniqueStocks = new Set(tasks.value.map((t: any) => t.stock_code))
         stats.uniqueStocks = uniqueStocks.size
       }
+
+      // 再从服务端刷新一次，避免页面保留旧状态
+      await refreshList()
       ElMessage.success('已删除')
     } else {
       ElMessage.error(response.message || '删除失败')

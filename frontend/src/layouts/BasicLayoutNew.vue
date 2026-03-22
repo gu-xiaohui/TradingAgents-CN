@@ -93,7 +93,7 @@
       </header>
 
       <!-- 页面内容 -->
-      <main class="p-3 sm:p-4 lg:p-6">
+      <main>
         <router-view v-slot="{ Component, route }">
           <transition name="fade" mode="out-in">
             <component :is="Component" :key="route.fullPath" />

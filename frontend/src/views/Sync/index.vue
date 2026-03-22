@@ -1,5 +1,5 @@
 <template>
-  <div class="sync-page">
+  <div class="sync-page" :class="{ 'sync-page-dark': isDarkTheme }">
     <div class="sync-shell">
       <section class="panel sync-summary-panel">
         <div class="summary-header">
@@ -10,11 +10,10 @@
                   <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                 </svg>
               </div>
+              <div>
+              <h3 class="sync-title">数据同步</h3>
               <span>Data Pipeline Console</span>
             </div>
-            <div>
-              <h1 class="sync-title">数据同步</h1>
-              <p class="sync-subtitle">压缩成一个短工作面板，适合快速完成一轮同步。</p>
             </div>
           </div>
 
@@ -39,7 +38,7 @@
           </div>
           <div class="metric-pill metric-pill-accent">
             <span>最新数据日期</span>
-            <strong>{{ stats.latestDate || '-' }}</strong>
+            <strong>{{ dayjs(stats.latestDate).format('YYYY-MM-DD') || '-' }}</strong>
           </div>
         </div>
       </section>
@@ -50,7 +49,6 @@
             <div>
               <span class="section-kicker">Sync Workbench</span>
               <h2>同步工作台</h2>
-              <p>状态、动作和任务范围都在这里完成，不再拆成多块区域。</p>
             </div>
 
             <div class="workspace-head-actions">
@@ -85,25 +83,79 @@
           <div class="workspace-grid">
             <div class="workspace-main">
               <div class="control-grid compact-control-grid">
-                <div class="control-block">
-                  <label class="field-label">数据源</label>
-                  <select v-model="syncOptions.dataSource" class="input sync-select">
-                    <option value="akshare">AKShare (免费)</option>
-                    <option value="baostock">BaoStock (免费)</option>
-                    <option value="tushare">Tushare (需Token)</option>
-                  </select>
+                <div class="control-block source-selector-block">
+                  <div class="source-selector-head">
+                    <div>
+                      <label class="field-label">数据源</label>
+                      <p class="source-selector-hint">选择数据源时直接查看可用状态与接入门槛。</p>
+                    </div>
+                    <span class="hero-tag">当前：{{ currentSourceLabel }}</span>
+                  </div>
+
+                  <div class="source-selection-grid">
+                    <label
+                      v-for="source in sourceOptions"
+                      :key="source.value"
+                      class="source-select-card"
+                      :class="{ active: syncOptions.dataSource === source.value }"
+                    >
+                      <input
+                        v-model="syncOptions.dataSource"
+                        type="radio"
+                        name="sync-data-source"
+                        :value="source.value"
+                        class="source-radio"
+                      />
+
+                      <div class="source-select-top">
+                        <div class="source-chip-top">
+                          <div class="status-dot" :class="getStatusClass(source.status)"></div>
+                          <strong>{{ source.label }}</strong>
+                        </div>
+                        <span class="status-pill" :class="getStatusTextClass(source.status)">{{ source.statusText }}</span>
+                      </div>
+
+                      <span class="source-select-desc">{{ source.description }}</span>
+                    </label>
+                  </div>
                 </div>
 
-                <div class="control-note-card">
-                  <span>当前策略</span>
-                  <p>优先使用 {{ currentSourceLabel }} 执行同步。若数据源能力不足，优先拆分“股票列表”和“实时行情”。</p>
+                <div class="control-note-card quick-shortcut-card">
+                  <span>快捷操作</span>
+                  <div class="quick-shortcut-grid">
+                    <el-tooltip
+                      v-for="action in quickActionOptions"
+                      :key="action.type"
+                      :content="action.tooltip"
+                      placement="top"
+                    >
+                      <button
+                        type="button"
+                        @click="quickSync(action.type)"
+                        :disabled="isSyncing"
+                        class="source-select-card quick-shortcut-item"
+                        :aria-label="action.label"
+                      >
+                        <div class="quick-shortcut-glow" :class="action.iconClass" aria-hidden="true"></div>
+
+                        <div class="quick-shortcut-content">
+                          <div class="quick-action-icon quick-shortcut-icon" :class="action.iconClass">
+                            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                              <path stroke-linecap="round" stroke-linejoin="round" :d="action.iconPath" />
+                            </svg>
+                          </div>
+
+                          <strong class="quick-shortcut-label">{{ action.label }}</strong>
+                        </div>
+                      </button>
+                    </el-tooltip>
+                  </div>
                 </div>
               </div>
 
               <div class="section-heading compact-heading">
                 <div>
                   <h3>同步范围</h3>
-                  <p>压成更扁的切换行，减少面板高度。</p>
                 </div>
               </div>
 
@@ -141,86 +193,7 @@
                 </label>
               </div>
             </div>
-
-            <div class="workspace-side">
-              <div class="workspace-tools-panel">
-                <div class="tools-toolbar-head compact-tools-head">
-                  <div>
-                    <span class="section-kicker">Tools Rail</span>
-                    <h3>数据源与快捷同步</h3>
-                  </div>
-                </div>
-
-                <div class="tools-toolbar-inline">
-                  <div class="inline-status-group">
-                    <span class="inline-group-label">数据源</span>
-                    <div class="source-chip-grid compact-source-grid toolbar-source-grid">
-                      <div v-for="source in dataSources" :key="source.name" class="source-chip-card compact-source-card toolbar-source-card">
-                        <div class="source-chip-top">
-                          <div class="status-dot" :class="getStatusClass(source.status)"></div>
-                          <strong>{{ formatSourceName(source.name) }}</strong>
-                        </div>
-                        <span class="status-pill" :class="getStatusTextClass(source.status)">{{ source.statusText }}</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div class="inline-action-group">
-                    <span class="inline-group-label">快捷动作</span>
-                    <div class="quick-action-stack compact-quick-stack toolbar-quick-stack">
-                      <button
-                        @click="quickSync('realtime')"
-                        :disabled="isSyncing"
-                        class="quick-action-card compact-quick-card toolbar-quick-card"
-                      >
-                        <div class="quick-action-icon quick-action-green">
-                          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-                          </svg>
-                        </div>
-                        <div class="quick-action-copy">
-                          <strong>快速同步行情</strong>
-                          <span>仅同步当日实时数据</span>
-                        </div>
-                      </button>
-
-                      <button
-                        @click="quickSync('stocks')"
-                        :disabled="isSyncing"
-                        class="quick-action-card compact-quick-card toolbar-quick-card"
-                      >
-                        <div class="quick-action-icon quick-action-blue">
-                          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-                          </svg>
-                        </div>
-                        <div class="quick-action-copy">
-                          <strong>同步股票列表</strong>
-                          <span>更新股票基础信息</span>
-                        </div>
-                      </button>
-
-                      <button
-                        @click="quickSync('full')"
-                        :disabled="isSyncing"
-                        class="quick-action-card compact-quick-card toolbar-quick-card"
-                      >
-                        <div class="quick-action-icon quick-action-violet">
-                          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                          </svg>
-                        </div>
-                        <div class="quick-action-copy">
-                          <strong>全量同步</strong>
-                          <span>同步所有数据</span>
-                        </div>
-                      </button>
-                    </div>
-                  </div>
-                </div>
-            </div>
           </div>
-        </div>
         </div>
       </section>
 
@@ -282,13 +255,17 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { ElMessage } from 'element-plus'
+import { dayjs, ElMessage } from 'element-plus'
+import { useThemeStore } from '../../stores/theme'
 import {
   getSyncStatus,
   getDataSourcesStatus,
   runStockBasicsSync,
   getSyncHistory as fetchSyncHistory
 } from '@/api/sync'
+
+const themeStore = useThemeStore()
+const isDarkTheme = computed(() => themeStore.getActualTheme() === 'dark')
 
 // 同步选项
 const syncOptions = ref({
@@ -316,6 +293,48 @@ const currentSourceLabel = computed(() => {
 
   return sourceMap[syncOptions.value.dataSource] || syncOptions.value.dataSource
 })
+
+const sourceOptions = computed(() => {
+  const descriptions: Record<string, string> = {
+    akshare: '免费接入，适合日常同步与快速验证。',
+    baostock: '免费数据源，适合基础行情与批量任务。',
+    tushare: '专业数据覆盖更广，使用前需配置 Token。'
+  }
+
+  return dataSources.value.map((source) => {
+    const value = String(source.name || '').toLowerCase()
+    return {
+      ...source,
+      value,
+      label: formatSourceName(source.name),
+      description: descriptions[value] || '可用于当前同步任务。'
+    }
+  })
+})
+
+const quickActionOptions = [
+  {
+    type: 'realtime',
+    label: '行情',
+    tooltip: '快速同步行情：仅同步当日实时数据',
+    iconClass: 'quick-action-green',
+    iconPath: 'M13 7h8m0 0v8m0-8l-8 8-4-4-6 6'
+  },
+  {
+    type: 'stocks',
+    label: '股票列表',
+    tooltip: '同步股票列表：更新基础信息',
+    iconClass: 'quick-action-blue',
+    iconPath: 'M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10'
+  },
+  {
+    type: 'full',
+    label: '全量',
+    tooltip: '全量同步：股票、行情、历史、财务全部执行',
+    iconClass: 'quick-action-violet',
+    iconPath: 'M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15'
+  }
+]
 
 const selectedSyncSummary = computed(() => {
   const selections = []
@@ -580,12 +599,67 @@ const clearHistory = () => {
 
 <style scoped>
 .sync-page {
+  --sync-surface: rgba(255, 255, 255, 0.9);
+  --sync-surface-strong: rgba(255, 255, 255, 0.97);
+  --sync-surface-soft: rgba(241, 245, 249, 0.92);
+  --sync-surface-hover: rgba(255, 255, 255, 1);
+  --sync-border: rgba(148, 163, 184, 0.24);
+  --sync-border-strong: rgba(148, 163, 184, 0.34);
+  --sync-shadow: 0 18px 42px rgba(15, 23, 42, 0.08), 0 8px 18px rgba(15, 23, 42, 0.05);
+  --sync-shadow-soft: 0 10px 24px rgba(15, 23, 42, 0.05);
+  --sync-inner-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  --sync-tag-bg: rgba(255, 255, 255, 0.86);
+  --sync-track-bg: rgba(148, 163, 184, 0.2);
+  --sync-status-running-bg: rgba(59, 130, 246, 0.14);
+  --sync-status-running-fg: #2563eb;
+  --sync-status-idle-bg: rgba(16, 185, 129, 0.14);
+  --sync-status-idle-fg: #059669;
+  --sync-note-accent: #3b82f6;
+  --sync-option-active-bg: rgba(37, 99, 235, 0.12);
+  --sync-option-active-shadow: 0 14px 30px rgba(37, 99, 235, 0.12);
+  --sync-input-focus-bg: #ffffff;
+  --sync-input-focus-ring: 0 0 0 4px rgba(59, 130, 246, 0.12);
+  --sync-quick-green-bg: rgba(16, 185, 129, 0.16);
+  --sync-quick-green-fg: #059669;
+  --sync-quick-blue-bg: rgba(37, 99, 235, 0.14);
+  --sync-quick-blue-fg: #2563eb;
+  --sync-quick-violet-bg: rgba(139, 92, 246, 0.14);
+  --sync-quick-violet-fg: #7c3aed;
   min-height: 100vh;
   background:
     radial-gradient(circle at top left, rgba(59, 130, 246, 0.12), transparent 24%),
     radial-gradient(circle at right top, rgba(16, 185, 129, 0.1), transparent 22%),
     var(--bg-primary);
   color: var(--text-primary);
+}
+
+.sync-page.sync-page-dark {
+  --sync-surface: rgba(255, 255, 255, 0.04);
+  --sync-surface-strong: rgba(255, 255, 255, 0.08);
+  --sync-surface-soft: rgba(255, 255, 255, 0.035);
+  --sync-surface-hover: rgba(255, 255, 255, 0.07);
+  --sync-border: rgba(255, 255, 255, 0.08);
+  --sync-border-strong: rgba(59, 130, 246, 0.42);
+  --sync-shadow: 0 20px 60px rgba(15, 23, 42, 0.12);
+  --sync-shadow-soft: 0 12px 32px rgba(15, 23, 42, 0.1);
+  --sync-inner-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  --sync-tag-bg: rgba(255, 255, 255, 0.05);
+  --sync-track-bg: rgba(255, 255, 255, 0.08);
+  --sync-status-running-bg: rgba(59, 130, 246, 0.18);
+  --sync-status-running-fg: #93c5fd;
+  --sync-status-idle-bg: rgba(16, 185, 129, 0.16);
+  --sync-status-idle-fg: #6ee7b7;
+  --sync-note-accent: #93c5fd;
+  --sync-option-active-bg: rgba(37, 99, 235, 0.1);
+  --sync-option-active-shadow: none;
+  --sync-input-focus-bg: rgba(255, 255, 255, 0.1);
+  --sync-input-focus-ring: 0 0 0 4px rgba(59, 130, 246, 0.16);
+  --sync-quick-green-bg: rgba(16, 185, 129, 0.18);
+  --sync-quick-green-fg: #6ee7b7;
+  --sync-quick-blue-bg: rgba(37, 99, 235, 0.18);
+  --sync-quick-blue-fg: #93c5fd;
+  --sync-quick-violet-bg: rgba(139, 92, 246, 0.18);
+  --sync-quick-violet-fg: #c4b5fd;
 }
 
 .sync-shell {
@@ -597,11 +671,11 @@ const clearHistory = () => {
 .card,
 .panel,
 .hero-card {
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.04) 100%);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: linear-gradient(180deg, var(--sync-surface-strong) 0%, var(--sync-surface) 100%);
+  border: 1px solid var(--sync-border);
   border-radius: 24px;
   backdrop-filter: blur(16px);
-  box-shadow: 0 20px 60px rgba(15, 23, 42, 0.12);
+  box-shadow: var(--sync-shadow), var(--sync-inner-highlight);
 }
 
 .card,
@@ -679,8 +753,8 @@ const clearHistory = () => {
   align-items: center;
   justify-content: center;
   border-radius: 9999px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--sync-border);
+  background: var(--sync-tag-bg);
   padding: 6px 10px;
   font-size: 0.76rem;
 }
@@ -716,20 +790,20 @@ const clearHistory = () => {
 }
 
 .status-running {
-  background: rgba(59, 130, 246, 0.18);
-  color: #93c5fd;
+  background: var(--sync-status-running-bg);
+  color: var(--sync-status-running-fg);
 }
 
 .status-idle {
-  background: rgba(16, 185, 129, 0.16);
-  color: #6ee7b7;
+  background: var(--sync-status-idle-bg);
+  color: var(--sync-status-idle-fg);
 }
 
 .hero-progress-track {
   width: 100%;
   height: 6px;
   border-radius: 9999px;
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--sync-track-bg);
   overflow: hidden;
 }
 
@@ -751,9 +825,10 @@ const clearHistory = () => {
 
 .metric-pill {
   border-radius: 14px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--sync-border);
+  background: var(--sync-surface-soft);
   padding: 10px 12px;
+  box-shadow: var(--sync-shadow-soft);
 }
 
 .metric-pill span,
@@ -779,6 +854,9 @@ const clearHistory = () => {
 .metric-pill-accent strong { color: #c4b5fd; }
 
 .workspace-section {
+  margin-top: 10px;
+}
+.history-grid {
   margin-top: 10px;
 }
 
@@ -807,8 +885,8 @@ const clearHistory = () => {
   align-items: center;
   gap: 10px;
   border-radius: 9999px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--sync-border);
+  background: var(--sync-tag-bg);
   padding: 6px 10px;
 }
 
@@ -821,7 +899,7 @@ const clearHistory = () => {
   width: 132px;
   height: 6px;
   border-radius: 9999px;
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--sync-track-bg);
   overflow: hidden;
 }
 
@@ -835,73 +913,19 @@ const clearHistory = () => {
 
 .workspace-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1.35fr) 320px;
+  grid-template-columns: minmax(0, 1fr);
   gap: 18px;
   align-items: start;
 }
 
-.workspace-main,
-.workspace-side {
+.workspace-main {
   min-width: 0;
-}
-
-.workspace-side {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
-
-.workspace-tools-panel {
-  border-radius: 18px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  background: rgba(255, 255, 255, 0.035);
-  padding: 12px;
-}
-
-.tools-toolbar-head {
-  margin-bottom: 12px;
-}
-
-.tools-toolbar-head h3 {
-  margin-top: 6px;
-  font-size: 1rem;
-  font-weight: 600;
-}
-
-.compact-tools-head {
-  margin-bottom: 10px;
-}
-
-.tools-toolbar-inline {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.inline-status-group,
-.inline-action-group {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.inline-group-label {
-  color: var(--text-secondary);
-  font-size: 0.72rem;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-}
-
-.tools-toolbar-block + .tools-toolbar-block {
-  margin-top: 12px;
-  padding-top: 12px;
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .workspace-mini-section {
   border-radius: 20px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  background: rgba(255, 255, 255, 0.035);
+  border: 1px solid var(--sync-border);
+  background: var(--sync-surface-soft);
   padding: 14px;
 }
 
@@ -950,9 +974,10 @@ const clearHistory = () => {
 .control-block,
 .control-note-card {
   border-radius: 20px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--sync-border);
+  background: var(--sync-surface-soft);
   padding: 16px;
+  box-shadow: var(--sync-shadow-soft);
 }
 
 .control-note-card span {
@@ -961,11 +986,150 @@ const clearHistory = () => {
   font-weight: 600;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: #93c5fd;
+  color: var(--sync-note-accent);
 }
 
 .control-note-card p {
   margin-top: 10px;
+}
+
+.source-selector-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.source-selector-hint,
+.source-select-desc {
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+.source-selector-hint {
+  margin-top: 8px;
+  font-size: 0.9rem;
+}
+
+.source-selection-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.source-select-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+  border-radius: 18px;
+  border: 1px solid var(--sync-border);
+  background: var(--sync-surface);
+  padding: 14px;
+  cursor: pointer;
+  transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease, box-shadow 0.18s ease;
+  box-shadow: var(--sync-shadow-soft);
+}
+
+.source-select-card:hover {
+  transform: translateY(-1px);
+  background: var(--sync-surface-hover);
+}
+
+.source-select-card.active {
+  border-color: var(--sync-border-strong);
+  background: var(--sync-option-active-bg);
+  box-shadow: var(--sync-option-active-shadow);
+}
+
+.source-select-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.source-radio {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.quick-shortcut-card {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.quick-shortcut-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.quick-shortcut-item {
+  position: relative;
+  overflow: hidden;
+  display: block;
+  width: 100%;
+  text-align: left;
+  border: 1px solid var(--sync-border);
+  min-height: 126px;
+  padding: 18px;
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--sync-surface-strong) 88%, white 12%) 0%, var(--sync-surface) 100%);
+}
+
+.quick-shortcut-item:hover:not(:disabled) {
+  border-color: var(--sync-border-strong);
+  box-shadow: var(--sync-shadow-soft);
+}
+
+.quick-shortcut-glow {
+  position: absolute;
+  top: -12px;
+  right: -8px;
+  width: 120px;
+  height: 120px;
+  border-radius: 9999px;
+  opacity: 0.16;
+  filter: blur(10px);
+  pointer-events: none;
+}
+
+.quick-shortcut-content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: flex-start;
+  min-height: 90px;
+}
+
+.quick-shortcut-icon {
+  width: 54px;
+  height: 54px;
+  border-radius: 18px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.28);
+}
+
+.quick-shortcut-label {
+  font-size: 1.12rem;
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+  word-break: keep-all;
+  overflow-wrap: break-word;
+}
+
+.quick-shortcut-item:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .sync-option-grid {
@@ -985,10 +1149,11 @@ const clearHistory = () => {
   gap: 12px;
   padding: 12px 14px;
   border-radius: 16px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--sync-border);
+  background: var(--sync-surface-soft);
   cursor: pointer;
   transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease;
+  box-shadow: var(--sync-shadow-soft);
 }
 
 .sync-option-card:hover,
@@ -996,13 +1161,14 @@ const clearHistory = () => {
 .quick-action-card:hover,
 .ghost-action:hover {
   transform: translateY(-1px);
-  background: rgba(255, 255, 255, 0.07);
+  background: var(--sync-surface-hover);
 }
 
 .sync-option-card.active,
 .sync-option-row.active {
-  border-color: rgba(59, 130, 246, 0.42);
-  background: rgba(37, 99, 235, 0.1);
+  border-color: var(--sync-border-strong);
+  background: var(--sync-option-active-bg);
+  box-shadow: var(--sync-option-active-shadow);
 }
 
 .sync-checkbox {
@@ -1033,18 +1199,20 @@ const clearHistory = () => {
 .input {
   width: 100%;
   padding: 12px 16px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: var(--sync-surface-strong);
+  border: 1px solid var(--sync-border);
   border-radius: 12px;
   color: var(--text-primary);
   font-size: 14px;
   transition: all 0.2s;
+  box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.04);
 }
 
 .input:focus {
   outline: none;
   border-color: #3B82F6;
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--sync-input-focus-bg);
+  box-shadow: var(--sync-input-focus-ring);
 }
 
 .btn-primary {
@@ -1075,65 +1243,16 @@ const clearHistory = () => {
 }
 
 .source-list,
-.quick-action-list,
 .history-list {
   display: flex;
   flex-direction: column;
   gap: 12px;
 }
 
-.source-chip-grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 10px;
-}
-
-.compact-source-grid {
-  grid-template-columns: 1fr;
-  gap: 8px;
-}
-
-.toolbar-source-grid {
-  gap: 6px;
-}
-
-.source-chip-card {
-  border-radius: 16px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  background: rgba(255, 255, 255, 0.04);
-  padding: 12px;
-}
-
-.compact-source-card {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  padding: 10px 12px;
-}
-
-.toolbar-source-card {
-  padding: 8px 10px;
-}
-
 .source-chip-top {
   display: flex;
   align-items: center;
   gap: 8px;
-}
-
-.quick-action-stack {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.compact-quick-stack {
-  gap: 8px;
-}
-
-.toolbar-quick-stack {
-  gap: 6px;
 }
 
 .source-row,
@@ -1144,9 +1263,10 @@ const clearHistory = () => {
   justify-content: space-between;
   gap: 14px;
   border-radius: 20px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--sync-border);
+  background: var(--sync-surface);
   padding: 14px 16px;
+  box-shadow: var(--sync-shadow-soft);
 }
 
 .source-row-main,
@@ -1202,18 +1322,18 @@ const clearHistory = () => {
 }
 
 .quick-action-green {
-  background: rgba(16, 185, 129, 0.18);
-  color: #6ee7b7;
+  background: var(--sync-quick-green-bg);
+  color: var(--sync-quick-green-fg);
 }
 
 .quick-action-blue {
-  background: rgba(37, 99, 235, 0.18);
-  color: #93c5fd;
+  background: var(--sync-quick-blue-bg);
+  color: var(--sync-quick-blue-fg);
 }
 
 .quick-action-violet {
-  background: rgba(139, 92, 246, 0.18);
-  color: #c4b5fd;
+  background: var(--sync-quick-violet-bg);
+  color: var(--sync-quick-violet-fg);
 }
 
 .history-meta {
@@ -1262,7 +1382,8 @@ const clearHistory = () => {
 
   .metrics-strip,
   .sync-option-grid,
-  .source-chip-grid {
+  .source-selection-grid,
+  .quick-shortcut-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
@@ -1281,8 +1402,14 @@ const clearHistory = () => {
 
   .metrics-strip,
   .sync-option-grid,
-  .source-chip-grid {
+  .source-selection-grid,
+  .quick-shortcut-grid {
     grid-template-columns: 1fr;
+  }
+
+  .source-selector-head,
+  .quick-shortcut-grid {
+    flex-wrap: wrap;
   }
 
   .workspace-head-actions,

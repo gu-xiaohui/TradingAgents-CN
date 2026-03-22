@@ -1,4 +1,5 @@
 import logging
+import asyncio
 from datetime import datetime, time as dtime, timedelta
 from typing import Dict, Optional, Tuple, List
 from zoneinfo import ZoneInfo
@@ -410,11 +411,14 @@ class QuotesIngestionService:
             f"✅ 行情入库完成 source={source}, matched={result.matched_count}, upserted={len(result.upserted_ids) if result.upserted_ids else 0}, modified={result.modified_count}"
         )
 
-    async def backfill_from_historical_data(self) -> None:
+    async def backfill_from_historical_data(self) -> bool:
         """
         从历史数据集合导入前一天的收盘数据到 market_quotes
         - 如果 market_quotes 集合为空，导入所有数据
         - 如果 market_quotes 集合不为空，检查并修复缺失的成交量字段
+
+        Returns:
+            bool: 是否成功导入了可用数据（或完成了必要修复）
         """
         try:
             # 检查 market_quotes 是否为空
@@ -424,7 +428,7 @@ class QuotesIngestionService:
                 # 集合不为空，检查是否有成交量缺失的记录
                 logger.info("✅ market_quotes 集合不为空，检查是否需要修复成交量...")
                 await self._fix_missing_volume()
-                return
+                return True
 
             logger.info("📊 market_quotes 集合为空，开始从历史数据导入")
 
@@ -436,10 +440,10 @@ class QuotesIngestionService:
                 latest_trade_date = manager.find_latest_trade_date_with_fallback()
                 if not latest_trade_date:
                     logger.warning("⚠️ 无法获取最新交易日，跳过历史数据导入")
-                    return
+                    return False
             except Exception as e:
                 logger.warning(f"⚠️ 获取最新交易日失败: {e}，跳过历史数据导入")
-                return
+                return False
 
             logger.info(f"📊 从历史数据集合导入 {latest_trade_date} 的收盘数据到 market_quotes")
 
@@ -455,7 +459,7 @@ class QuotesIngestionService:
             if not docs:
                 logger.warning(f"⚠️ 历史数据集合中未找到 {latest_trade_date} 的数据")
                 logger.warning("⚠️ market_quotes 和历史数据集合都为空，请先同步历史数据或实时行情")
-                return
+                return False
 
             logger.info(f"✅ 从历史数据集合找到 {len(docs)} 条记录")
 
@@ -489,20 +493,40 @@ class QuotesIngestionService:
             if quotes_map:
                 await self._bulk_upsert(quotes_map, latest_trade_date, "historical_data")
                 logger.info(f"✅ 成功从历史数据导入 {len(quotes_map)} 条收盘数据到 market_quotes")
+                return True
             else:
                 logger.warning("⚠️ 历史数据转换后为空，无法导入")
+                return False
 
         except Exception as e:
             logger.error(f"❌ 从历史数据导入失败: {e}")
             import traceback
             logger.error(f"堆栈跟踪:\n{traceback.format_exc()}")
+            return False
 
     async def backfill_last_close_snapshot(self) -> None:
         """一次性补齐上一笔收盘快照（用于冷启动或数据陈旧）。允许在休市期调用。"""
         try:
             manager = DataSourceManager()
-            # 使用近实时快照作为兜底，休市期返回的即为最后收盘数据
-            quotes_map, source = manager.get_realtime_quotes_with_fallback()
+
+            # 优先尝试 Tushare 日线快照（更稳定，适合休市/冷启动场景）
+            if await self.backfill_from_tushare_daily_snapshot():
+                return
+
+            # 使用多源近实时快照兜底，尽量避免单一接口异常导致冷启动无数据
+            quotes_map = None
+            source = None
+            source_attempts = [
+                ("tushare", None),
+                ("akshare", "eastmoney"),
+                ("akshare", "sina"),
+            ]
+
+            for source_type, akshare_api in source_attempts:
+                quotes_map, source = self._fetch_quotes_from_source(source_type, akshare_api)
+                if quotes_map:
+                    break
+
             if not quotes_map:
                 logger.warning("backfill: 未获取到行情数据，跳过")
                 return
@@ -514,6 +538,89 @@ class QuotesIngestionService:
         except Exception as e:
             logger.error(f"❌ backfill 行情补数失败: {e}")
 
+    async def backfill_from_tushare_daily_snapshot(self) -> bool:
+        """使用 Tushare 最近交易日日线快照填充 market_quotes。"""
+        try:
+            from tradingagents.dataflows.providers.china.tushare import get_tushare_provider
+
+            def to_float(value):
+                try:
+                    if value in (None, "", "None"):
+                        return None
+                    return float(value)
+                except (TypeError, ValueError):
+                    return None
+
+            provider = get_tushare_provider()
+            api = getattr(provider, "api", None)
+            if api is None:
+                logger.warning("Tushare daily 快照不可用：provider.api 未初始化")
+                return False
+
+            candidate_trade_dates: List[Optional[str]] = []
+            try:
+                latest_trade_date = DataSourceManager().find_latest_trade_date_with_fallback()
+                if latest_trade_date:
+                    candidate_trade_dates.append(latest_trade_date)
+            except Exception as e:
+                logger.warning(f"获取候选交易日失败，将直接请求 Tushare 最新日线: {e}")
+
+            candidate_trade_dates.append(None)
+
+            for trade_date in candidate_trade_dates:
+                try:
+                    if trade_date:
+                        logger.info(f"📊 尝试使用 Tushare daily 快照回填 trade_date={trade_date}")
+                        df = await asyncio.to_thread(api.daily, trade_date=trade_date)
+                    else:
+                        logger.info("📊 尝试使用 Tushare daily 最新快照回填")
+                        df = await asyncio.to_thread(api.daily)
+                except Exception as e:
+                    logger.warning(f"Tushare daily 快照请求失败 trade_date={trade_date}: {e}")
+                    continue
+
+                if df is None or getattr(df, "empty", True):
+                    logger.warning(f"Tushare daily 快照为空 trade_date={trade_date}")
+                    continue
+
+                quotes_map: Dict[str, Dict] = {}
+                actual_trade_date = str(df.iloc[0].get("trade_date") or trade_date or datetime.now(self.tz).strftime("%Y%m%d"))
+
+                for _, row in df.iterrows():  # type: ignore
+                    ts_code = str(row.get("ts_code") or "")
+                    if not ts_code or "." not in ts_code:
+                        continue
+
+                    code6 = ts_code.split(".")[0].zfill(6)
+                    vol = row.get("vol")
+                    amount = row.get("amount")
+                    amount_float = to_float(amount)
+                    volume_float = to_float(vol)
+
+                    quotes_map[code6] = {
+                        "close": to_float(row.get("close")),
+                        "pct_chg": to_float(row.get("pct_chg")),
+                        "amount": amount_float * 1000 if amount_float is not None else None,
+                        "volume": volume_float * 100 if volume_float is not None else None,
+                        "open": to_float(row.get("open")),
+                        "high": to_float(row.get("high")),
+                        "low": to_float(row.get("low")),
+                        "pre_close": to_float(row.get("pre_close")),
+                    }
+
+                if not quotes_map:
+                    logger.warning("Tushare daily 快照转换后为空")
+                    continue
+
+                await self._bulk_upsert(quotes_map, actual_trade_date, "tushare_daily")
+                logger.info(f"✅ 已使用 Tushare daily 快照回填 {len(quotes_map)} 条行情，trade_date={actual_trade_date}")
+                return True
+
+            return False
+        except Exception as e:
+            logger.error(f"❌ 使用 Tushare daily 快照回填失败: {e}")
+            return False
+
     async def backfill_last_close_snapshot_if_needed(self) -> None:
         """若集合为空或 trade_date 落后于最新交易日，则执行一次 backfill"""
         try:
@@ -522,7 +629,12 @@ class QuotesIngestionService:
             # 如果集合为空，优先从历史数据导入
             if is_empty:
                 logger.info("🔁 market_quotes 集合为空，尝试从历史数据导入")
-                await self.backfill_from_historical_data()
+                imported = await self.backfill_from_historical_data()
+                if imported:
+                    return
+
+                logger.info("🔁 历史数据不可用，继续尝试从实时行情补齐快照")
+                await self.backfill_last_close_snapshot()
                 return
 
             # 如果集合不为空但数据陈旧，使用实时接口更新

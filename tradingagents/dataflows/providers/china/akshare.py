@@ -4,13 +4,38 @@ AKShare统一数据提供器
 """
 import asyncio
 import logging
+import os
 from datetime import datetime, timedelta, timezone
 from typing import Dict, Any, List, Optional, Union
 import pandas as pd
+from contextlib import contextmanager
 
 from ..base_provider import BaseStockDataProvider
 
 logger = logging.getLogger(__name__)
+
+
+@contextmanager
+def _temporary_proxy_bypass():
+    """临时禁用系统代理，避免行情源请求被错误地转发到不可用代理。"""
+    proxy_keys = [
+        "HTTP_PROXY", "HTTPS_PROXY", "ALL_PROXY",
+        "http_proxy", "https_proxy", "all_proxy",
+    ]
+    original_values = {key: os.environ.get(key) for key in [*proxy_keys, "NO_PROXY", "no_proxy"]}
+
+    try:
+        for key in proxy_keys:
+            os.environ.pop(key, None)
+        os.environ["NO_PROXY"] = "*"
+        os.environ["no_proxy"] = "*"
+        yield
+    finally:
+        for key, value in original_values.items():
+            if value is None:
+                os.environ.pop(key, None)
+            else:
+                os.environ[key] = value
 
 
 class AKShareProvider(BaseStockDataProvider):
@@ -54,7 +79,31 @@ class AKShareProvider(BaseStockDataProvider):
             # AKShare的stock_news_em()函数没有设置必要的headers，导致API返回空响应
             if not hasattr(requests, '_akshare_headers_patched'):
                 original_get = requests.get
+                original_session_request = requests.sessions.Session.request
                 last_request_time = {'time': 0}  # 使用字典以便在闭包中修改
+
+                def _should_bypass_proxy(url: str) -> bool:
+                    return any(host in url for host in [
+                        'eastmoney.com',
+                        'push2.eastmoney.com',
+                        'sina.com.cn',
+                        'sinajs.cn',
+                    ])
+
+                def patched_session_request(session, method, url, **kwargs):
+                    bypass_proxy = _should_bypass_proxy(url)
+                    if not bypass_proxy:
+                        return original_session_request(session, method, url, **kwargs)
+
+                    previous_trust_env = getattr(session, 'trust_env', True)
+                    kwargs.setdefault('proxies', {})
+
+                    try:
+                        session.trust_env = False
+                        with _temporary_proxy_bypass():
+                            return original_session_request(session, method, url, **kwargs)
+                    finally:
+                        session.trust_env = previous_trust_env
 
                 def patched_get(url, **kwargs):
                     """
@@ -62,6 +111,8 @@ class AKShareProvider(BaseStockDataProvider):
                     修复AKShare stock_news_em()函数缺少headers的问题
                     如果可用，使用 curl_cffi 模拟真实浏览器 TLS 指纹
                     """
+                    bypass_proxy = _should_bypass_proxy(url)
+
                     # 添加请求延迟，避免被反爬虫封禁
                     # 只对东方财富网的请求添加延迟
                     if 'eastmoney.com' in url:
@@ -90,7 +141,11 @@ class AKShareProvider(BaseStockDataProvider):
                             if 'json' in kwargs:
                                 curl_kwargs['json'] = kwargs['json']
 
-                            response = curl_requests.get(url, **curl_kwargs)
+                            if bypass_proxy:
+                                with _temporary_proxy_bypass():
+                                    response = curl_requests.get(url, **curl_kwargs)
+                            else:
+                                response = curl_requests.get(url, **curl_kwargs)
                             # curl_cffi 的响应对象已经兼容 requests.Response
                             return response
                         except Exception as e:
@@ -126,6 +181,9 @@ class AKShareProvider(BaseStockDataProvider):
                     max_retries = 3
                     for attempt in range(max_retries):
                         try:
+                            if bypass_proxy:
+                                with _temporary_proxy_bypass():
+                                    return original_get(url, **kwargs)
                             return original_get(url, **kwargs)
                         except Exception as e:
                             # 检查是否是SSL错误
@@ -144,6 +202,7 @@ class AKShareProvider(BaseStockDataProvider):
 
                 # 应用patch
                 requests.get = patched_get
+                requests.sessions.Session.request = patched_session_request
                 requests._akshare_headers_patched = True
 
                 if use_curl_cffi:

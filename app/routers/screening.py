@@ -37,6 +37,18 @@ async def get_rankings(
         # 获取最新日期
         latest = _mongo_db['market_quotes'].find_one(sort=[('trade_date', -1)])
         if not latest:
+            logger.info("[rankings] market_quotes 为空，尝试自动补齐行情快照")
+            try:
+                from app.services.quotes_ingestion_service import QuotesIngestionService
+
+                quotes_service = QuotesIngestionService()
+                await quotes_service.ensure_indexes()
+                await quotes_service.backfill_last_close_snapshot_if_needed()
+                latest = _mongo_db['market_quotes'].find_one(sort=[('trade_date', -1)])
+            except Exception as backfill_error:
+                logger.warning(f"[rankings] 自动补齐行情失败: {backfill_error}")
+
+        if not latest:
             return {
                 "success": False,
                 "message": "没有行情数据，请先同步数据"

@@ -184,7 +184,7 @@ export const useAuthStore = defineStore('auth', {
       // 防止重复登录请求
       if (this.loginLoading) {
         console.log('⏭️ 登录请求进行中，跳过重复调用')
-        return false
+        throw new Error('登录请求进行中，请稍候')
       }
 
       try {
@@ -212,13 +212,11 @@ export const useAuthStore = defineStore('auth', {
           // 不在这里显示成功消息，由调用方显示
           return true
         } else {
-          // 不在这里显示错误消息，由调用方显示
-          return false
+          throw new Error(response.message || '登录失败，请检查用户名和密码')
         }
       } catch (error: any) {
         console.error('登录失败:', error)
-        // 不在这里显示错误消息，由调用方显示
-        return false
+        throw error instanceof Error ? error : new Error(error?.message || '登录失败，请重试')
       } finally {
         this.loginLoading = false
       }
