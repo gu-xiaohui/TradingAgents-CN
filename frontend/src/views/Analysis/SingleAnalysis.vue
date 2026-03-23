@@ -181,22 +181,24 @@
             <div class="space-y-3">
               <div>
                 <label class="block text-xs text-[var(--text-muted)] mb-1">快速分析模型</label>
-                <select v-model="form.quickModel" class="input text-sm">
-                  <option value="GLM-5">GLM-5 (智谱)</option>
-                  <option value="GLM-4.5">GLM-4.5 (智谱)</option>
-                  <option value="qwen-turbo">Qwen Turbo</option>
-                  <option value="gpt-4o-mini">GPT-4o Mini</option>
-                  <option value="claude-3-haiku">Claude 3 Haiku</option>
+                <select v-model="form.quickModel" class="input text-sm" :disabled="modelsLoading">
+                  <option v-if="modelsLoading" value="">加载中...</option>
+                  <option
+                    v-for="model in zhipuModels"
+                    :key="model.name"
+                    :value="model.name"
+                  >{{ model.display_name || model.name }}</option>
                 </select>
               </div>
               <div>
                 <label class="block text-xs text-[var(--text-muted)] mb-1">深度决策模型</label>
-                <select v-model="form.deepModel" class="input text-sm">
-                  <option value="GLM-4.7">GLM-4.7 (智谱)</option>
-                  <option value="GLM-4.6">GLM-4.6 (智谱)</option>
-                  <option value="qwen-max">Qwen Max</option>
-                  <option value="gpt-4o">GPT-4o</option>
-                  <option value="claude-3-sonnet">Claude 3 Sonnet</option>
+                <select v-model="form.deepModel" class="input text-sm" :disabled="modelsLoading">
+                  <option v-if="modelsLoading" value="">加载中...</option>
+                  <option
+                    v-for="model in zhipuModels"
+                    :key="model.name"
+                    :value="model.name"
+                  >{{ model.display_name || model.name }}</option>
                 </select>
               </div>
             </div>
@@ -233,18 +235,23 @@ import { ref, reactive, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { analysisApi } from '@/api/analysis'
+import { configApi } from '@/api/config'
 
 const route = useRoute()
 const router = useRouter()
 const submitting = ref(false)
+
+// 智谱模型列表（从后端拉取）
+const zhipuModels = ref<Array<{ name: string; display_name: string }>>([])
+const modelsLoading = ref(false)
 
 const form = reactive({
   stockCode: '',
   market: 'A股',
   researchDepth: 3,
   selectedAnalysts: ['市场分析师', '基本面分析师'],
-  quickModel: 'GLM-5',
-  deepModel: 'GLM-4.7',
+  quickModel: '',
+  deepModel: '',
   includeSentiment: true,
   includeRisk: true,
 })
@@ -273,11 +280,30 @@ const toggleAnalyst = (name: string) => {
   }
 }
 
-onMounted(() => {
+const loadZhipuModels = async () => {
+  modelsLoading.value = true
+  try {
+    const providers = await configApi.getAvailableModels()
+    const zhipuProvider = providers.find((p) => p.provider === 'zhipu')
+    if (zhipuProvider && zhipuProvider.models.length > 0) {
+      zhipuModels.value = zhipuProvider.models
+      // 设置默认值为列表第一个模型
+      if (!form.quickModel) form.quickModel = zhipuProvider.models[0].name
+      if (!form.deepModel) form.deepModel = zhipuProvider.models[0].name
+    }
+  } catch {
+    ElMessage.warning('模型列表加载失败，请检查配置')
+  } finally {
+    modelsLoading.value = false
+  }
+}
+
+onMounted(async () => {
   const stockCode = route.query.stock_code as string
   if (stockCode) {
     form.stockCode = stockCode
   }
+  await loadZhipuModels()
 })
 
 const submitAnalysis = async () => {

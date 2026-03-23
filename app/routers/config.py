@@ -2149,6 +2149,37 @@ async def init_model_catalog(
         )
 
 
+@router.post("/model-catalog/reset", response_model=dict)
+async def reset_model_catalog(
+    current_user: User = Depends(get_current_user)
+):
+    """重置模型目录为默认配置（仅保留智谱AI）"""
+    try:
+        success = await config_service.init_default_model_catalog(force=True)
+        if not success:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="重置模型目录失败"
+            )
+
+        await log_operation(
+            user_id=str(current_user["id"]),
+            username=current_user.get("username", "unknown"),
+            action_type=ActionType.CONFIG_MANAGEMENT,
+            action="reset_model_catalog",
+            details={"message": "重置为默认智谱AI模型目录"}
+        )
+
+        return {"success": True, "message": "模型目录已重置为默认配置"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"重置模型目录失败: {str(e)}"
+        )
+
+
 # ===== 数据库配置管理端点 =====
 
 @router.get("/database", response_model=List[DatabaseConfig])
